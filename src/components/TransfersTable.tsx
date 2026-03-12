@@ -92,7 +92,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            ID
+                            GROUP
                         </TableHead>
                         <TableHead
                             className={cn(

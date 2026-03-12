@@ -2,12 +2,17 @@ name: Build
 
 on:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Tag to release, for example v1.2.3
+        required: true
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -25,9 +30,32 @@ jobs:
       - name: Build app
         run: npm run build
 
+      - name: Archive dist
+        run: zip -r lite-dist.zip dist
+
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist
           if-no-files-found: error
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" \
+              --draft \
+              --title "$TAG_NAME" \
+              --target "$GITHUB_SHA"
+
+            gh release upload "$TAG_NAME" lite-dist.zip --clobber
+          else
+            gh release create "$TAG_NAME" lite-dist.zip \
+              --draft \
+              --title "$TAG_NAME" \
+              --generate-notes \
+              --target "$GITHUB_SHA"
+          fi

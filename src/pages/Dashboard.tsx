@@ -475,7 +475,7 @@ function DashboardMetricCard({
                 ) : (
                     <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                         <CheckCircle2Icon className="size-4 text-emerald-500" />
-                        All clear
+                        OK
                     </div>
                 )}
             </CardContent>

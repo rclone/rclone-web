@@ -436,7 +436,7 @@ export function SettingsPage() {
                                                     updateLogging('logLevel', value ?? logLevel)
                                                 }
                                             >
-                                                <SelectTrigger className="w-full h-12">
+                                                <SelectTrigger className="w-full data-[size=default]:h-12">
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>

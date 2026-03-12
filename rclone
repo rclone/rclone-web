@@ -1,0 +1,255 @@
+#!/usr/bin/env node
+
+import { spawn } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
+import { dirname, resolve } from 'node:path'
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
+
+const rootDir = dirname(fileURLToPath(import.meta.url))
+const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+const viteBin = resolve(rootDir, 'node_modules/vite/bin/vite.js')
+const rcloneCommand = process.env.RCLONE_BIN ?? 'rclone'
+const appHost = process.env.GUI_APP_HOST ?? '127.0.0.1'
+const appPort = String(process.env.GUI_APP_PORT ?? '4173')
+const rcloneHost = process.env.GUI_RCLONE_HOST ?? '127.0.0.1'
+const rclonePort = String(process.env.GUI_RCLONE_PORT ?? '5572')
+const longJobExpiry = process.env.GUI_LONG_JOB_EXPIRY === 'true'
+const username = `gui-${randomBytes(4).toString('hex')}`
+const password = randomBytes(18).toString('base64url')
+const rcloneUrl = `http://${rcloneHost}:${rclonePort}`
+const appOrigin = `http://${appHost}:${appPort}`
+const loginUrl = new URL('/login', appOrigin)
+
+loginUrl.searchParams.set('url', rcloneUrl)
+loginUrl.searchParams.set('user', username)
+loginUrl.searchParams.set('pass', password)
+
+const children = new Set()
+let shuttingDown = false
+
+function delay(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms)
+    })
+}
+
+function createBasicAuthHeader() {
+    return `Basic ${Buffer.from(`${username}:${password}`).toString('base64')}`
+}
+
+function getOpenCommand(url) {
+    if (process.platform === 'darwin') {
+        return ['open', [url]]
+    }
+
+    if (process.platform === 'win32') {
+        return ['cmd', ['/c', 'start', '', url]]
+    }
+
+    return ['xdg-open', [url]]
+}
+
+function spawnManaged(command, args, label) {
+    const child = spawn(command, args, {
+        cwd: rootDir,
+        stdio: 'inherit',
+    })
+
+    children.add(child)
+
+    child.once('error', (error) => {
+        console.error(`[${label}] ${error.message}`)
+        void shutdown(1)
+    })
+
+    child.once('exit', (code, signal) => {
+        children.delete(child)
+
+        if (shuttingDown) {
+            return
+        }
+
+        const reason = signal ? `signal ${signal}` : `code ${code ?? 0}`
+        console.error(`[${label}] exited unexpectedly with ${reason}`)
+        void shutdown(typeof code === 'number' ? code : 1)
+    })
+
+    return child
+}
+
+async function run(command, args, label) {
+    await new Promise((resolve, reject) => {
+        const child = spawn(command, args, {
+            cwd: rootDir,
+            stdio: 'inherit',
+        })
+
+        child.once('error', reject)
+        child.once('exit', (code, signal) => {
+            if (code === 0) {
+                resolve(undefined)
+                return
+            }
+
+            reject(new Error(`[${label}] exited with ${signal ? `signal ${signal}` : `code ${code ?? 0}`}`))
+        })
+    })
+}
+
+async function waitFor(label, check, timeoutMs = 30_000) {
+    const startedAt = Date.now()
+
+    while (Date.now() - startedAt < timeoutMs) {
+        try {
+            if (await check()) {
+                return
+            }
+        } catch {}
+
+        await delay(500)
+    }
+
+    throw new Error(`${label} did not become ready within ${timeoutMs}ms`)
+}
+
+async function isRcloneReady() {
+    const response = await fetch(`${rcloneUrl}/rc/noopauth`, {
+        method: 'POST',
+        headers: {
+            Authorization: createBasicAuthHeader(),
+            'Content-Type': 'application/json',
+        },
+        body: '{}',
+        signal: AbortSignal.timeout(1_000),
+    })
+
+    return response.ok
+}
+
+async function isPreviewReady() {
+    const response = await fetch(appOrigin, {
+        signal: AbortSignal.timeout(1_000),
+    })
+
+    return response.ok
+}
+
+function openBrowser(url) {
+    const [command, args] = getOpenCommand(url)
+    const opener = spawn(command, args, {
+        cwd: rootDir,
+        detached: true,
+        stdio: 'ignore',
+    })
+
+    opener.once('error', (error) => {
+        console.error(`Could not open the browser automatically: ${error.message}`)
+        console.error(`Open this URL manually: ${url}`)
+    })
+
+    opener.unref()
+}
+
+async function stopChild(child) {
+    if (child.exitCode !== null || child.signalCode !== null) {
+        return
+    }
+
+    await new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+            if (child.exitCode === null && child.signalCode === null) {
+                child.kill('SIGKILL')
+            }
+        }, 5_000)
+
+        child.once('exit', () => {
+            clearTimeout(timeout)
+            resolve(undefined)
+        })
+
+        child.kill('SIGTERM')
+    })
+}
+
+async function shutdown(exitCode = 0) {
+    if (shuttingDown) {
+        return
+    }
+
+    shuttingDown = true
+
+    await Promise.allSettled([...children].map((child) => stopChild(child)))
+    process.exit(exitCode)
+}
+
+process.on('SIGINT', () => {
+    void shutdown(0)
+})
+
+process.on('SIGTERM', () => {
+    void shutdown(0)
+})
+
+process.on('uncaughtException', (error) => {
+    console.error(error)
+    void shutdown(1)
+})
+
+process.on('unhandledRejection', (error) => {
+    console.error(error)
+    void shutdown(1)
+})
+
+async function main() {
+    console.log('Building production bundle...')
+    await run(npmCommand, ['run', 'build'], 'build')
+
+    console.log(`Starting rclone rcd on ${rcloneUrl}`)
+    spawnManaged(
+        rcloneCommand,
+        [
+            'rcd',
+            '--rc-addr',
+            `${rcloneHost}:${rclonePort}`,
+            '--rc-user',
+            username,
+            '--rc-pass',
+            password,
+            '--rc-allow-origin',
+            appOrigin,
+            ...(longJobExpiry
+                ? [
+                      '--rc-job-expire-duration',
+                      '24h',
+                      '--rc-job-expire-interval',
+                      '1h',
+                  ]
+                : []),
+        ],
+        'rclone'
+    )
+    await waitFor('rclone rcd', isRcloneReady)
+
+    console.log(`Starting Vite preview on ${appOrigin}`)
+    spawnManaged(
+        process.execPath,
+        [viteBin, 'preview', '--host', appHost, '--port', appPort, '--strictPort'],
+        'vite preview'
+    )
+    await waitFor('vite preview', isPreviewReady)
+
+    console.log(`RC URL: ${rcloneUrl}`)
+    console.log(`RC user: ${username}`)
+    console.log(`RC pass: ${password}`)
+    console.log(`Opening ${loginUrl.toString()}`)
+
+    openBrowser(loginUrl.toString())
+}
+
+try {
+    await main()
+} catch (error) {
+    console.error(error)
+    await shutdown(1)
+}

@@ -30,14 +30,11 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Archive dist
-        run: zip -r lite-dist.zip dist
-
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: index.html
+          path: dist/index.html
           if-no-files-found: error
 
       - name: Create draft release
@@ -51,9 +48,9 @@ jobs:
               --title "$TAG_NAME" \
               --target "$GITHUB_SHA"
 
-            gh release upload "$TAG_NAME" lite-dist.zip --clobber
+            gh release upload "$TAG_NAME" dist/index.html --clobber
           else
-            gh release create "$TAG_NAME" lite-dist.zip \
+            gh release create "$TAG_NAME" dist/index.html \
               --draft \
               --title "$TAG_NAME" \
               --generate-notes \

@@ -31,7 +31,7 @@ jobs:
         run: npm run build
 
       - name: Archive dist
-        run: zip -r lite-dist.zip dist
+        run: zip -r dist.zip dist
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
@@ -51,9 +51,9 @@ jobs:
               --title "$TAG_NAME" \
               --target "$GITHUB_SHA"
 
-            gh release upload "$TAG_NAME" lite-dist.zip --clobber
+            gh release upload "$TAG_NAME" dist.zip --clobber
           else
-            gh release create "$TAG_NAME" lite-dist.zip \
+            gh release create "$TAG_NAME" dist.zip \
               --draft \
               --title "$TAG_NAME" \
               --generate-notes \

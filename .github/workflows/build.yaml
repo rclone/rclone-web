@@ -31,7 +31,7 @@ jobs:
         run: npm run build
 
       - name: Archive dist
-        run: zip -r dist.zip dist
+        run: cd dist && zip -r ../dist.zip .
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4

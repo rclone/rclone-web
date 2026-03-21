@@ -37,13 +37,7 @@ export function App() {
     const latestVersion = useMemo(() => updateCheckQuery.data, [updateCheckQuery.data])
     const footerMessage = useMemo(
         () =>
-            [...MESSAGES]
-                .reverse()
-                .find(({ path }) =>
-                    path === '/'
-                        ? location.pathname === '/'
-                        : location.pathname === path || location.pathname.startsWith(`${path}/`)
-                )?.message,
+            MESSAGES.find(({ path }) => location.pathname === path)?.message,
         [location.pathname]
     )
 

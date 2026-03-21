@@ -233,6 +233,7 @@ export default async function rclone<
     }
 
     try {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
         const result = await createClient(auth).POST(
             path,
             ...(init as InitParam<OpenApiMaybeOptionalInit<Paths[Path], 'post'>>)

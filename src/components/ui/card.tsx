@@ -1,5 +1,5 @@
-import { cn } from '@/lib/ui'
 import type * as React from 'react'
+import { cn } from '@/lib/ui'
 
 function Card({
     className,
@@ -91,4 +91,4 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
     )
 }
 
-export { Card, CardHeader, CardFooter, CardTitle, CardAction, CardDescription, CardContent }
+export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }

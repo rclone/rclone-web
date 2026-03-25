@@ -1,5 +1,5 @@
-import { cn } from '@/lib/ui'
 import type * as React from 'react'
+import { cn } from '@/lib/ui'
 
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
     return (
@@ -88,4 +88,4 @@ function TableCaption({ className, ...props }: React.ComponentProps<'caption'>) 
     )
 }
 
-export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption }
+export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow }

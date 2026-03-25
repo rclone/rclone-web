@@ -1,3 +1,4 @@
+import { useId, useMemo } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
     Field,
@@ -7,7 +8,6 @@ import {
     FieldTitle,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { useId, useMemo } from 'react'
 
 export type OptionFieldOption = {
     Name: string
@@ -111,9 +111,7 @@ export function OptionField({
                     />
                     <FieldContent className="pt-0.5">
                         <FieldTitle>{option.Name}</FieldTitle>
-                        {description ? (
-                            <FieldDescription>{description}</FieldDescription>
-                        ) : null}
+                        {description ? <FieldDescription>{description}</FieldDescription> : null}
                     </FieldContent>
                 </FieldLabel>
             </Field>
@@ -149,9 +147,7 @@ export function OptionField({
                     ))}
                 </datalist>
             ) : null}
-            {description ? (
-                <FieldDescription>{description}</FieldDescription>
-            ) : null}
+            {description ? <FieldDescription>{description}</FieldDescription> : null}
         </Field>
     )
 }

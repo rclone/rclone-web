@@ -1,3 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import type { components } from 'rclone-openapi'
+import { useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { OptionField } from '@/components/OptionField'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
@@ -16,12 +22,6 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
-import type { components } from 'rclone-openapi'
-import { useCallback, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 export function RemotesNewPage() {
     const navigate = useNavigate()
@@ -210,9 +210,7 @@ export function RemotesNewPage() {
                         <div className="space-y-6">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="remote-name">
-                                        name
-                                    </FieldLabel>
+                                    <FieldLabel htmlFor="remote-name">name</FieldLabel>
                                     <Input
                                         id="remote-name"
                                         name="name"
@@ -249,9 +247,7 @@ export function RemotesNewPage() {
                                             showClear={true}
                                         />
                                         <ComboboxContent>
-                                            <ComboboxEmpty>
-                                                No backends found.
-                                            </ComboboxEmpty>
+                                            <ComboboxEmpty>No backends found.</ComboboxEmpty>
                                             <ComboboxList>
                                                 {(
                                                     backend: components['schemas']['ConfigProvider']
@@ -346,11 +342,7 @@ export function RemotesNewPage() {
                                 >
                                     Cancel
                                 </Button>
-                                <Button
-                                    type="button"
-                                    onClick={handleCreate}
-                                    disabled={!canCreate}
-                                >
+                                <Button type="button" onClick={handleCreate} disabled={!canCreate}>
                                     {createRemoteMutation.isPending
                                         ? 'Creating...'
                                         : 'Create Remote'}

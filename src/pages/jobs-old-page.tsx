@@ -1,3 +1,10 @@
+import {
+    CheckCircle2Icon,
+    PauseCircleIcon,
+    PlayIcon,
+    RefreshCwIcon,
+    XCircleIcon,
+} from 'lucide-react'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
 import { PageWrapper } from '@/components/PageWrapper'
@@ -13,13 +20,6 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/ui'
-import {
-    CheckCircle2Icon,
-    PauseCircleIcon,
-    PlayIcon,
-    RefreshCwIcon,
-    XCircleIcon,
-} from 'lucide-react'
 
 const baseJobs = [
     {

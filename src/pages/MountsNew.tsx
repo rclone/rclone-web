@@ -1,3 +1,7 @@
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { composeFs, toRecord } from '@/components/OptionField'
 import { OptionGroupCard } from '@/components/OptionGroupCard'
 import { PageContent } from '@/components/PageContent'
@@ -14,19 +18,10 @@ import {
     ComboboxItem,
     ComboboxList,
 } from '@/components/ui/combobox'
-import {
-    Field,
-    FieldDescription,
-    FieldGroup,
-    FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 export function MountsNewPage() {
     const navigate = useNavigate()
@@ -334,9 +329,7 @@ export function MountsNewPage() {
 
                     {hasDependencyErrors ? (
                         <Alert variant="destructive">
-                            <AlertTitle>
-                                Unable to load mount dependencies
-                            </AlertTitle>
+                            <AlertTitle>Unable to load mount dependencies</AlertTitle>
                             <AlertDescription>
                                 <ul className="space-y-1">
                                     {failedQueries.map((entry) => (
@@ -388,15 +381,10 @@ export function MountsNewPage() {
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
-                                                    <ComboboxEmpty>
-                                                        No remotes found.
-                                                    </ComboboxEmpty>
+                                                    <ComboboxEmpty>No remotes found.</ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
-                                                            <ComboboxItem
-                                                                key={item}
-                                                                value={item}
-                                                            >
+                                                            <ComboboxItem key={item} value={item}>
                                                                 <span className="font-mono text-xs">
                                                                     {item}
                                                                 </span>
@@ -483,10 +471,7 @@ export function MountsNewPage() {
                                                     </ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
-                                                            <ComboboxItem
-                                                                key={item}
-                                                                value={item}
-                                                            >
+                                                            <ComboboxItem key={item} value={item}>
                                                                 {item}
                                                             </ComboboxItem>
                                                         )}

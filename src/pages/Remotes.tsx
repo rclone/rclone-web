@@ -1,3 +1,7 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { HardDriveIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
 import { PageWrapper } from '@/components/PageWrapper'
@@ -25,10 +29,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { formatBytes } from '@/lib/format'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { HardDriveIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 interface RemoteUsage {
     used: number
@@ -197,9 +197,7 @@ export function RemotesPage() {
                                 <HardDriveIcon />
                             </EmptyMedia>
                             <EmptyTitle>No remotes configured</EmptyTitle>
-                            <EmptyDescription>
-                                Add a new remote to get started.
-                            </EmptyDescription>
+                            <EmptyDescription>Add a new remote to get started.</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <Button

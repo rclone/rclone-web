@@ -1,11 +1,11 @@
-import { clearAuthSession, useAuthStore } from '@/lib/store'
-import rclone from '@/rclone/client'
-import { updateCheckQueryOptions } from '@/rclone/update'
 import { useQuery } from '@tanstack/react-query'
 import { CloudIcon, LogOutIcon } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { clearAuthSession, useAuthStore } from '@/lib/store'
+import rclone from '@/rclone/client'
+import { updateCheckQueryOptions } from '@/rclone/update'
 
 const navItems = [
     { label: 'Dashboard', to: '/', end: true },
@@ -36,8 +36,7 @@ export function App() {
 
     const latestVersion = useMemo(() => updateCheckQuery.data, [updateCheckQuery.data])
     const footerMessage = useMemo(
-        () =>
-            MESSAGES.find(({ path }) => location.pathname === path)?.message,
+        () => MESSAGES.find(({ path }) => location.pathname === path)?.message,
         [location.pathname]
     )
 
@@ -58,7 +57,7 @@ export function App() {
 
         try {
             await rclone('/core/command', {
-                // @ts-ignore
+                // @ts-expect-error
                 body: { command: 'selfupdate' },
             })
             toast.success('rclone updated. Restart rclone to use the new version.')

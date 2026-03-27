@@ -1,13 +1,13 @@
+import { useMutation } from '@tanstack/react-query'
+import { AlertTriangle, Eye, EyeOff, KeyRound, Loader2, LogIn, User } from 'lucide-react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { clearPersistedQueryCache } from '@/lib/query'
 import { useAuthStore } from '@/lib/store'
 import { isAuthFailureError, validateConnection } from '@/rclone/client'
-import { useMutation } from '@tanstack/react-query'
-import { AlertTriangle, Eye, EyeOff, KeyRound, Loader2, LogIn, User } from 'lucide-react'
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
 
 export function LoginPage() {
     const location = useLocation()
@@ -39,15 +39,7 @@ export function LoginPage() {
     }, [location.search])
 
     const loginMutation = useMutation({
-        mutationFn: async ({
-            url,
-            user,
-            pass,
-        }: {
-            url: string
-            user: string
-            pass: string
-        }) => {
+        mutationFn: async ({ url, user, pass }: { url: string; user: string; pass: string }) => {
             return validateConnection({ url, user, pass })
         },
         onMutate: () => {

@@ -1,4 +1,3 @@
-import { clearAuthSession, useAuthStore } from '@/lib/store'
 import createRCDClient, {
     type OpenApiClient,
     type OpenApiClientPathsWithMethod,
@@ -7,12 +6,14 @@ import createRCDClient, {
     type OpenApiRequiredKeysOf,
     type RCDClient,
 } from 'rclone-sdk'
+import { clearAuthSession, useAuthStore } from '@/lib/store'
 
 type ClientPaths<T> = T extends OpenApiClient<infer P, any> ? P : never
 type Paths = ClientPaths<RCDClient>
-type InitParam<Init> = OpenApiRequiredKeysOf<Init> extends never
-    ? [(Init & { [key: string]: unknown })?]
-    : [Init & { [key: string]: unknown }]
+type InitParam<Init> =
+    OpenApiRequiredKeysOf<Init> extends never
+        ? [(Init & { [key: string]: unknown })?]
+        : [Init & { [key: string]: unknown }]
 
 let isRedirectingToLogin = false
 

@@ -1,6 +1,6 @@
-import { clearPersistedQueryCache } from '@/lib/query'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { clearPersistedQueryCache } from '@/lib/query'
 
 type AuthStore = {
     url: string

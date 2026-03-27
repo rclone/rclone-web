@@ -117,42 +117,57 @@
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes dvd-x {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(calc(100vw - 73px)); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(calc(100vw - 73px));
+    }
 }
 
 @keyframes dvd-y {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(calc(100vh - 56px)); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(calc(100vh - 56px));
+    }
 }
 
 @keyframes blob-drift-3 {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.08); }
+    0%,
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.08);
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  #root {
-    @apply h-full;
+    #root {
+        @apply h-full;
     }
-  body {
-    @apply h-full overflow-hidden overscroll-none font-sans bg-background text-foreground;
+    body {
+        @apply h-full overflow-hidden overscroll-none font-sans bg-background text-foreground;
     }
-  html {
-    @apply h-full overscroll-none font-sans;
+    html {
+        @apply h-full overscroll-none font-sans;
     }
 }

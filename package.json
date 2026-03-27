@@ -29,7 +29,7 @@
         "zustand": "^5.0.12"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
+        "@biomejs/biome": "^2.4.9",
         "@total-typescript/ts-reset": "^0.6.1",
         "@types/node": "^24.10.1",
         "@types/react": "^19.2.5",

@@ -1,3 +1,6 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CircleDotIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
 import { PageWrapper } from '@/components/PageWrapper'
@@ -9,9 +12,6 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { Spinner } from '@/components/ui/spinner'
 import { useAuthStore } from '@/lib/store'
 import { fetchJobsSnapshot, stopJob } from '@/rclone/jobs'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleDotIcon } from 'lucide-react'
-import { toast } from 'sonner'
 
 export function TransfersPage() {
     const queryClient = useQueryClient()

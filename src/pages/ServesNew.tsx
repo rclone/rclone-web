@@ -1,3 +1,7 @@
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { composeFs, normalizeText, toRecord } from '@/components/OptionField'
 import { OptionGroupCard } from '@/components/OptionGroupCard'
 import { PageContent } from '@/components/PageContent'
@@ -14,19 +18,10 @@ import {
     ComboboxItem,
     ComboboxList,
 } from '@/components/ui/combobox'
-import {
-    Field,
-    FieldDescription,
-    FieldGroup,
-    FieldLabel,
-} from '@/components/ui/field'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 const SERVE_BLOCK_CANDIDATES = ['dlna', 'ftp', 'http', 'nfs', 'restic', 's3', 'sftp', 'webdav']
 
@@ -371,9 +366,7 @@ export function ServesNewPage() {
 
                     {hasDependencyErrors ? (
                         <Alert variant="destructive">
-                            <AlertTitle>
-                                Unable to load serve dependencies
-                            </AlertTitle>
+                            <AlertTitle>Unable to load serve dependencies</AlertTitle>
                             <AlertDescription>
                                 <ul className="space-y-1">
                                     {failedQueries.map((entry) => (
@@ -425,15 +418,10 @@ export function ServesNewPage() {
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
-                                                    <ComboboxEmpty>
-                                                        No remotes found.
-                                                    </ComboboxEmpty>
+                                                    <ComboboxEmpty>No remotes found.</ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
-                                                            <ComboboxItem
-                                                                key={item}
-                                                                value={item}
-                                                            >
+                                                            <ComboboxItem key={item} value={item}>
                                                                 <span className="font-mono text-xs">
                                                                     {item}
                                                                 </span>
@@ -492,10 +480,7 @@ export function ServesNewPage() {
                                                     </ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
-                                                            <ComboboxItem
-                                                                key={item}
-                                                                value={item}
-                                                            >
+                                                            <ComboboxItem key={item} value={item}>
                                                                 {item}
                                                             </ComboboxItem>
                                                         )}
@@ -534,9 +519,7 @@ export function ServesNewPage() {
 
                             {serveTypes.length === 0 ? (
                                 <Alert variant="destructive">
-                                    <AlertTitle>
-                                        No serve types available
-                                    </AlertTitle>
+                                    <AlertTitle>No serve types available</AlertTitle>
                                     <AlertDescription>
                                         The daemon did not expose any serve protocols for this
                                         environment.

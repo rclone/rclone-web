@@ -1,3 +1,7 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { HardDriveIcon, PlusIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
 import { PageWrapper } from '@/components/PageWrapper'
@@ -17,10 +21,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { formatTime } from '@/lib/format'
 import rclone from '@/rclone/client'
 import { getRemoteName } from '@/rclone/utils'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { HardDriveIcon, PlusIcon } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 function formatUptime(value: string) {
     const mountedOn = new Date(value)
@@ -131,9 +131,7 @@ export function MountsPage() {
                                 <HardDriveIcon />
                             </EmptyMedia>
                             <EmptyTitle>No active mounts</EmptyTitle>
-                            <EmptyDescription>
-                                Create a new mount to get started.
-                            </EmptyDescription>
+                            <EmptyDescription>Create a new mount to get started.</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <Button

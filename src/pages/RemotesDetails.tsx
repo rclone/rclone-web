@@ -1,3 +1,21 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+    ArchiveIcon,
+    CloudIcon,
+    FileImageIcon,
+    FileSpreadsheetIcon,
+    FileTextIcon,
+    FolderIcon,
+    HardDriveIcon,
+    HouseIcon,
+    PencilIcon,
+    SearchIcon,
+    TrashIcon,
+    UploadIcon,
+} from 'lucide-react'
+import { Fragment, useMemo, useRef, useState } from 'react'
+import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { RefreshButton } from '@/components/RefreshButton'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -34,24 +52,6 @@ import { formatBytes } from '@/lib/format'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-    ArchiveIcon,
-    CloudIcon,
-    FileImageIcon,
-    FileSpreadsheetIcon,
-    FileTextIcon,
-    FolderIcon,
-    HardDriveIcon,
-    HouseIcon,
-    PencilIcon,
-    SearchIcon,
-    TrashIcon,
-    UploadIcon,
-} from 'lucide-react'
-import { Fragment, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 const IMAGE_EXTS = new Set([
     'jpg',

@@ -1,3 +1,4 @@
+import { CheckCircle2Icon, RefreshCwIcon, XCircleIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +13,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { formatBytes } from '@/lib/format'
 import { cn } from '@/lib/ui'
 import type { JobRow } from '@/rclone/jobs'
-import { CheckCircle2Icon, RefreshCwIcon, XCircleIcon } from 'lucide-react'
 
 function getTransferredLabel(job: JobRow) {
     if (job.totalBytes > 0) {
@@ -22,11 +22,7 @@ function getTransferredLabel(job: JobRow) {
     return formatBytes(job.bytes)
 }
 
-function TransferLocationCell({
-    value,
-}: {
-    value: string
-}) {
+function TransferLocationCell({ value }: { value: string }) {
     return (
         <span className="block whitespace-normal leading-5 break-all text-sm">{value || '—'}</span>
     )

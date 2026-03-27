@@ -1,6 +1,6 @@
+import { RefreshCwIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/ui'
-import { RefreshCwIcon } from 'lucide-react'
 
 interface RefreshButtonProps {
     isFetching: boolean

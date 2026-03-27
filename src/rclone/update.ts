@@ -1,5 +1,5 @@
-import rclone from '@/rclone/client'
 import { queryOptions } from '@tanstack/react-query'
+import rclone from '@/rclone/client'
 
 const yoursRe = /yours:\s+(\S+)/
 const latestRe = /latest:\s+(\S+)/
@@ -16,7 +16,7 @@ export function updateCheckQueryOptions() {
         queryKey: ['core', 'updateCheck'],
         queryFn: async () => {
             const data = (await rclone('/core/command', {
-                // @ts-ignore
+                // @ts-expect-error
                 body: {
                     command: 'selfupdate',
                     arg: ['--check'],

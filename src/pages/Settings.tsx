@@ -1,3 +1,14 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+    BookOpenIcon,
+    ClipboardCopyIcon,
+    FileCogIcon,
+    GaugeIcon,
+    InfoIcon,
+    LayersIcon,
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -14,17 +25,6 @@ import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import rclone, { rcloneUploadFile } from '@/rclone/client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-    BookOpenIcon,
-    ClipboardCopyIcon,
-    FileCogIcon,
-    GaugeIcon,
-    InfoIcon,
-    LayersIcon,
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 
 function normalizeConfigPath(path: string) {
     return path.trim().replace(/\\/g, '/')
@@ -167,7 +167,7 @@ export function SettingsPage() {
         enabled: Boolean(fetchedConfigPath),
         queryFn: async () => {
             const response = (await rclone('/core/command', {
-                // @ts-ignore
+                // @ts-expect-error
                 body: {
                     command: 'cat',
                     arg: [normalizeConfigPath(fetchedConfigPath)],
@@ -237,7 +237,7 @@ export function SettingsPage() {
             if (Object.keys(log).length > 0) body.log = log
             if (Object.keys(body).length > 0) {
                 await rclone('/options/set', {
-                    // @ts-ignore
+                    // @ts-expect-error
                     body,
                 })
             }

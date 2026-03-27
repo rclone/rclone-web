@@ -1,8 +1,10 @@
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
+import type { Dispatch, SetStateAction } from 'react'
 import {
-    OptionField,
-    type OptionFieldOption,
     normalizeBoolean,
     normalizeText,
+    OptionField,
+    type OptionFieldOption,
 } from '@/components/OptionField'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,8 +16,6 @@ import {
     CardTitle,
 } from '@/components/ui/card'
 import { FieldGroup } from '@/components/ui/field'
-import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
-import type { Dispatch, SetStateAction } from 'react'
 
 function upsertEditedValue(
     previous: Record<string, unknown>,

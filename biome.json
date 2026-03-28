@@ -1,7 +1,14 @@
 {
     "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
     "files": {
-        "includes": ["**", "!node_modules", "!dist", "!.work"],
+        "includes": [
+            "**",
+            "!node_modules",
+            "!dist",
+            "!.work",
+            "!playwright-report",
+            "!test-results"
+        ],
         "ignoreUnknown": true
     },
     "assist": { "actions": { "source": { "organizeImports": "on" } } },

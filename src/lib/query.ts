@@ -7,8 +7,7 @@ export const persistedQueryCacheKey = 'lite-ui-persisted-query-cache'
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            // staleTime: 60_000,
-            // gcTime: 3_600_000,
+            staleTime: 30_000,
         },
     },
 })

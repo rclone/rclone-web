@@ -233,11 +233,16 @@ export function RemotesPage() {
 
                             <TableBody>
                                 {remotes.map((remote) => (
-                                    <TableRow key={remote.name} className="hover:bg-muted/20">
+                                    <TableRow
+                                        key={remote.name}
+                                        className="hover:bg-muted/20"
+                                        onClick={() => navigate(`/remotes/${remote.name}`)}
+                                    >
                                         <TableCell className="px-6 py-6">
                                             <Link
                                                 to={`/remotes/${remote.name}`}
-                                                className="inline-flex rounded-md outline-none group focus-visible:ring-2 focus-visible:ring-ring"
+                                                className="inline-flex cursor-pointer rounded-md outline-none group focus-visible:ring-2 focus-visible:ring-ring"
+                                                onClick={(e) => e.stopPropagation()}
                                             >
                                                 <span className="text-lg font-semibold group-hover:text-primary">
                                                     {remote.name}
@@ -284,7 +289,10 @@ export function RemotesPage() {
                                             )}
                                         </TableCell>
 
-                                        <TableCell className="px-4 py-6">
+                                        <TableCell
+                                            className="px-4 py-6"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <div className="flex items-center justify-end gap-1">
                                                 <Tooltip>
                                                     <TooltipTrigger

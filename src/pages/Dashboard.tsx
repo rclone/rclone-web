@@ -485,7 +485,11 @@ function DashboardMetricCard({
 
 function getRemoteAttention(remotes: RemoteWithUsage[]) {
     return remotes
-        .filter((remote) => (remote.usage?.barPercent ?? 0) >= 80)
+        .filter((remote) => {
+            const percent = remote.usage?.barPercent ?? 0
+            const threshold = remote.type === 'local' ? 99 : 85
+            return percent >= threshold
+        })
         .sort((a, b) => (b.usage?.barPercent ?? 0) - (a.usage?.barPercent ?? 0))
         .map((remote) => ({
             title: remote.name,

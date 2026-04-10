@@ -143,7 +143,11 @@ export function SettingsPage() {
                 ? coreVersionQuery.error.message
                 : 'Unknown error while fetching core/version'
         }
-        return JSON.stringify(coreVersionQuery.data ?? {}, null, 2)
+        return JSON.stringify(
+            { ...(coreVersionQuery.data ?? {}), webVersion: `v${APP_VERSION}` },
+            null,
+            2
+        )
     }, [
         coreVersionQuery.data,
         coreVersionQuery.error,

@@ -439,7 +439,7 @@ export function MountsNewPage() {
                                                 onChange={(event) =>
                                                     setMountPoint(event.target.value)
                                                 }
-                                                placeholder="/path/to/mount"
+                                                placeholder="/path/to/mount, X: or * on Windows to assign a new drive letter"
                                                 required={true}
                                                 autoComplete="off"
                                                 autoCapitalize="off"

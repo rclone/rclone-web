@@ -39,7 +39,7 @@ const LINKS = [
 export function DashboardPage() {
     const queryClient = useQueryClient()
     const remotesQuery = useQuery({
-        queryKey: ['dashboard', 'remotes'],
+        queryKey: ['remotes', 'withUsage'],
         queryFn: fetchRemotesWithUsage,
     })
     const mountsQuery = useQuery({
@@ -100,11 +100,17 @@ export function DashboardPage() {
     const recentFailedJobs = useMemo(() => getJobAttention(jobs), [jobs])
     const remoteAttention = useMemo(() => getRemoteAttention(remotes), [remotes])
     const serveAttention = useMemo(() => getServeAttention(serves), [serves])
-    const isFetchingAny = useIsFetching({ queryKey: ['dashboard'] }) > 0
+    const isFetchingDashboard = useIsFetching({ queryKey: ['dashboard'] }) > 0
+    const isFetchingRemotes = useIsFetching({ queryKey: ['remotes'] }) > 0
+    const isFetchingAny = isFetchingDashboard || isFetchingRemotes
 
     const handleRefresh = useCallback(async () => {
         queryClient.refetchQueries({
             queryKey: ['dashboard'],
+            type: 'active',
+        })
+        queryClient.refetchQueries({
+            queryKey: ['remotes'],
             type: 'active',
         })
     }, [queryClient])

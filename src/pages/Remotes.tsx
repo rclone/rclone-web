@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { HardDriveIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlertTriangleIcon, HardDriveIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
@@ -26,82 +27,31 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { formatBytes } from '@/lib/format'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
-
-interface RemoteUsage {
-    used: number
-    total: number
-    free: number
-    usedLabel: string
-    totalLabel: string
-    percentLabel: string
-    barPercent: number
-}
-
-function parseUsage(data: { used?: number; total?: number; free?: number }): RemoteUsage | null {
-    const used = data.used
-    const total = data.total
-
-    if (used === undefined || total === undefined || total === 0) {
-        return null
-    }
-
-    const free = data.free ?? total - used
-    const percent = Math.round((used / total) * 100)
-
-    return {
-        used,
-        total,
-        free,
-        usedLabel: formatBytes(used),
-        totalLabel: formatBytes(total),
-        percentLabel: `${percent}%`,
-        barPercent: Math.min(percent, 100),
-    }
-}
+import { fetchRemotesList, fetchRemoteUsage, type UsageStatus } from '@/rclone/usage'
 
 export function RemotesPage() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
-    const remotesQuery = useQuery({
-        queryKey: ['remotes'],
-        queryFn: async () => {
-            const [listResponse, dumpResponse] = await Promise.all([
-                rclone('/config/listremotes'),
-                rclone('/config/dump'),
-            ])
-
-            const names = [...(listResponse.remotes ?? [])].sort((a, b) => a.localeCompare(b))
-            const configs = (dumpResponse ?? {}) as Record<string, Record<string, string>>
-
-            const remotes = await Promise.all(
-                names.map(async (name) => {
-                    let usage: RemoteUsage | null = null
-                    try {
-                        const aboutResponse = await rclone('/operations/about', {
-                            params: { query: { fs: `${name}:` } },
-                        })
-                        usage = parseUsage(
-                            aboutResponse as { used?: number; total?: number; free?: number }
-                        )
-                    } catch {
-                        // Remote doesn't support about - leave usage null
-                    }
-
-                    return {
-                        name,
-                        type: configs[name]?.type ?? 'unknown',
-                        usage,
-                    }
-                })
-            )
-
-            return remotes
-        },
+    const remotesListQuery = useQuery({
+        queryKey: ['remotes', 'list'],
+        queryFn: fetchRemotesList,
     })
+
+    const remotes = remotesListQuery.data ?? []
+
+    const usageQueries = useQueries({
+        queries: remotes.map((remote) => ({
+            queryKey: ['remotes', 'usage', remote.name],
+            queryFn: () => fetchRemoteUsage(remote.name, remote.type),
+            staleTime: 5 * 60 * 1000,
+            retry: false,
+        })),
+    })
+
+    const isFetchingUsage = useMemo(() => usageQueries.some((q) => q.isFetching), [usageQueries])
 
     const deleteMutation = useMutation({
         mutationFn: async (name: string) => {
@@ -119,8 +69,6 @@ export function RemotesPage() {
         },
     })
 
-    const remotes = remotesQuery.data ?? []
-
     return (
         <PageWrapper>
             <PageHeader
@@ -133,15 +81,15 @@ export function RemotesPage() {
                             Add New Remote
                         </Button>
                         <RefreshButton
-                            isFetching={remotesQuery.isFetching}
-                            refetch={remotesQuery.refetch}
+                            isFetching={remotesListQuery.isFetching || isFetchingUsage}
+                            refetch={remotesListQuery.refetch}
                         />
                     </div>
                 }
             />
 
             <PageContent>
-                {remotesQuery.isPending ? (
+                {remotesListQuery.isPending ? (
                     <div className="overflow-hidden border rounded-xl">
                         <Table>
                             <TableHeader className="bg-muted/40">
@@ -167,12 +115,12 @@ export function RemotesPage() {
                     </div>
                 ) : null}
 
-                {remotesQuery.isError ? (
+                {remotesListQuery.isError ? (
                     <Alert variant="destructive">
                         <AlertTitle>Unable to load remotes</AlertTitle>
                         <AlertDescription>
-                            {remotesQuery.error instanceof Error
-                                ? remotesQuery.error.message
+                            {remotesListQuery.error instanceof Error
+                                ? remotesListQuery.error.message
                                 : 'Unknown error occurred'}
                         </AlertDescription>
                         <AlertAction>
@@ -181,7 +129,7 @@ export function RemotesPage() {
                                 variant="outline"
                                 size="xs"
                                 onClick={() => {
-                                    remotesQuery.refetch()
+                                    remotesListQuery.refetch()
                                 }}
                             >
                                 Retry
@@ -190,7 +138,7 @@ export function RemotesPage() {
                     </Alert>
                 ) : null}
 
-                {remotesQuery.isSuccess && remotes.length === 0 ? (
+                {remotesListQuery.isSuccess && remotes.length === 0 ? (
                     <Empty className="rounded-xl border">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
@@ -232,7 +180,7 @@ export function RemotesPage() {
                             </TableHeader>
 
                             <TableBody>
-                                {remotes.map((remote) => (
+                                {remotes.map((remote, i) => (
                                     <TableRow
                                         key={remote.name}
                                         className="hover:bg-muted/20"
@@ -257,36 +205,10 @@ export function RemotesPage() {
                                         </TableCell>
 
                                         <TableCell className="px-4 py-6">
-                                            {remote.usage ? (
-                                                <div className="w-[240px] space-y-2">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <span className="font-mono text-sm text-muted-foreground">
-                                                            {remote.usage.usedLabel} /{' '}
-                                                            {remote.usage.totalLabel}
-                                                        </span>
-                                                        <span className="font-mono text-sm text-muted-foreground">
-                                                            {remote.usage.percentLabel}
-                                                        </span>
-                                                    </div>
-                                                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                                                        <div
-                                                            className={cn(
-                                                                'h-full rounded-full transition-all',
-                                                                remote.usage.barPercent >= 85
-                                                                    ? 'bg-destructive'
-                                                                    : 'bg-primary'
-                                                            )}
-                                                            style={{
-                                                                width: `${remote.usage.barPercent}%`,
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <span className="font-mono text-sm text-muted-foreground">
-                                                    --
-                                                </span>
-                                            )}
+                                            <UsageCell
+                                                status={usageQueries[i]?.data}
+                                                isLoading={usageQueries[i]?.isLoading ?? true}
+                                            />
                                         </TableCell>
 
                                         <TableCell
@@ -352,4 +274,75 @@ export function RemotesPage() {
             </PageContent>
         </PageWrapper>
     )
+}
+
+function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isLoading: boolean }) {
+    if (isLoading) {
+        return <Spinner className="size-4" />
+    }
+
+    if (!status || status.state === 'idle' || status.state === 'loading') {
+        return <span className="font-mono text-sm text-muted-foreground">--</span>
+    }
+
+    switch (status.state) {
+        case 'success':
+            return (
+                <div className="w-[240px] space-y-2">
+                    <div className="flex items-center justify-between gap-4">
+                        <span className="font-mono text-sm text-muted-foreground">
+                            {status.usage.usedLabel} / {status.usage.totalLabel}
+                        </span>
+                        <span className="font-mono text-sm text-muted-foreground">
+                            {status.usage.percentLabel}
+                        </span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                        <div
+                            className={cn(
+                                'h-full rounded-full transition-all',
+                                status.usage.barPercent >= 85 ? 'bg-destructive' : 'bg-primary'
+                            )}
+                            style={{
+                                width: `${status.usage.barPercent}%`,
+                            }}
+                        />
+                    </div>
+                </div>
+            )
+
+        case 'auth_error':
+            return (
+                <Tooltip>
+                    <TooltipTrigger
+                        render={
+                            <span className="inline-flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
+                                <AlertTriangleIcon className="size-3.5" />
+                                Needs reconnection
+                            </span>
+                        }
+                    />
+                    <TooltipContent className="max-w-sm">{status.message}</TooltipContent>
+                </Tooltip>
+            )
+
+        case 'error':
+            return (
+                <Tooltip>
+                    <TooltipTrigger
+                        render={
+                            <span className="inline-flex items-center gap-1.5 text-sm text-destructive">
+                                <AlertTriangleIcon className="size-3.5" />
+                                Error
+                            </span>
+                        }
+                    />
+                    <TooltipContent className="max-w-sm">{status.message}</TooltipContent>
+                </Tooltip>
+            )
+
+        case 'unsupported':
+        default:
+            return <span className="font-mono text-sm text-muted-foreground">--</span>
+    }
 }

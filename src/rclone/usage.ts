@@ -11,11 +11,56 @@ export type RemoteUsage = {
     barPercent: number
 }
 
+export type UsageStatus =
+    | { state: 'idle' }
+    | { state: 'loading' }
+    | { state: 'success'; usage: RemoteUsage }
+    | { state: 'unsupported' }
+    | { state: 'auth_error'; message: string }
+    | { state: 'error'; message: string }
+
+export type RemoteInfo = {
+    name: string
+    type: string
+}
+
 export type RemoteWithUsage = {
     name: string
     type: string
     usage: RemoteUsage | null
+    reachable: boolean
 }
+
+const SUPPORTS_ABOUT = [
+    'box',
+    'dropbox',
+    'gofile',
+    'drive',
+    'filen',
+    'hdfs',
+    'internetarchive',
+    'jottacloud',
+    'koofr',
+    'mailru',
+    'mega',
+    'azurefiles',
+    'onedrive',
+    'opendrive',
+    'swift',
+    'pcloud',
+    'pikpak',
+    'pixeldrain',
+    'premiumizeme',
+    'putio',
+    'protondrive',
+    'quatrix',
+    'seafile',
+    'sftp',
+    'webdav',
+    'yandex',
+    'zoho',
+    'local',
+] as const
 
 function parseRemoteUsage(data: {
     used?: number
@@ -43,7 +88,23 @@ function parseRemoteUsage(data: {
     }
 }
 
-export async function fetchRemotesWithUsage() {
+function supportsAbout(type: string): boolean {
+    return (SUPPORTS_ABOUT as readonly string[]).includes(type)
+}
+
+function isAuthError(message: string): boolean {
+    return (
+        message.includes('token expired') ||
+        message.includes('invalid_grant') ||
+        message.includes('401') ||
+        message.includes('403') ||
+        message.includes('Unauthorized') ||
+        message.includes('Forbidden') ||
+        message.includes('empty token found')
+    )
+}
+
+export async function fetchRemotesList(): Promise<RemoteInfo[]> {
     const [listResponse, dumpResponse] = await Promise.all([
         rclone('/config/listremotes'),
         rclone('/config/dump'),
@@ -52,25 +113,44 @@ export async function fetchRemotesWithUsage() {
     const names = [...(listResponse.remotes ?? [])].sort((a, b) => a.localeCompare(b))
     const configs = (dumpResponse ?? {}) as Record<string, Record<string, string>>
 
-    return Promise.all(
-        names.map(async (name): Promise<RemoteWithUsage> => {
-            let usage: RemoteUsage | null = null
+    return names.map((name) => ({
+        name,
+        type: configs[name]?.type ?? 'unknown',
+    }))
+}
 
-            try {
-                const aboutResponse = await rclone('/operations/about', {
+export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatus> {
+    if (!supportsAbout(type)) {
+        return Promise.resolve({ state: 'unsupported' as const })
+    }
+
+        try {
+            const response = await Promise.race([
+                rclone('/operations/about', {
                     params: { query: { fs: `${name}:` } },
-                })
-                usage = parseRemoteUsage(
-                    aboutResponse as { used?: number; total?: number; free?: number }
-                )
-            } catch {
-                usage = null
-            }
+                }),
+            ])
+            const usage = parseRemoteUsage(
+                response as { used?: number; total?: number; free?: number }
+            )
+            return usage ? { state: 'success' as const, usage } : { state: 'unsupported' as const }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error'
+            if (isAuthError(message)) return { state: 'auth_error' as const, message }
+            return { state: 'error' as const, message }
+        }
+}
 
+export async function fetchRemotesWithUsage(): Promise<RemoteWithUsage[]> {
+    const remotes = await fetchRemotesList()
+
+    return Promise.all(
+        remotes.map(async (remote): Promise<RemoteWithUsage> => {
+            const status = await fetchRemoteUsage(remote.name, remote.type)
             return {
-                name,
-                type: configs[name]?.type ?? 'unknown',
-                usage,
+                ...remote,
+                usage: status.state === 'success' ? status.usage : null,
+                reachable: status.state !== 'auth_error' && status.state !== 'error',
             }
         })
     )

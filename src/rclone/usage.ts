@@ -104,6 +104,32 @@ function isAuthError(message: string): boolean {
     )
 }
 
+const aboutLimit = (() => {
+    const max = 6
+    let active = 0
+    const queue: Array<() => void> = []
+
+    function next() {
+        if (queue.length > 0 && active < max) {
+            active++
+            queue.shift()!()
+        }
+    }
+
+    return <T>(fn: () => Promise<T>): Promise<T> =>
+        new Promise<T>((resolve, reject) => {
+            queue.push(() => {
+                fn()
+                    .then(resolve, reject)
+                    .finally(() => {
+                        active--
+                        next()
+                    })
+            })
+            next()
+        })
+})()
+
 export async function fetchRemotesList(): Promise<RemoteInfo[]> {
     const [listResponse, dumpResponse] = await Promise.all([
         rclone('/config/listremotes'),
@@ -124,6 +150,7 @@ export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatu
         return Promise.resolve({ state: 'unsupported' as const })
     }
 
+    return aboutLimit(async () => {
         try {
             const response = await Promise.race([
                 rclone('/operations/about', {
@@ -139,6 +166,7 @@ export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatu
             if (isAuthError(message)) return { state: 'auth_error' as const, message }
             return { state: 'error' as const, message }
         }
+    })
 }
 
 export async function fetchRemotesWithUsage(): Promise<RemoteWithUsage[]> {

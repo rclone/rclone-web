@@ -156,6 +156,9 @@ export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatu
                 rclone('/operations/about', {
                     params: { query: { fs: `${name}:` } },
                 }),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out')), 8_000)
+                ),
             ])
             const usage = parseRemoteUsage(
                 response as { used?: number; total?: number; free?: number }

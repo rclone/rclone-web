@@ -17,12 +17,12 @@ const navItems = [
 ]
 
 const MESSAGES = [
-    { path: '/', message: 'Looking for the native UI?' },
+    { path: '/', message: 'Enable more features in the native UI' },
     { path: '/remotes', message: 'Browse remotes on external servers with the native UI' },
     { path: '/mounts', message: 'Mounts can be started on boot using Rclone UI' },
     {
         path: '/transfers',
-        message: "You can schedule tasks using your operating system's scheduler or the native UI",
+        message: 'Schedule tasks using your OS scheduler, or the native UI',
     },
 ] as const
 
@@ -118,9 +118,9 @@ export function App() {
                 <Outlet />
 
                 {footerMessage ? (
-                    <footer className="mt-auto shrink-0 px-6 py-4 text-center text-xs text-muted-foreground">
+                    <footer className="mt-auto shrink-0 px-6 py-4 text-center text-sm text-muted-foreground">
                         <a
-                            href="https://rcloneui.com/github"
+                            href="https://rcloneui.com/web"
                             target="_blank"
                             rel="noreferrer"
                             className="transition-colors hover:text-foreground"

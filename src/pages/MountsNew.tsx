@@ -42,6 +42,12 @@ export function MountsNewPage() {
         filter: false,
         config: false,
     })
+    const [collapsed, setCollapsed] = useState({
+        mount: true,
+        vfs: true,
+        filter: true,
+        config: true,
+    })
 
     const remotesQuery = useQuery({
         queryKey: ['mounts', 'new', 'remotes'],
@@ -521,6 +527,13 @@ export function MountsNewPage() {
                                             showAdvanced={group.showAdvanced}
                                             onShowAdvancedChange={(value) =>
                                                 setShowAdvanced((previous) => ({
+                                                    ...previous,
+                                                    [group.key]: value,
+                                                }))
+                                            }
+                                            collapsed={collapsed[group.key]}
+                                            onCollapsedChange={(value) =>
+                                                setCollapsed((previous) => ({
                                                     ...previous,
                                                     [group.key]: value,
                                                 }))

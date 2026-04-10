@@ -43,6 +43,12 @@ export function ServesNewPage() {
         filter: false,
         config: false,
     })
+    const [collapsed, setCollapsed] = useState({
+        serve: true,
+        vfs: true,
+        filter: true,
+        config: true,
+    })
 
     const remotesQuery = useQuery({
         queryKey: ['serves', 'new', 'remotes'],
@@ -541,6 +547,13 @@ export function ServesNewPage() {
                                               showAdvanced={group.showAdvanced}
                                               onShowAdvancedChange={(value) =>
                                                   setShowAdvanced((previous) => ({
+                                                      ...previous,
+                                                      [group.key]: value,
+                                                  }))
+                                              }
+                                              collapsed={collapsed[group.key]}
+                                              onCollapsedChange={(value) =>
+                                                  setCollapsed((previous) => ({
                                                       ...previous,
                                                       [group.key]: value,
                                                   }))

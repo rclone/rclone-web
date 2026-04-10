@@ -47,6 +47,8 @@ export function OptionGroupCard({
     setEditedValues,
     showAdvanced,
     onShowAdvancedChange,
+    collapsed = false,
+    onCollapsedChange,
 }: {
     title: string
     description: string
@@ -56,6 +58,8 @@ export function OptionGroupCard({
     setEditedValues: Dispatch<SetStateAction<Record<string, unknown>>>
     showAdvanced: boolean
     onShowAdvancedChange: (value: boolean) => void
+    collapsed?: boolean
+    onCollapsedChange?: (value: boolean) => void
 }) {
     const defaultOptions = options.filter((option) => option.Required || !option.Advanced)
     const advancedOptions = options.filter((option) => option.Advanced && !option.Required)
@@ -76,7 +80,10 @@ export function OptionGroupCard({
 
     return (
         <Card>
-            <CardHeader className="border-b">
+            <CardHeader
+                className={`-mt-4 cursor-pointer select-none pt-4 transition-colors hover:bg-muted/20 ${collapsed ? '-mb-4 pb-4' : 'border-b'}`}
+                onClick={() => onCollapsedChange?.(!collapsed)}
+            >
                 <CardTitle>{title}</CardTitle>
                 <CardDescription>{description}</CardDescription>
                 <CardAction>
@@ -86,52 +93,56 @@ export function OptionGroupCard({
                 </CardAction>
             </CardHeader>
 
-            <CardContent className="space-y-4 pt-4">
-                <FieldGroup>
-                    {defaultOptions.map((option) => (
-                        <OptionField
-                            key={option.Name}
-                            option={option}
-                            value={
-                                editedValues[option.Name] !== undefined
-                                    ? editedValues[option.Name]
-                                    : initialValues[option.Name]
-                            }
-                            onChange={(nextValue) => handleChange(option, nextValue)}
-                        />
-                    ))}
-                </FieldGroup>
+            {collapsed ? null : (
+                <CardContent className="space-y-4 pt-4">
+                    <FieldGroup>
+                        {defaultOptions.map((option) => (
+                            <OptionField
+                                key={option.Name}
+                                option={option}
+                                value={
+                                    editedValues[option.Name] !== undefined
+                                        ? editedValues[option.Name]
+                                        : initialValues[option.Name]
+                                }
+                                onChange={(nextValue) => handleChange(option, nextValue)}
+                            />
+                        ))}
+                    </FieldGroup>
 
-                {hasAdvancedOptions ? (
-                    <div className="space-y-3">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() => onShowAdvancedChange(!showAdvanced)}
-                        >
-                            {showAdvanced ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                            More options
-                        </Button>
+                    {hasAdvancedOptions ? (
+                        <div className="space-y-3">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => onShowAdvancedChange(!showAdvanced)}
+                            >
+                                {showAdvanced ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                                More options
+                            </Button>
 
-                        {showAdvanced ? (
-                            <FieldGroup>
-                                {advancedOptions.map((option) => (
-                                    <OptionField
-                                        key={option.Name}
-                                        option={option}
-                                        value={
-                                            editedValues[option.Name] !== undefined
-                                                ? editedValues[option.Name]
-                                                : initialValues[option.Name]
-                                        }
-                                        onChange={(nextValue) => handleChange(option, nextValue)}
-                                    />
-                                ))}
-                            </FieldGroup>
-                        ) : null}
-                    </div>
-                ) : null}
-            </CardContent>
+                            {showAdvanced ? (
+                                <FieldGroup>
+                                    {advancedOptions.map((option) => (
+                                        <OptionField
+                                            key={option.Name}
+                                            option={option}
+                                            value={
+                                                editedValues[option.Name] !== undefined
+                                                    ? editedValues[option.Name]
+                                                    : initialValues[option.Name]
+                                            }
+                                            onChange={(nextValue) =>
+                                                handleChange(option, nextValue)
+                                            }
+                                        />
+                                    ))}
+                                </FieldGroup>
+                            ) : null}
+                        </div>
+                    ) : null}
+                </CardContent>
+            )}
         </Card>
     )
 }

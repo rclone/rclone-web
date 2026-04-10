@@ -623,7 +623,7 @@ export function SettingsPage() {
                     <div className="space-y-3">
                         <div className="relative">
                             <div
-                                className="p-3 font-mono text-sm break-all border rounded-lg bg-muted/50 text-primary"
+                                className="p-3 font-mono text-sm break-all border rounded-lg bg-primary/5 text-primary"
                                 style={{ whiteSpace: 'pre-wrap' }}
                             >
                                 {versionOutput}

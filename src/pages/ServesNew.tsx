@@ -203,12 +203,11 @@ export function ServesNewPage() {
         [editedServe, serveInitialValues]
     )
 
-    const serveAddr = normalizeText(resolvedServeValues.addr).trim()
-
     const serveMutation = useMutation({
         mutationFn: async () => {
             const normalizedRemoteName = remoteName.trim()
             const normalizedServeType = serveType.trim()
+            const serveAddr = normalizeText(resolvedServeValues.addr).trim()
 
             if (!normalizedRemoteName || !normalizedServeType || !serveAddr) {
                 throw new Error('Remote, serve type, and addr are required')
@@ -302,7 +301,6 @@ export function ServesNewPage() {
         remotes.length === 0 ||
         remoteName.trim().length === 0 ||
         serveType.trim().length === 0 ||
-        serveAddr.length === 0 ||
         serveMutation.isPending
 
     const fsPreview = remoteName.trim() ? composeFs(remoteName.trim(), sourceSubpath) : ''
@@ -562,18 +560,6 @@ export function ServesNewPage() {
                                       )
                                   })
                                 : null}
-
-                            {serveAddr.length === 0 && serveType.trim().length > 0 ? (
-                                <Alert variant="destructive">
-                                    <AlertTitle>Missing listen address</AlertTitle>
-                                    <AlertDescription>
-                                        Set <span className="font-mono">addr</span> in the Serve
-                                        options (for example{' '}
-                                        <span className="font-mono">:8080</span> or{' '}
-                                        <span className="font-mono">127.0.0.1:8080</span>).
-                                    </AlertDescription>
-                                </Alert>
-                            ) : null}
 
                             <div className="flex items-center justify-end gap-2 border-t pt-4">
                                 <Button

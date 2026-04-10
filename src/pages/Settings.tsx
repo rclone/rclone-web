@@ -607,13 +607,25 @@ export function SettingsPage() {
                         <ul className="space-y-3">
                             <li className="flex items-center gap-3 text-xl">
                                 <BookOpenIcon className="size-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">
+                                <a
+                                    href="https://rclone.org/flags/"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-muted-foreground transition-colors hover:text-foreground"
+                                >
                                     Global Flags Reference
-                                </span>
+                                </a>
                             </li>
                             <li className="flex items-center gap-3 text-xl">
                                 <BookOpenIcon className="size-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Performance Tuning</span>
+                                <a
+                                    href="https://rclone.org/flags/#performance"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-muted-foreground transition-colors hover:text-foreground"
+                                >
+                                    Performance Tuning
+                                </a>
                             </li>
                         </ul>
                     </div>

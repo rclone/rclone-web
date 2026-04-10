@@ -98,6 +98,7 @@ export function DashboardPage() {
         jobs.filter((job) => job.status === 'running').map((job) => job.id)
     ).size
     const recentFailedJobs = useMemo(() => getJobAttention(jobs), [jobs])
+    const remoteErrors = useMemo(() => getRemoteErrors(remotes), [remotes])
     const remoteAttention = useMemo(() => getRemoteAttention(remotes), [remotes])
     const serveAttention = useMemo(() => getServeAttention(serves), [serves])
     const isFetchingDashboard = useIsFetching({ queryKey: ['dashboard'] }) > 0
@@ -131,12 +132,17 @@ export function DashboardPage() {
                             value={String(remotes.length)}
                             icon={CloudIcon}
                             attention={
-                                remoteAttention.length > 0
+                                remoteErrors.length > 0
                                     ? {
-                                          heading: 'Remotes nearing full usage',
-                                          items: remoteAttention,
+                                          heading: 'Some remotes are not reachable',
+                                          items: remoteErrors,
                                       }
-                                    : undefined
+                                    : remoteAttention.length > 0
+                                      ? {
+                                            heading: 'Some remotes are nearing full usage',
+                                            items: remoteAttention,
+                                        }
+                                      : undefined
                             }
                             isPending={remotesQuery.isPending}
                             isError={remotesQuery.isError}
@@ -487,6 +493,15 @@ function DashboardMetricCard({
             </CardContent>
         </Card>
     )
+}
+
+function getRemoteErrors(remotes: RemoteWithUsage[]) {
+    return remotes
+        .filter((remote) => !remote.reachable)
+        .map((remote) => ({
+            title: remote.name,
+            description: 'Not reachable',
+        }))
 }
 
 function getRemoteAttention(remotes: RemoteWithUsage[]) {

@@ -74,16 +74,6 @@ export function App() {
         <div className="flex h-dvh min-h-screen flex-col overflow-hidden overscroll-none bg-background text-foreground">
             <header className="sticky top-0 z-10 border-b bg-background/95">
                 <div className="mx-auto flex items-center gap-4 px-4 py-4 sm:px-6">
-                    {hasAuthCredentials && (
-                        <button
-                            type="button"
-                            onClick={handleExit}
-                            aria-label="Log out"
-                            className="group relative inline-flex size-6 items-center justify-center rounded-sm text-foreground transition-colors hover:text-red-600"
-                        >
-                            <LogOutIcon className="pointer-events-none absolute size-5 scale-75 text-red-600 opacity-0 transition duration-150 group-hover:scale-100 group-hover:opacity-100" />
-                        </button>
-                    )}
                     <img
                         alt=""
                         className="size-6"
@@ -114,16 +104,29 @@ export function App() {
                             </NavLink>
                         ))}
                     </nav>
-                    {latestVersion && (
-                        <button
-                            type="button"
-                            onClick={() => handleRcloneUpdate()}
-                            disabled={isUpdating}
-                            className="ml-auto px-3 py-1.5 text-sm text-primary transition-colors hover:bg-muted hover:text-primary/80 disabled:opacity-50"
-                        >
-                            {isUpdating ? 'Updating…' : 'Update available'}
-                        </button>
-                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                        {latestVersion && (
+                            <button
+                                type="button"
+                                onClick={() => handleRcloneUpdate()}
+                                disabled={isUpdating}
+                                className="px-3 py-1.5 text-sm text-blue-800 transition-colors hover:bg-muted hover:text-blue-700 disabled:opacity-50"
+                            >
+                                {isUpdating ? 'Updating…' : 'Update available'}
+                            </button>
+                        )}
+                        {hasAuthCredentials && (
+                            <button
+                                type="button"
+                                onClick={handleExit}
+                                aria-label="Log out"
+                                className="inline-flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-red-600"
+                            >
+                                <LogOutIcon className="size-4" />
+                                {/* Log out */}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </header>
 

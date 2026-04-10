@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CloudIcon, LogOutIcon } from 'lucide-react'
+import { LogOutIcon } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -81,10 +81,23 @@ export function App() {
                             aria-label="Log out"
                             className="group relative inline-flex size-6 items-center justify-center rounded-sm text-foreground transition-colors hover:text-red-600"
                         >
-                            <CloudIcon className="size-6 transition duration-150 group-hover:scale-75 group-hover:opacity-0" />
                             <LogOutIcon className="pointer-events-none absolute size-5 scale-75 text-red-600 opacity-0 transition duration-150 group-hover:scale-100 group-hover:opacity-100" />
                         </button>
                     )}
+                    <img
+                        alt=""
+                        className="size-6"
+                        src="/icon.svg"
+                        onClick={(e) => {
+                            const el = e.currentTarget
+                            el.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)'
+                            el.style.transform = 'rotate(360deg)'
+                            setTimeout(() => {
+                                el.style.transition = ''
+                                el.style.transform = ''
+                            }, 500)
+                        }}
+                    />
                     <nav className="flex">
                         {navItems.map((item) => (
                             <NavLink

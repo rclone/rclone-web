@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     ArchiveIcon,
+    ArrowRightLeftIcon,
     CloudIcon,
     DownloadIcon,
+    FileIcon,
     FileImageIcon,
     FileSpreadsheetIcon,
     FileTextIcon,
@@ -13,6 +15,7 @@ import {
     SearchIcon,
     TrashIcon,
     UploadIcon,
+    XIcon,
 } from 'lucide-react'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -154,6 +157,12 @@ export function RemotesDetailsPage() {
     const { remoteName = '' } = useParams()
     const [searchParams, setSearchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('')
+    const [transferSource, setTransferSource] = useState<{
+        remoteName: string
+        path: string
+        name: string
+        isDir: boolean
+    } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const connectionKey = useAuthStore((state) => `${state.url}\u0000${state.user}`)
 
@@ -397,6 +406,75 @@ export function RemotesDetailsPage() {
         },
     })
 
+    const transferMutation = useMutation({
+        mutationFn: async ({
+            source,
+            mode,
+        }: {
+            source: { remoteName: string; path: string; name: string; isDir: boolean }
+            mode: 'copy' | 'move'
+        }) => {
+            const dstPath = [currentPath, source.name].filter(Boolean).join('/')
+
+            if (source.isDir) {
+                await rclone('/operations/mkdir', {
+                    params: { query: { fs: `${remoteName}:`, remote: dstPath } },
+                })
+
+                const endpoint = mode === 'copy' ? '/sync/copy' : '/sync/move'
+                const result = await rclone(endpoint, {
+                    params: {
+                        query: {
+                            srcFs: `${source.remoteName}:${source.path}`,
+                            dstFs: `${remoteName}:${dstPath}`,
+                            createEmptySrcDirs: true,
+                            _async: true,
+                        },
+                    },
+                })
+
+                const jobid = (result as any).jobid as number
+                if (!jobid) throw new Error('No job ID returned')
+
+                await new Promise((resolve) => setTimeout(resolve, 1000))
+                const status = (await rclone('/job/status' as any, {
+                    params: { query: { jobid } as any },
+                }).catch(() => null)) as any
+
+                if (!status) throw new Error('Could not verify job status')
+                if (status.error) throw new Error(status.error)
+
+                return jobid
+            }
+
+            const endpoint = mode === 'copy' ? '/operations/copyfile' : '/operations/movefile'
+            const result = await rclone(endpoint, {
+                params: {
+                    query: {
+                        srcFs: `${source.remoteName}:`,
+                        srcRemote: source.path,
+                        dstFs: `${remoteName}:`,
+                        dstRemote: dstPath,
+                        _async: true,
+                    },
+                },
+            })
+
+            const jobid = (result as any).jobid as number
+            if (!jobid) throw new Error('No job ID returned')
+
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            const status = (await rclone('/job/status' as any, {
+                params: { query: { jobid } as any },
+            }).catch(() => null)) as any
+
+            if (!status) throw new Error('Could not verify job status')
+            if (status.error) throw new Error(status.error)
+
+            return jobid
+        },
+    })
+
     // --- Memos ---
 
     const remoteNames = useMemo(() => remotesQuery.data ?? [], [remotesQuery.data])
@@ -440,12 +518,14 @@ export function RemotesDetailsPage() {
             // mkdirMutation.isPending ||
             renameMutation.isPending ||
             uploadMutation.isPending ||
-            downloadMutation.isPending,
+            downloadMutation.isPending ||
+            transferMutation.isPending,
         [
             deleteMutation.isPending,
             renameMutation.isPending,
             uploadMutation.isPending,
             downloadMutation.isPending,
+            transferMutation.isPending,
         ]
     )
 
@@ -512,6 +592,54 @@ export function RemotesDetailsPage() {
         [currentPath]
     )
 
+    const handleTransfer = useCallback(
+        (item: ListItem) => {
+            const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
+            setTransferSource({
+                remoteName,
+                path: itemPath,
+                name: item.Name,
+                isDir: item.IsDir,
+            })
+        },
+        [currentPath, remoteName]
+    )
+
+    const handleTransferExecute = useCallback(
+        (mode: 'copy' | 'move') => {
+            if (!transferSource) return
+            const sourcePath = buildRemotePathHref(
+                transferSource.remoteName,
+                transferSource.path.split('/').slice(0, -1).join('/')
+            )
+
+            transferMutation.mutate(
+                { source: transferSource, mode },
+                {
+                    onSuccess: () => {
+                        setTransferSource(null)
+                        navigate('/transfers')
+                        toast.success(
+                            `${mode === 'copy' ? 'Copy' : 'Move'} started successfully.`,
+                            {
+                                action: {
+                                    label: 'Back to source',
+                                    onClick: () => navigate(sourcePath),
+                                },
+                            }
+                        )
+                    },
+                    onError: (error) => {
+                        toast.error(
+                            `Transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                        )
+                    },
+                }
+            )
+        },
+        [transferSource, remoteName, currentPath, navigate]
+    )
+
     const handleUpload = useCallback(() => {
         fileInputRef.current?.click()
     }, [fileInputRef])
@@ -575,7 +703,68 @@ export function RemotesDetailsPage() {
                 </nav>
 
                 <div className="border-t p-4">
-                    {remoteName ? (
+                    {transferSource ? (
+                        <Card size="sm" className="gap-0">
+                            <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <CardTitle className="text-sm">Transfer</CardTitle>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon-xs"
+                                        aria-label="Cancel transfer"
+                                        onClick={() => setTransferSource(null)}
+                                    >
+                                        <XIcon className="size-3.5" />
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex items-center gap-2 text-xs">
+                                    {transferSource.isDir ? (
+                                        <FolderIcon className="size-3.5 shrink-0 text-indigo-400" />
+                                    ) : (
+                                        <FileIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                                    )}
+                                    <span className="truncate font-medium">
+                                        {transferSource.name}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    From {transferSource.remoteName}:
+                                    {transferSource.path
+                                        .split('/')
+                                        .slice(0, -1)
+                                        .join('/') || '/'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Navigate to the destination remote and folder, then choose an
+                                    action below.
+                                </p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        size="xs"
+                                        variant="outline"
+                                        className="flex-1"
+                                        disabled={transferMutation.isPending}
+                                        onClick={() => handleTransferExecute('move')}
+                                    >
+                                        Move here
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="xs"
+                                        className="flex-1"
+                                        disabled={transferMutation.isPending}
+                                        onClick={() => handleTransferExecute('copy')}
+                                    >
+                                        Copy here
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : remoteName ? (
                         usageQuery.isPending ? (
                             <Card size="sm">
                                 <CardContent className="flex justify-center py-2">
@@ -679,7 +868,7 @@ export function RemotesDetailsPage() {
                                 <Button
                                     type="button"
                                     onClick={handleUpload}
-                                    disabled={uploadMutation.isPending}
+                                    disabled={uploadMutation.isPending || !!transferSource}
                                 >
                                     <UploadIcon />
                                     {uploadMutation.isPending ? 'Uploading\u2026' : 'Upload'}
@@ -852,9 +1041,35 @@ export function RemotesDetailsPage() {
                                                                                 type="button"
                                                                                 variant="ghost"
                                                                                 size="icon-xs"
-                                                                                aria-label={`Download ${item.Name}`}
+                                                                                aria-label={`Transfer ${item.Name}`}
                                                                                 disabled={
                                                                                     isMutating
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    handleTransfer(
+                                                                                        item
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <ArrowRightLeftIcon className="size-3.5" />
+                                                                            </Button>
+                                                                        }
+                                                                    />
+                                                                    <TooltipContent>
+                                                                        Copy or Move
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger
+                                                                        render={
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon-xs"
+                                                                                aria-label={`Download ${item.Name}`}
+                                                                                disabled={
+                                                                                    isMutating ||
+                                                                                    !!transferSource
                                                                                 }
                                                                                 onClick={() =>
                                                                                     handleDownload(
@@ -881,7 +1096,8 @@ export function RemotesDetailsPage() {
                                                                                 size="icon-xs"
                                                                                 aria-label={`Rename ${item.Name}`}
                                                                                 disabled={
-                                                                                    isMutating
+                                                                                    isMutating ||
+                                                                                    !!transferSource
                                                                                 }
                                                                                 onClick={() =>
                                                                                     handleRename(
@@ -906,7 +1122,8 @@ export function RemotesDetailsPage() {
                                                                                 size="icon-xs"
                                                                                 aria-label={`Delete ${item.Name}`}
                                                                                 disabled={
-                                                                                    isMutating
+                                                                                    isMutating ||
+                                                                                    !!transferSource
                                                                                 }
                                                                                 onClick={() =>
                                                                                     handleDelete(

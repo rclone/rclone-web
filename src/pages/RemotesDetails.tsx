@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     ArchiveIcon,
     CloudIcon,
+    DownloadIcon,
     FileImageIcon,
     FileSpreadsheetIcon,
     FileTextIcon,
@@ -13,7 +14,7 @@ import {
     TrashIcon,
     UploadIcon,
 } from 'lucide-react'
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
@@ -130,6 +131,13 @@ function formatModTime(modTime: string | undefined): string {
     } catch {
         return '\u2014'
     }
+}
+
+function buildServeUrl(rcUrl: string, serveAddr: string): string {
+    const parsed = new URL(rcUrl.trim().replace(/\/+$/, ''))
+    const portMatch = serveAddr.match(/:(\d+)$/)
+    if (!portMatch) throw new Error('Could not parse serve address')
+    return `${parsed.protocol}//${parsed.hostname}:${portMatch[1]}`
 }
 
 type ListItem = {
@@ -327,10 +335,72 @@ export function RemotesDetailsPage() {
         },
     })
 
-    // --- Derived state ---
+    const downloadMutation = useMutation({
+        mutationFn: async ({
+            name,
+            path,
+            isDir,
+        }: {
+            name: string
+            path: string
+            isDir: boolean
+        }) => {
+            const result = await rclone('/serve/start' as any, {
+                params: {
+                    query: {
+                        type: 'http',
+                        fs: `${remoteName}:`,
+                        addr: ':0',
+                        allow_origin: '*',
+                    } as any,
+                },
+            })
 
-    const remoteNames = remotesQuery.data ?? []
-    const items = listQuery.data ?? []
+            const { id: serveId, addr: serveAddr } = result as { id: string; addr: string }
+
+            try {
+                const { url } = useAuthStore.getState()
+                const serveBaseUrl = buildServeUrl(url, serveAddr)
+
+                const downloadUrl = isDir
+                    ? `${serveBaseUrl}/${path}/?download=zip`
+                    : `${serveBaseUrl}/${path}`
+
+                const response = await fetch(downloadUrl)
+                if (!response.ok) {
+                    throw new Error(`Download failed: ${response.status} ${response.statusText}`)
+                }
+
+                const blob = await response.blob()
+                const objectUrl = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = objectUrl
+                a.download = isDir ? `${name}.zip` : name
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(objectUrl)
+            } finally {
+                try {
+                    await rclone('/serve/stop', {
+                        params: { query: { id: serveId } },
+                    })
+                } catch {
+                    // Swallow stop errors
+                }
+            }
+        },
+        onError: (error) => {
+            toast.error(
+                `Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            )
+        },
+    })
+
+    // --- Memos ---
+
+    const remoteNames = useMemo(() => remotesQuery.data ?? [], [remotesQuery.data])
+    const items = useMemo(() => listQuery.data ?? [], [listQuery.data])
     const filteredItems = useMemo(() => {
         const q = searchTerm.trim().toLowerCase()
         if (!q) return items
@@ -359,67 +429,101 @@ export function RemotesDetailsPage() {
         }
     }, [usageQuery.data])
 
-    const remoteNotFound =
-        remotesQuery.isSuccess && remoteName !== '' && !remoteNames.includes(remoteName)
+    const remoteNotFound = useMemo(
+        () => remotesQuery.isSuccess && remoteName !== '' && !remoteNames.includes(remoteName),
+        [remotesQuery.isSuccess, remoteName, remoteNames]
+    )
 
-    const isMutating =
-        deleteMutation.isPending ||
-        // mkdirMutation.isPending ||
-        renameMutation.isPending ||
-        uploadMutation.isPending
+    const isMutating = useMemo(
+        () =>
+            deleteMutation.isPending ||
+            // mkdirMutation.isPending ||
+            renameMutation.isPending ||
+            uploadMutation.isPending ||
+            downloadMutation.isPending,
+        [
+            deleteMutation.isPending,
+            renameMutation.isPending,
+            uploadMutation.isPending,
+            downloadMutation.isPending,
+        ]
+    )
 
-    // --- Handlers ---
+    // --- Callbacks ---
 
-    const setPath = (path: string) => {
-        const normalized = normalizePath(path)
-        setSearchParams((prev) => {
-            const next = new URLSearchParams(prev)
-            if (normalized) {
-                next.set('path', normalized)
-            } else {
-                next.delete('path')
-            }
-            return next
-        })
-    }
+    const setPath = useCallback(
+        (path: string) => {
+            const normalized = normalizePath(path)
+            setSearchParams((prev) => {
+                const next = new URLSearchParams(prev)
+                if (normalized) {
+                    next.set('path', normalized)
+                } else {
+                    next.delete('path')
+                }
+                return next
+            })
+        },
+        [setSearchParams]
+    )
 
-    const openFolder = (folderName: string) => {
-        setPath([currentPath, folderName].filter(Boolean).join('/'))
-    }
+    const openFolder = useCallback(
+        (folderName: string) => {
+            setPath([currentPath, folderName].filter(Boolean).join('/'))
+        },
+        [setPath, currentPath]
+    )
 
-    // const handleNewFolder = () => {
+    // const handleNewFolder = useCallback(() => {
     //     const name = window.prompt('Enter folder name:')
     //     if (!name?.trim()) return
     //     const folderPath = [currentPath, name.trim()].filter(Boolean).join('/')
     //     mkdirMutation.mutate(folderPath)
-    // }
+    // }, [currentPath])
 
-    const handleRename = (item: ListItem) => {
-        const newName = window.prompt('Enter new name:', item.Name)
-        if (!newName?.trim() || newName.trim() === item.Name) return
-        const oldPath = [currentPath, item.Name].filter(Boolean).join('/')
-        const newPath = [currentPath, newName.trim()].filter(Boolean).join('/')
-        renameMutation.mutate({ oldPath, newPath, isDir: item.IsDir })
-    }
+    const handleRename = useCallback(
+        (item: ListItem) => {
+            const newName = window.prompt('Enter new name:', item.Name)
+            if (!newName?.trim() || newName.trim() === item.Name) return
+            const oldPath = [currentPath, item.Name].filter(Boolean).join('/')
+            const newPath = [currentPath, newName.trim()].filter(Boolean).join('/')
+            renameMutation.mutate({ oldPath, newPath, isDir: item.IsDir })
+        },
+        [currentPath]
+    )
 
-    const handleDelete = (item: ListItem) => {
-        const confirmed = window.confirm(
-            `Are you sure you want to delete "${item.Name}"?${item.IsDir ? ' This will delete all contents.' : ''}`
-        )
-        if (!confirmed) return
-        const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
-        deleteMutation.mutate({ path: itemPath, isDir: item.IsDir })
-    }
+    const handleDelete = useCallback(
+        (item: ListItem) => {
+            const confirmed = window.confirm(
+                `Are you sure you want to delete "${item.Name}"?${item.IsDir ? ' This will delete all contents.' : ''}`
+            )
+            if (!confirmed) return
+            const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
+            deleteMutation.mutate({ path: itemPath, isDir: item.IsDir })
+        },
+        [currentPath]
+    )
 
-    const handleUpload = () => {
+    const handleDownload = useCallback(
+        (item: ListItem) => {
+            const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
+            downloadMutation.mutate({ name: item.Name, path: itemPath, isDir: item.IsDir })
+        },
+        [currentPath]
+    )
+
+    const handleUpload = useCallback(() => {
         fileInputRef.current?.click()
-    }
+    }, [fileInputRef])
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files
-        if (!files || files.length === 0) return
-        uploadMutation.mutate(Array.from(files))
-    }
+    const handleFileChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = event.target.files
+            if (!files || files.length === 0) return
+            uploadMutation.mutate(Array.from(files))
+        },
+        [uploadMutation]
+    )
 
     // --- Render ---
 
@@ -741,6 +845,33 @@ export function RemotesDetailsPage() {
 
                                                         <TableCell className="px-4 py-3">
                                                             <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100">
+                                                                <Tooltip>
+                                                                    <TooltipTrigger
+                                                                        render={
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon-xs"
+                                                                                aria-label={`Download ${item.Name}`}
+                                                                                disabled={
+                                                                                    isMutating
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    handleDownload(
+                                                                                        item
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <DownloadIcon className="size-3.5" />
+                                                                            </Button>
+                                                                        }
+                                                                    />
+                                                                    <TooltipContent>
+                                                                        {item.IsDir
+                                                                            ? 'Download as ZIP'
+                                                                            : 'Download'}
+                                                                    </TooltipContent>
+                                                                </Tooltip>
                                                                 <Tooltip>
                                                                     <TooltipTrigger
                                                                         render={

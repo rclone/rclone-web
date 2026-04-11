@@ -78,7 +78,7 @@ export function SettingsPage() {
 
     // Extract fetched performance values from rclone
     const fetchedPerformance = useMemo(() => {
-        const main = optionsQuery.data?.main as Record<string, unknown> | undefined
+        const main = optionsQuery.data?.main
         return {
             transfers: String(main?.Transfers ?? ''),
             checkers: String(main?.Checkers ?? ''),
@@ -108,8 +108,8 @@ export function SettingsPage() {
     const [loggingEdits, setLoggingEdits] = useState<Record<string, string>>({})
 
     const fetchedLogging = useMemo(() => {
-        const main = optionsQuery.data?.main as Record<string, unknown> | undefined
-        const log = optionsQuery.data?.log as Record<string, unknown> | undefined
+        const main = optionsQuery.data?.main
+        const log = optionsQuery.data?.log
         return {
             logLevel: String(main?.LogLevel ?? 'NOTICE'),
             logFilePath: String(log?.File ?? ''),
@@ -161,22 +161,15 @@ export function SettingsPage() {
         queryFn: () => rclone('/config/paths'),
     })
 
-    const fetchedConfigPath =
-        typeof (configPathsQuery.data as { config?: string } | undefined)?.config === 'string'
-            ? ((configPathsQuery.data as { config?: string }).config ?? '')
-            : ''
+    const fetchedConfigPath = configPathsQuery.data?.config ?? ''
 
     const configContentsQuery = useQuery({
         queryKey: ['config', 'contents', fetchedConfigPath],
         enabled: Boolean(fetchedConfigPath),
         queryFn: async () => {
-            const response = (await rclone('/core/command', {
-                // @ts-expect-error
-                body: {
-                    command: 'cat',
-                    arg: [normalizeConfigPath(fetchedConfigPath)],
-                },
-            })) as { result?: string }
+            const response = await rclone('/core/command', {
+                body: { command: 'cat', arg: [normalizeConfigPath(fetchedConfigPath)] },
+            })
 
             return response.result ?? ''
         },
@@ -240,10 +233,7 @@ export function SettingsPage() {
             if (Object.keys(main).length > 0) body.main = main
             if (Object.keys(log).length > 0) body.log = log
             if (Object.keys(body).length > 0) {
-                await rclone('/options/set', {
-                    // @ts-expect-error
-                    body,
-                })
+                await rclone('/options/set', { body })
             }
 
             // Config path

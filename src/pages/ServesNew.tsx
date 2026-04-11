@@ -71,15 +71,8 @@ export function ServesNewPage() {
     const serveTypesQuery = useQuery({
         queryKey: ['serves', 'new', 'types'],
         queryFn: async () => {
-            const response = (await rclone('/serve/types')) as unknown
-            const payload = toRecord(response)
-
-            const maybeTypes = payload.types
-            if (!Array.isArray(maybeTypes)) {
-                return [] as string[]
-            }
-
-            return maybeTypes.filter((item): item is string => typeof item === 'string')
+            const response = await rclone('/serve/types')
+            return response.types
         },
     })
 

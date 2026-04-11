@@ -187,7 +187,7 @@ export function RemotesDetailsPage() {
             const response = await rclone('/operations/list', {
                 params: { query: { fs: `${remoteName}:`, remote: currentPath } },
             })
-            const rawList = ((response as any).list ?? []) as Array<Record<string, any>>
+            const rawList = response.list ?? []
             return rawList
                 .map(
                     (item): ListItem => ({
@@ -212,7 +212,7 @@ export function RemotesDetailsPage() {
             const response = await rclone('/operations/about', {
                 params: { query: { fs: `${remoteName}:` } },
             })
-            return response as { used?: number; total?: number; free?: number }
+            return response
         },
         enabled: remoteExists,
         retry: false,
@@ -222,10 +222,15 @@ export function RemotesDetailsPage() {
 
     const deleteMutation = useMutation({
         mutationFn: async ({ path, isDir }: { path: string; isDir: boolean }) => {
-            const endpoint = isDir ? '/operations/purge' : '/operations/deletefile'
-            await rclone(endpoint as any, {
-                params: { query: { fs: `${remoteName}:`, remote: path } },
-            })
+            if (isDir) {
+                await rclone('/operations/purge', {
+                    params: { query: { fs: `${remoteName}:`, remote: path } },
+                })
+            } else {
+                await rclone('/operations/deletefile', {
+                    params: { query: { fs: `${remoteName}:`, remote: path } },
+                })
+            }
         },
         onSuccess: () => {
             toast.success('Deleted successfully.')
@@ -266,7 +271,7 @@ export function RemotesDetailsPage() {
             isDir: boolean
         }) => {
             if (isDir) {
-                await rclone('/sync/move' as any, {
+                await rclone('/sync/move', {
                     params: {
                         query: {
                             srcFs: `${remoteName}:${oldPath}/`,
@@ -354,18 +359,11 @@ export function RemotesDetailsPage() {
             path: string
             isDir: boolean
         }) => {
-            const result = await rclone('/serve/start' as any, {
-                params: {
-                    query: {
-                        type: 'http',
-                        fs: `${remoteName}:`,
-                        addr: ':0',
-                        allow_origin: '*',
-                    } as any,
-                },
+            const result = await rclone('/serve/start', {
+                body: { type: 'http', fs: `${remoteName}:`, addr: ':0', allow_origin: '*' },
             })
 
-            const { id: serveId, addr: serveAddr } = result as { id: string; addr: string }
+            const { id: serveId, addr: serveAddr } = result
 
             try {
                 const { url } = useAuthStore.getState()
@@ -421,25 +419,24 @@ export function RemotesDetailsPage() {
                     params: { query: { fs: `${remoteName}:`, remote: dstPath } },
                 })
 
-                const endpoint = mode === 'copy' ? '/sync/copy' : '/sync/move'
-                const result = await rclone(endpoint, {
-                    params: {
-                        query: {
-                            srcFs: `${source.remoteName}:${source.path}`,
-                            dstFs: `${remoteName}:${dstPath}`,
-                            createEmptySrcDirs: true,
-                            _async: true,
-                        },
-                    },
-                })
+                const syncBody = {
+                    srcFs: `${source.remoteName}:${source.path}`,
+                    dstFs: `${remoteName}:${dstPath}`,
+                    createEmptySrcDirs: true,
+                    _async: true,
+                }
+                const result =
+                    mode === 'copy'
+                        ? await rclone('/sync/copy', { body: syncBody })
+                        : await rclone('/sync/move', { body: syncBody })
 
-                const jobid = (result as any).jobid as number
+                const jobid = result.jobid
                 if (!jobid) throw new Error('No job ID returned')
 
                 await new Promise((resolve) => setTimeout(resolve, 1000))
-                const status = (await rclone('/job/status' as any, {
-                    params: { query: { jobid } as any },
-                }).catch(() => null)) as any
+                const status = await rclone('/job/status', {
+                    params: { query: { jobid } },
+                }).catch(() => null)
 
                 if (!status) throw new Error('Could not verify job status')
                 if (status.error) throw new Error(status.error)
@@ -447,26 +444,25 @@ export function RemotesDetailsPage() {
                 return jobid
             }
 
-            const endpoint = mode === 'copy' ? '/operations/copyfile' : '/operations/movefile'
-            const result = await rclone(endpoint, {
-                params: {
-                    query: {
-                        srcFs: `${source.remoteName}:`,
-                        srcRemote: source.path,
-                        dstFs: `${remoteName}:`,
-                        dstRemote: dstPath,
-                        _async: true,
-                    },
-                },
-            })
+            const fileBody = {
+                srcFs: `${source.remoteName}:`,
+                srcRemote: source.path,
+                dstFs: `${remoteName}:`,
+                dstRemote: dstPath,
+                _async: true,
+            }
+            const result =
+                mode === 'copy'
+                    ? await rclone('/operations/copyfile', { body: fileBody })
+                    : await rclone('/operations/movefile', { body: fileBody })
 
-            const jobid = (result as any).jobid as number
+            const jobid = result.jobid
             if (!jobid) throw new Error('No job ID returned')
 
             await new Promise((resolve) => setTimeout(resolve, 1000))
-            const status = (await rclone('/job/status' as any, {
-                params: { query: { jobid } as any },
-            }).catch(() => null)) as any
+            const status = await rclone('/job/status', {
+                params: { query: { jobid } },
+            }).catch(() => null)
 
             if (!status) throw new Error('Could not verify job status')
             if (status.error) throw new Error(status.error)

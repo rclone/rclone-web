@@ -1,5 +1,5 @@
+import type { paths } from 'rclone-openapi'
 import createRCDClient, {
-    type OpenApiClient,
     type OpenApiClientPathsWithMethod,
     type OpenApiMaybeOptionalInit,
     type OpenApiMethodResponse,
@@ -8,8 +8,6 @@ import createRCDClient, {
 } from 'rclone-sdk'
 import { clearAuthSession, useAuthStore } from '@/lib/store'
 
-type ClientPaths<T> = T extends OpenApiClient<infer P, any> ? P : never
-type Paths = ClientPaths<RCDClient>
 type InitParam<Init> =
     OpenApiRequiredKeysOf<Init> extends never
         ? [(Init & { [key: string]: unknown })?]
@@ -219,8 +217,8 @@ export async function rcloneUploadFile({
 
 export default async function rclone<
     Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,
-    Init extends OpenApiMaybeOptionalInit<Paths[Path], 'post'> = OpenApiMaybeOptionalInit<
-        Paths[Path],
+    Init extends OpenApiMaybeOptionalInit<paths[Path], 'post'> = OpenApiMaybeOptionalInit<
+        paths[Path],
         'post'
     >,
 >(
@@ -237,7 +235,7 @@ export default async function rclone<
         await new Promise((resolve) => setTimeout(resolve, 1000))
         const result = await createClient(auth).POST(
             path,
-            ...(init as InitParam<OpenApiMaybeOptionalInit<Paths[Path], 'post'>>)
+            ...(init as InitParam<OpenApiMaybeOptionalInit<paths[Path], 'post'>>)
         )
 
         checkResult(result, true)

@@ -28,7 +28,7 @@ export function RemotesEditPage() {
             const response = await rclone('/config/get', {
                 params: { query: { name: remoteName! } },
             })
-            return response as Record<string, string>
+            return response
         },
         enabled: Boolean(remoteName),
     })

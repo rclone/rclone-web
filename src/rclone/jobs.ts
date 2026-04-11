@@ -1,58 +1,13 @@
+import type { components } from 'rclone-openapi'
 import { formatBytes, formatDuration } from '@/lib/format'
 import rclone from '@/rclone/client'
 
-type JobStatus = {
-    finished: boolean
-    duration: number
-    endTime: string
-    error: string
-    id: number
-    startTime: string
-    success: boolean
-    output?: unknown
-    progress?: unknown
-}
+type JobStatus = components['responses']['JobStatusResponse']['content']['application/json']
 
-type JobGroupStats = {
-    bytes?: number
-    totalBytes?: number
-    speed?: number
-    eta?: number | null
-    checks?: number
-    totalChecks?: number
-    transfers?: number
-    totalTransfers?: number
-    transferring?: Array<{
-        group?: string
-        name?: string
-        srcFs?: string
-        dstFs?: string
-        srcRemote?: string
-        dstRemote?: string
-        percentage?: number
-        size?: number
-        bytes?: number
-        speed?: number
-        eta?: number | null
-    }>
-    checking?: Array<{
-        group?: string
-        name?: string
-        size?: number
-    }>
-}
+type JobGroupStats = components['responses']['CoreStatsResponse']['content']['application/json']
 
-type TransferredItem = {
-    group?: string
-    srcFs?: string
-    dstFs?: string
-    srcRemote?: string
-    dstRemote?: string
-    name?: string
-    size?: number
-    bytes?: number
-    error?: string
-}
+type TransferredItem =
+    components['responses']['CoreTransferredResponse']['content']['application/json']['transferred'][number]
 
 export type JobRow = {
     rowKey: string
@@ -223,9 +178,9 @@ function getProgressPercent({
 
 async function fetchJobStatus(jobid: number) {
     try {
-        return (await rclone('/job/status', {
+        return await rclone('/job/status', {
             params: { query: { jobid } },
-        })) as unknown as JobStatus
+        })
     } catch (error) {
         // The rclone wrapper throws when data.error is truthy, but /job/status
         // returns an error field for failed jobs (e.g. "directory not found").

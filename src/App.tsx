@@ -57,7 +57,6 @@ export function App() {
 
         try {
             await rclone('/core/command', {
-                // @ts-expect-error
                 body: { command: 'selfupdate' },
             })
             toast.success('rclone updated. Restart rclone to use the new version.')

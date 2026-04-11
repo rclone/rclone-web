@@ -15,13 +15,9 @@ export function updateCheckQueryOptions() {
     return queryOptions({
         queryKey: ['core', 'updateCheck'],
         queryFn: async () => {
-            const data = (await rclone('/core/command', {
-                // @ts-expect-error
-                body: {
-                    command: 'selfupdate',
-                    arg: ['--check'],
-                },
-            })) as { result?: string }
+            const data = await rclone('/core/command', {
+                body: { command: 'selfupdate', arg: ['--check'] },
+            })
 
             return parseUpdateCheck(data.result ?? '')
         },

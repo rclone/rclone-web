@@ -137,7 +137,7 @@ export async function fetchRemotesList(): Promise<RemoteInfo[]> {
     ])
 
     const names = [...(listResponse.remotes ?? [])].sort((a, b) => a.localeCompare(b))
-    const configs = (dumpResponse ?? {}) as Record<string, Record<string, string>>
+    const configs = dumpResponse
 
     return names.map((name) => ({
         name,
@@ -160,9 +160,7 @@ export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatu
                     setTimeout(() => reject(new Error('Request timed out')), 8_000)
                 ),
             ])
-            const usage = parseRemoteUsage(
-                response as { used?: number; total?: number; free?: number }
-            )
+            const usage = parseRemoteUsage(response)
             return usage ? { state: 'success' as const, usage } : { state: 'unsupported' as const }
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error'

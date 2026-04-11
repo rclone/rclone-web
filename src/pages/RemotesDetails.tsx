@@ -424,7 +424,7 @@ export function RemotesDetailsPage() {
     // --- Render ---
 
     return (
-        <section className="flex h-full min-h-0 w-full">
+        <section className="flex h-full min-h-0 w-full overflow-hidden">
             <input
                 ref={fileInputRef}
                 type="file"
@@ -520,14 +520,14 @@ export function RemotesDetailsPage() {
                 </div>
             </aside>
 
-            <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
                 {remoteNotFound ? (
                     <div className="border-b px-6 py-4">
                         <p className="text-2xl font-semibold tracking-tight">Remote Not Found</p>
                         <p className="text-muted-foreground">{`No remote found for "${remoteName}".`}</p>
                     </div>
                 ) : remoteName ? (
-                    <div className="border-b px-6 py-4 space-y-3">
+                    <div className="sticky top-0 z-10 border-b bg-background px-6 py-4 space-y-3">
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>

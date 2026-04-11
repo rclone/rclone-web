@@ -273,7 +273,7 @@ function renderChangelogBlock(block: ChangelogBlock, index: number) {
 
 export function Changelog() {
     const versionQuery = useQuery({
-        queryKey: ['dashboard', 'core', 'version'],
+        queryKey: ['core', 'version'],
         queryFn: async () => await rclone('/core/version'),
         staleTime: 1000 * 60 * 5,
     })
@@ -281,7 +281,7 @@ export function Changelog() {
     const installedVersion = versionQuery.data?.version ?? ''
 
     const changelogQuery = useQuery({
-        queryKey: ['dashboard', 'changelog', installedVersion],
+        queryKey: ['changelog', installedVersion],
         enabled: Boolean(installedVersion),
         staleTime: 1000 * 60 * 60 * 24,
         gcTime: 1000 * 60 * 60 * 24 * 7,

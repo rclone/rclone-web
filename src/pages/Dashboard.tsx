@@ -43,52 +43,53 @@ export function DashboardPage() {
         queryFn: fetchRemotesWithUsage,
     })
     const mountsQuery = useQuery({
-        queryKey: ['dashboard', 'mounts'],
+        queryKey: ['mounts'],
         queryFn: async () => {
             const response = await rclone('/mount/listmounts')
             return response.mountPoints ?? []
         },
     })
     const servesQuery = useQuery({
-        queryKey: ['dashboard', 'serves'],
+        queryKey: ['serves'],
         queryFn: async () => {
             const response = await rclone('/serve/list')
-            const list = response.list ?? []
-
-            return list.map((serve): ServeSummary => {
-                const params = toRecord(serve.params)
-                const fs = typeof params.fs === 'string' ? params.fs : ''
-
-                return {
-                    id: serve.id,
-                    address: serve.addr,
-                    protocol: typeof params.type === 'string' ? params.type : 'unknown',
-                    remoteName: fs ? getRemoteName(fs) : 'Unknown',
-                    source: fs,
-                    auth: getServeAuthLabel(params),
-                }
-            })
+            return response.list ?? []
         },
     })
     const jobsQuery = useQuery({
-        queryKey: ['dashboard', 'jobs'],
+        queryKey: ['jobs'],
         queryFn: fetchJobsSnapshot,
         refetchInterval: 3000,
     })
     const globalStatsQuery = useQuery({
-        queryKey: ['dashboard', 'core', 'stats'],
+        queryKey: ['core', 'stats'],
         queryFn: async () => await rclone('/core/stats'),
         refetchInterval: 3000,
     })
     const versionQuery = useQuery({
-        queryKey: ['dashboard', 'core', 'version'],
+        queryKey: ['core', 'version'],
         queryFn: async () => await rclone('/core/version'),
         staleTime: 1000 * 60 * 5,
     })
 
     const remotes = useMemo(() => remotesQuery.data ?? [], [remotesQuery.data])
     const mounts = useMemo(() => mountsQuery.data ?? [], [mountsQuery.data])
-    const serves = useMemo(() => servesQuery.data ?? [], [servesQuery.data])
+    const serves = useMemo(() => {
+        const list = servesQuery.data ?? []
+        return list.map((serve): ServeSummary => {
+            const params = toRecord(serve.params)
+            const fs = typeof params.fs === 'string' ? params.fs : ''
+
+            return {
+                id: serve.id,
+                address: serve.addr,
+                protocol: typeof params.type === 'string' ? params.type : 'unknown',
+                remoteName: fs ? getRemoteName(fs) : 'Unknown',
+                source: fs,
+                auth: getServeAuthLabel(params),
+            }
+        })
+    }, [servesQuery.data])
     const jobs = useMemo(() => jobsQuery.data ?? [], [jobsQuery.data])
     const globalStats = useMemo(() => globalStatsQuery.data, [globalStatsQuery.data])
     const lastError = typeof globalStats?.lastError === 'string' ? globalStats.lastError.trim() : ''

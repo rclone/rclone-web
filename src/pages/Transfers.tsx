@@ -10,15 +10,13 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
-import { useAuthStore } from '@/lib/store'
 import { fetchJobsSnapshot, stopJob } from '@/rclone/jobs'
 
 export function TransfersPage() {
     const queryClient = useQueryClient()
-    const connectionKey = useAuthStore((state) => `${state.url}\u0000${state.user}`)
 
     const jobsQuery = useQuery({
-        queryKey: ['jobs', connectionKey],
+        queryKey: ['jobs'],
         queryFn: fetchJobsSnapshot,
         refetchInterval: 3000,
     })
@@ -27,7 +25,7 @@ export function TransfersPage() {
         mutationFn: stopJob,
         onSuccess: () => {
             toast.success('Job stopped.')
-            queryClient.invalidateQueries({ queryKey: ['jobs', connectionKey] })
+            queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
             const message = error instanceof Error ? error.message : 'Unknown error'

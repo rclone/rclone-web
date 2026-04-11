@@ -132,7 +132,7 @@ export function SettingsPage() {
 
     // Version info display
     const coreVersionQuery = useQuery({
-        queryKey: ['settings', 'core', 'version'],
+        queryKey: ['core', 'version'],
         queryFn: () => rclone('/core/version'),
     })
 

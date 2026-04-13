@@ -1,4 +1,4 @@
-import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     ActivityIcon,
     AlertTriangleIcon,
@@ -26,7 +26,7 @@ import { formatBytes, formatDuration, formatTime } from '@/lib/format'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchJobsSnapshot, type JobRow } from '@/rclone/jobs'
-import { fetchRemotesWithUsage, type RemoteWithUsage } from '@/rclone/usage'
+import { fetchRemotesList, fetchRemoteUsage, type RemoteWithUsage } from '@/rclone/usage'
 import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
 
 const LINKS = [
@@ -38,9 +38,18 @@ const LINKS = [
 
 export function DashboardPage() {
     const queryClient = useQueryClient()
-    const remotesQuery = useQuery({
-        queryKey: ['remotes', 'withUsage'],
-        queryFn: fetchRemotesWithUsage,
+    const remotesListQuery = useQuery({
+        queryKey: ['remotes', 'list'],
+        queryFn: fetchRemotesList,
+    })
+    const remotesList = useMemo(() => remotesListQuery.data ?? [], [remotesListQuery.data])
+    const usageQueries = useQueries({
+        queries: remotesList.map((remote) => ({
+            queryKey: ['remotes', 'usage', remote.name],
+            queryFn: () => fetchRemoteUsage(remote.name, remote.type),
+            staleTime: 5 * 60 * 1000,
+            retry: false,
+        })),
     })
     const mountsQuery = useQuery({
         queryKey: ['mounts'],
@@ -72,7 +81,16 @@ export function DashboardPage() {
         staleTime: 1000 * 60 * 5,
     })
 
-    const remotes = useMemo(() => remotesQuery.data ?? [], [remotesQuery.data])
+    const remotes = useMemo((): RemoteWithUsage[] => {
+        return remotesList.map((remote, i) => {
+            const status = usageQueries[i]?.data
+            return {
+                ...remote,
+                usage: status?.state === 'success' ? status.usage : null,
+                reachable: status ? status.state !== 'auth_error' && status.state !== 'error' : true,
+            }
+        })
+    }, [remotesList, usageQueries])
     const mounts = useMemo(() => mountsQuery.data ?? [], [mountsQuery.data])
     const serves = useMemo(() => {
         const list = servesQuery.data ?? []
@@ -102,19 +120,16 @@ export function DashboardPage() {
     const remoteErrors = useMemo(() => getRemoteErrors(remotes), [remotes])
     const remoteAttention = useMemo(() => getRemoteAttention(remotes), [remotes])
     const serveAttention = useMemo(() => getServeAttention(serves), [serves])
-    const isFetchingDashboard = useIsFetching({ queryKey: ['dashboard'] }) > 0
-    const isFetchingRemotes = useIsFetching({ queryKey: ['remotes'] }) > 0
-    const isFetchingAny = isFetchingDashboard || isFetchingRemotes
+    const isFetchingAny =
+        remotesListQuery.isFetching ||
+        servesQuery.isFetching ||
+        mountsQuery.isFetching ||
+        jobsQuery.isFetching ||
+        globalStatsQuery.isFetching ||
+        versionQuery.isFetching
 
     const handleRefresh = useCallback(async () => {
-        queryClient.refetchQueries({
-            queryKey: ['dashboard'],
-            type: 'active',
-        })
-        queryClient.refetchQueries({
-            queryKey: ['remotes'],
-            type: 'active',
-        })
+        queryClient.refetchQueries({ type: 'active' })
     }, [queryClient])
 
     return (
@@ -145,8 +160,8 @@ export function DashboardPage() {
                                         }
                                       : undefined
                             }
-                            isPending={remotesQuery.isPending}
-                            isError={remotesQuery.isError}
+                            isPending={remotesListQuery.isPending}
+                            isError={remotesListQuery.isError}
                         />
 
                         <DashboardMetricCard

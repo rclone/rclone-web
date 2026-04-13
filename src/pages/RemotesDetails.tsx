@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     ArchiveIcon,
-    ArrowRightLeftIcon,
     CloudIcon,
     DownloadIcon,
     FileIcon,
@@ -13,6 +12,7 @@ import {
     HouseIcon,
     PencilIcon,
     SearchIcon,
+    SendIcon,
     TrashIcon,
     UploadIcon,
     XIcon,
@@ -603,23 +603,19 @@ export function RemotesDetailsPage() {
     const handleTransferExecute = useCallback(
         (mode: 'copy' | 'move') => {
             if (!transferSource) return
-            const sourcePath = buildRemotePathHref(
-                transferSource.remoteName,
-                transferSource.path.split('/').slice(0, -1).join('/')
-            )
 
             transferMutation.mutate(
                 { source: transferSource, mode },
                 {
                     onSuccess: () => {
                         setTransferSource(null)
-                        navigate('/transfers')
                         toast.success(
                             `${mode === 'copy' ? 'Copy' : 'Move'} started successfully.`,
                             {
+                                position: 'bottom-left',
                                 action: {
-                                    label: 'Back to source',
-                                    onClick: () => navigate(sourcePath),
+                                    label: 'View Transfers',
+                                    onClick: () => navigate('/transfers'),
                                 },
                             }
                         )
@@ -660,7 +656,7 @@ export function RemotesDetailsPage() {
                 onChange={handleFileChange}
             />
 
-            <aside className="flex w-72 shrink-0 flex-col border-r bg-background">
+            <aside className="hidden w-72 shrink-0 flex-col border-r bg-background sm:flex">
                 <h2 className="px-4 py-4 pb-0 font-semibold tracking-wide text-muted-foreground uppercase">
                     Remotes
                 </h2>
@@ -708,7 +704,32 @@ export function RemotesDetailsPage() {
                                         variant="ghost"
                                         size="icon-xs"
                                         aria-label="Cancel transfer"
-                                        onClick={() => setTransferSource(null)}
+                                        onClick={() => {
+                                            const source = transferSource
+                                            setTransferSource(null)
+                                            if (source) {
+                                                const sourceDir = source.path
+                                                    .split('/')
+                                                    .slice(0, -1)
+                                                    .join('/')
+                                                if (
+                                                    source.remoteName !== remoteName ||
+                                                    sourceDir !== currentPath
+                                                ) {
+                                                    const sourcePath = buildRemotePathHref(
+                                                        source.remoteName,
+                                                        sourceDir
+                                                    )
+                                                    toast('Transfer cancelled.', {
+                                                        position: 'bottom-left',
+                                                        action: {
+                                                            label: 'Back to source',
+                                                            onClick: () => navigate(sourcePath),
+                                                        },
+                                                    })
+                                                }
+                                            }
+                                        }}
                                     >
                                         <XIcon className="size-3.5" />
                                     </Button>
@@ -727,14 +748,11 @@ export function RemotesDetailsPage() {
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     From {transferSource.remoteName}:
-                                    {transferSource.path
-                                        .split('/')
-                                        .slice(0, -1)
-                                        .join('/') || '/'}
+                                    {transferSource.path.split('/').slice(0, -1).join('/') || '/'}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Navigate to the destination remote and folder, then choose an
-                                    action below.
+                                    Navigate to the destination remote/folder and pick an action
+                                    below.
                                 </p>
                                 <div className="flex gap-2">
                                     <Button
@@ -1029,31 +1047,33 @@ export function RemotesDetailsPage() {
 
                                                         <TableCell className="px-4 py-3">
                                                             <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100">
-                                                                <Tooltip>
-                                                                    <TooltipTrigger
-                                                                        render={
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="ghost"
-                                                                                size="icon-xs"
-                                                                                aria-label={`Transfer ${item.Name}`}
-                                                                                disabled={
-                                                                                    isMutating
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    handleTransfer(
-                                                                                        item
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                <ArrowRightLeftIcon className="size-3.5" />
-                                                                            </Button>
-                                                                        }
-                                                                    />
-                                                                    <TooltipContent>
-                                                                        Copy or Move
-                                                                    </TooltipContent>
-                                                                </Tooltip>
+                                                                <div className="hidden sm:block">
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger
+                                                                            render={
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="ghost"
+                                                                                    size="icon-xs"
+                                                                                    aria-label={`Transfer ${item.Name}`}
+                                                                                    disabled={
+                                                                                        isMutating
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        handleTransfer(
+                                                                                            item
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <SendIcon className="size-3.5" />
+                                                                                </Button>
+                                                                            }
+                                                                        />
+                                                                        <TooltipContent>
+                                                                            Transfer
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </div>
                                                                 <Tooltip>
                                                                     <TooltipTrigger
                                                                         render={
@@ -1077,9 +1097,8 @@ export function RemotesDetailsPage() {
                                                                         }
                                                                     />
                                                                     <TooltipContent>
-                                                                        {item.IsDir
-                                                                            ? 'Download as ZIP'
-                                                                            : 'Download'}
+                                                                        Download{' '}
+                                                                        {item.IsDir ? '(ZIP)' : ''}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                                 <Tooltip>

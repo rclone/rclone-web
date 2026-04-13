@@ -1,6 +1,6 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangleIcon, HardDriveIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
@@ -17,6 +17,7 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from '@/components/ui/empty'
+import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import {
     Table,
@@ -40,7 +41,17 @@ export function RemotesPage() {
         queryFn: fetchRemotesList,
     })
 
+    const [search, setSearch] = useState('')
+
     const remotes = remotesListQuery.data ?? []
+
+    const filteredRemotes = useMemo(() => {
+        const q = search.trim().toLowerCase()
+        if (!q) return remotes
+        return remotes.filter(
+            (r) => r.name.toLowerCase().includes(q) || r.type.toLowerCase().includes(q)
+        )
+    }, [remotes, search])
 
     const usageQueries = useQueries({
         queries: remotes.map((remote) => ({
@@ -52,6 +63,12 @@ export function RemotesPage() {
     })
 
     const isFetchingUsage = useMemo(() => usageQueries.some((q) => q.isFetching), [usageQueries])
+
+    const usageByName = useMemo(() => {
+        const map = new Map<string, (typeof usageQueries)[number]>()
+        remotes.forEach((remote, i) => map.set(remote.name, usageQueries[i]))
+        return map
+    }, [remotes, usageQueries])
 
     const deleteMutation = useMutation({
         mutationFn: async (name: string) => {
@@ -76,6 +93,12 @@ export function RemotesPage() {
                 description="Manage connected storage remotes and monitor usage."
                 actions={
                     <div className="flex items-center gap-2">
+                        <Input
+                            placeholder="Search by name or type"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-56"
+                        />
                         <Button size="lg" type="button" onClick={() => navigate('/remotes/new')}>
                             <PlusIcon />
                             Add New Remote
@@ -138,7 +161,7 @@ export function RemotesPage() {
                     </Alert>
                 ) : null}
 
-                {remotesListQuery.isSuccess && remotes.length === 0 ? (
+                {remotesListQuery.isSuccess && filteredRemotes.length === 0 && !search ? (
                     <Empty className="rounded-xl border">
                         <EmptyHeader>
                             <EmptyMedia variant="icon">
@@ -159,7 +182,7 @@ export function RemotesPage() {
                     </Empty>
                 ) : null}
 
-                {remotes.length > 0 ? (
+                {filteredRemotes.length > 0 ? (
                     <div className="overflow-hidden border rounded-xl">
                         <Table>
                             <TableHeader className="bg-muted/40">
@@ -180,7 +203,7 @@ export function RemotesPage() {
                             </TableHeader>
 
                             <TableBody>
-                                {remotes.map((remote, i) => (
+                                {filteredRemotes.map((remote) => (
                                     <TableRow
                                         key={remote.name}
                                         className="hover:bg-muted/20"
@@ -206,8 +229,8 @@ export function RemotesPage() {
 
                                         <TableCell className="px-4 py-6">
                                             <UsageCell
-                                                status={usageQueries[i]?.data}
-                                                isLoading={usageQueries[i]?.isLoading ?? true}
+                                                status={usageByName.get(remote.name)?.data}
+                                                isLoading={usageByName.get(remote.name)?.isLoading ?? true}
                                             />
                                         </TableCell>
 

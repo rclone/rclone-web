@@ -164,14 +164,13 @@ export function RemotesDetailsPage() {
         isDir: boolean
     } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const connectionKey = useAuthStore((state) => `${state.url}\u0000${state.user}`)
 
     const currentPath = useMemo(() => normalizePath(searchParams.get('path')), [searchParams])
 
     // --- Queries ---
 
     const remotesQuery = useQuery({
-        queryKey: ['remote-names', connectionKey],
+        queryKey: ['remote-names'],
         queryFn: async () => {
             const response = await rclone('/config/listremotes')
             return [...(response.remotes ?? [])].sort((a, b) => a.localeCompare(b))
@@ -182,7 +181,7 @@ export function RemotesDetailsPage() {
         !!remoteName && (!remotesQuery.isSuccess || (remotesQuery.data ?? []).includes(remoteName))
 
     const listQuery = useQuery({
-        queryKey: ['remote-browse', remoteName, currentPath, connectionKey],
+        queryKey: ['remote-browse', remoteName, currentPath],
         queryFn: async () => {
             const response = await rclone('/operations/list', {
                 params: { query: { fs: `${remoteName}:`, remote: currentPath } },
@@ -207,7 +206,7 @@ export function RemotesDetailsPage() {
     })
 
     const usageQuery = useQuery({
-        queryKey: ['remote-usage', remoteName, connectionKey],
+        queryKey: ['remote-usage', remoteName],
         queryFn: async () => {
             const response = await rclone('/operations/about', {
                 params: { query: { fs: `${remoteName}:` } },
@@ -339,7 +338,7 @@ export function RemotesDetailsPage() {
         onSuccess: () => {
             toast.success('Upload complete.')
             queryClient.invalidateQueries({
-                queryKey: ['remote-browse', remoteName, currentPath, connectionKey],
+                queryKey: ['remote-browse', remoteName, currentPath],
             })
             if (fileInputRef.current) fileInputRef.current.value = ''
         },

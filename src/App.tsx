@@ -24,6 +24,7 @@ const MESSAGES = [
         path: '/transfers',
         message: 'Schedule tasks using your OS scheduler, or the native UI',
     },
+    { path: '/serves', message: 'Check on your serves remotely with Rclone UI' },
 ] as const
 
 export function App() {

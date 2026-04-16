@@ -1,0 +1,90 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      manual:
+        description: Manual run (bypass default conditions)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  
+jobs:
+  biome:
+    if: inputs.manual || (github.repository == 'rclone/rclone-web' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
+      - name: Run Biome annotations
+        run: biome ci . --reporter=github
+
+#   codeql:
+#     if: inputs.manual || (github.repository == 'rclone/rclone-web' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name))
+#     runs-on: ubuntu-latest
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         language: [javascript-typescript]
+
+#     permissions:
+#       security-events: write
+
+#     steps:
+#       - uses: actions/checkout@v6
+
+#       - name: Initialize CodeQL
+#         uses: github/codeql-action/init@v3
+#         with:
+#           languages: ${{ matrix.language }}
+
+#       - name: Perform CodeQL Analysis
+#         uses: github/codeql-action/analyze@v3
+#         with:
+#           category: /language:${{ matrix.language }}
+
+  e2e:
+    if: inputs.manual || (github.repository == 'rclone/rclone-web' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+    #   - name: Run tests
+    #     run: npm run test
+
+    #   - name: Upload report
+    #     if: always()
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: playwright-report
+    #       path: |
+    #         playwright-report/
+    #         test-results/
+    #       retention-days: 7

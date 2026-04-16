@@ -87,7 +87,9 @@ export function DashboardPage() {
             return {
                 ...remote,
                 usage: status?.state === 'success' ? status.usage : null,
-                reachable: status ? status.state !== 'auth_error' && status.state !== 'error' : true,
+                reachable: status
+                    ? status.state !== 'auth_error' && status.state !== 'error'
+                    : true,
             }
         })
     }, [remotesList, usageQueries])

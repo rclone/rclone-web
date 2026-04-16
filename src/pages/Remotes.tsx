@@ -230,7 +230,9 @@ export function RemotesPage() {
                                         <TableCell className="px-4 py-6">
                                             <UsageCell
                                                 status={usageByName.get(remote.name)?.data}
-                                                isLoading={usageByName.get(remote.name)?.isLoading ?? true}
+                                                isLoading={
+                                                    usageByName.get(remote.name)?.isLoading ?? true
+                                                }
                                             />
                                         </TableCell>
 

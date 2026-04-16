@@ -622,18 +622,15 @@ export function SettingsPage() {
 
                     <Separator />
 
-                    <div className="space-y-3">
-                        <div className="relative">
-                            <div
-                                className="p-3 font-mono text-sm break-all border rounded-lg bg-primary/5 text-primary"
-                                style={{ whiteSpace: 'pre-wrap' }}
-                            >
-                                {versionOutput}
+                    <div className="p-5 border rounded-xl bg-primary/5">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="text-sm font-semibold uppercase text-muted-foreground">
+                                Your rclone version
                             </div>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute top-2 right-2 size-7"
+                                className="size-7"
                                 onClick={() => {
                                     navigator.clipboard.writeText(versionOutput)
                                     toast.success('Copied to clipboard')
@@ -641,6 +638,12 @@ export function SettingsPage() {
                             >
                                 <ClipboardCopyIcon className="size-3.5" />
                             </Button>
+                        </div>
+                        <div
+                            className="font-mono text-sm break-all text-primary dark:text-blue-200"
+                            style={{ whiteSpace: 'pre-wrap' }}
+                        >
+                            {versionOutput}
                         </div>
                     </div>
                 </div>

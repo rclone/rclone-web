@@ -1,37 +1,10 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-
-interface TestEnv {
-    rcUrl: string
-    rcUser: string
-    rcPass: string
-    appUrl: string
-}
-
-let cachedEnv: TestEnv | null = null
-
-function parseTestEnv(raw: unknown): TestEnv {
-    if (raw === null || typeof raw !== 'object') {
-        throw new Error('Invalid test env: expected an object')
+export function getTestEnv() {
+    return {
+        rcUrl: 'http://localhost:5573',
+        rcUser: 'test',
+        rcPass: 'test',
+        appUrl: 'http://localhost:5572',
     }
-
-    const obj = raw as Record<string, unknown>
-
-    for (const key of ['rcUrl', 'rcUser', 'rcPass', 'appUrl'] as const) {
-        if (typeof obj[key] !== 'string' || obj[key] === '') {
-            throw new Error(`Invalid test env: missing or empty "${key}"`)
-        }
-    }
-
-    return obj as unknown as TestEnv
-}
-
-export function getTestEnv(): TestEnv {
-    if (!cachedEnv) {
-        const stateFile = join(process.cwd(), 'e2e', 'test-env.json')
-        cachedEnv = parseTestEnv(JSON.parse(readFileSync(stateFile, 'utf-8')))
-    }
-    return cachedEnv
 }
 
 export function loginUrl(): string {

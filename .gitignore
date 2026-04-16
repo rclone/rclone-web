@@ -27,5 +27,3 @@ dist-ssr
 # E2E
 playwright-report
 test-results
-e2e/.test-env.json
-e2e/.test-pid

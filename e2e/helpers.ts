@@ -1,9 +1,9 @@
 export function getTestEnv() {
     return {
-        rcUrl: 'http://localhost:5573',
+        rcUrl: 'http://127.0.0.1:5573',
         rcUser: 'test',
         rcPass: 'test',
-        appUrl: 'http://localhost:5572',
+        appUrl: 'http://127.0.0.1:5572',
     }
 }
 

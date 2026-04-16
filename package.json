@@ -8,7 +8,7 @@
         "build": "tsc -b && vite build",
         "preview": "vite preview",
         "lint": "biome check .",
-        "test": "npm run build && rclone gui ./dist/ --user test --pass test --addr :5572 --api-addr :5573 --no-open-browser & sleep 2 && npx playwright test"
+        "test": "npm run build && rclone gui ./dist/ --user test --pass test --addr localhost:5572 --api-addr localhost:5573 --no-open-browser & sleep 5 && npx playwright test"
     },
     "dependencies": {
         "@base-ui/react": "^1.4.0",

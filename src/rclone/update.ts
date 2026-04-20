@@ -4,11 +4,24 @@ import rclone from '@/rclone/client'
 const yoursRe = /yours:\s+(\S+)/
 const latestRe = /latest:\s+(\S+)/
 
+function parseVersion(v: string) {
+    const match = v.match(/^v?(\d+)\.(\d+)\.(\d+)/)
+    if (!match) return null
+    return [Number(match[1]), Number(match[2]), Number(match[3])] as const
+}
+
 function parseUpdateCheck(result: string) {
     const yours = result.match(yoursRe)?.[1]
     const latest = result.match(latestRe)?.[1]
     if (!yours || !latest) return null
-    return yours !== latest ? latest : null
+    const y = parseVersion(yours)
+    const l = parseVersion(latest)
+    if (!y || !l) return null
+    for (let i = 0; i < 3; i++) {
+        if (l[i] > y[i]) return latest
+        if (l[i] < y[i]) return null
+    }
+    return null
 }
 
 export function updateCheckQueryOptions() {

@@ -281,19 +281,19 @@ export function Changelog() {
     const installedVersion = versionQuery.data?.version ?? ''
 
     const changelogQuery = useQuery({
-        queryKey: ['changelog', installedVersion],
+        queryKey: ['changelog', installedVersion] as const,
         enabled: Boolean(installedVersion),
         staleTime: 1000 * 60 * 60 * 24,
         gcTime: 1000 * 60 * 60 * 24 * 7,
-        queryFn: async () => {
-            const response = await fetch(CHANGELOG_SOURCE_URL)
+        queryFn: async ({ queryKey: [, qVersion], signal }) => {
+            const response = await fetch(CHANGELOG_SOURCE_URL, { signal })
 
             if (!response.ok) {
                 throw new Error(`${response.status} ${response.statusText}`)
             }
 
             const markdown = await response.text()
-            return extractChangelogSection(markdown, installedVersion)
+            return extractChangelogSection(markdown, qVersion)
         },
     })
 

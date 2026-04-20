@@ -183,10 +183,11 @@ export function RemotesDetailsPage() {
         !!remoteName && (!remotesListQuery.isSuccess || remoteNames.includes(remoteName))
 
     const listQuery = useQuery({
-        queryKey: ['remote-browse', remoteName, currentPath],
-        queryFn: async () => {
+        queryKey: ['remote-browse', remoteName, currentPath] as const,
+        queryFn: async ({ queryKey: [, qRemoteName, qPath], signal }) => {
             const response = await rclone('/operations/list', {
-                params: { query: { fs: `${remoteName}:`, remote: currentPath } },
+                params: { query: { fs: `${qRemoteName}:`, remote: qPath } },
+                signal,
             })
             const rawList = response.list ?? []
             return rawList
@@ -208,12 +209,13 @@ export function RemotesDetailsPage() {
     })
 
     const usageQuery = useQuery({
-        queryKey: ['remotes', 'usage', remoteName],
-        queryFn: () =>
+        queryKey: ['remotes', 'usage', remoteName] as const,
+        queryFn: ({ queryKey: [, , qRemoteName] }) =>
             fetchRemoteUsage(
-                remoteName,
-                remotes.find((r) => r.name === remoteName)?.type ?? 'unknown'
+                qRemoteName,
+                remotes.find((r) => r.name === qRemoteName)?.type ?? 'unknown'
             ),
+        enabled: remoteExists,
         staleTime: 5 * 60 * 1000,
         retry: false,
     })

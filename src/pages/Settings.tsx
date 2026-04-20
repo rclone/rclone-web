@@ -164,11 +164,12 @@ export function SettingsPage() {
     const fetchedConfigPath = configPathsQuery.data?.config ?? ''
 
     const configContentsQuery = useQuery({
-        queryKey: ['config', 'contents', fetchedConfigPath],
+        queryKey: ['config', 'contents', fetchedConfigPath] as const,
         enabled: Boolean(fetchedConfigPath),
-        queryFn: async () => {
+        queryFn: async ({ queryKey: [, , qConfigPath], signal }) => {
             const response = await rclone('/core/command', {
-                body: { command: 'cat', arg: [normalizeConfigPath(fetchedConfigPath)] },
+                body: { command: 'cat', arg: [normalizeConfigPath(qConfigPath)] },
+                signal,
             })
 
             return response.result ?? ''

@@ -55,8 +55,9 @@ export function RemotesPage() {
 
     const usageQueries = useQueries({
         queries: remotes.map((remote) => ({
-            queryKey: ['remotes', 'usage', remote.name],
-            queryFn: () => fetchRemoteUsage(remote.name, remote.type),
+            queryKey: ['remotes', 'usage', remote.name] as const,
+            queryFn: ({ queryKey: [, , qName] }: { queryKey: readonly string[] }) =>
+                fetchRemoteUsage(qName, remote.type),
             staleTime: 5 * 60 * 1000,
             retry: false,
         })),

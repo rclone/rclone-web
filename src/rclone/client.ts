@@ -242,6 +242,7 @@ export default async function rclone<
 
         return result.data as OpenApiMethodResponse<RCDClient, 'post', Path, Init>
     } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') throw error
         if (error instanceof RcloneError) throw error
         throw new RcloneError(error instanceof Error ? error.message : 'Request failed')
     }

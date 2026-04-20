@@ -23,10 +23,11 @@ export function RemotesEditPage() {
     const [initialized, setInitialized] = useState(false)
 
     const remoteConfigQuery = useQuery({
-        queryKey: ['remotes', remoteName, 'config'],
-        queryFn: async () => {
+        queryKey: ['remotes', remoteName, 'config'] as const,
+        queryFn: async ({ queryKey: [, qRemoteName], signal }) => {
             const response = await rclone('/config/get', {
-                params: { query: { name: remoteName! } },
+                params: { query: { name: qRemoteName! } },
+                signal,
             })
             return response
         },

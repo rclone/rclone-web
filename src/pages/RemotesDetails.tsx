@@ -628,20 +628,35 @@ export function RemotesDetailsPage() {
             if (!transferSource) return
 
             transferMutation.mutate(
-                { source: transferSource, dstRemoteName: remoteName, dstCurrentPath: currentPath, mode },
+                {
+                    source: transferSource,
+                    dstRemoteName: remoteName,
+                    dstCurrentPath: currentPath,
+                    mode,
+                },
                 {
                     onSuccess: () => {
+                        const source = transferSource
                         setTransferSource(null)
-                        toast.success(
-                            `${mode === 'copy' ? 'Copy' : 'Move'} started successfully.`,
-                            {
-                                position: 'bottom-left',
-                                action: {
-                                    label: 'View Transfers',
-                                    onClick: () => navigate('/transfers'),
-                                },
-                            }
-                        )
+
+                        const sourceDir = source.path.split('/').slice(0, -1).join('/')
+                        const movedAway =
+                            source.remoteName !== remoteName || sourceDir !== currentPath
+                        const sourcePath = buildRemotePathHref(source.remoteName, sourceDir)
+
+                        toast(`${mode === 'copy' ? 'Copy' : 'Move'} started successfully.`, {
+                            position: 'bottom-left',
+                            action: movedAway
+                                ? {
+                                      label: 'Back to source',
+                                      onClick: () => navigate(sourcePath),
+                                  }
+                                : undefined,
+                            cancel: {
+                                label: 'View Transfers',
+                                onClick: () => navigate('/transfers'),
+                            },
+                        })
                     },
                     onError: (error) => {
                         toast.error(

@@ -11,11 +11,11 @@
         "test": "npm run build && rclone gui ./dist/ --user test --pass test --addr localhost:5572 --api-addr localhost:5573 --no-open-browser & sleep 5 && npx playwright test"
     },
     "dependencies": {
-        "@base-ui/react": "^1.4.0",
-        "@tailwindcss/vite": "^4.2.2",
-        "@tanstack/query-persist-client-core": "^5.99.0",
-        "@tanstack/query-sync-storage-persister": "^5.99.0",
-        "@tanstack/react-query": "^5.99.0",
+        "@base-ui/react": "^1.4.1",
+        "@tailwindcss/vite": "^4.2.3",
+        "@tanstack/query-persist-client-core": "^5.99.2",
+        "@tanstack/query-sync-storage-persister": "^5.99.2",
+        "@tanstack/react-query": "^5.99.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^1.8.0",
@@ -38,7 +38,7 @@
         "@types/react": "^19.2.5",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^5.1.1",
-        "typescript": "~6.0.2",
+        "typescript": "~6.0.3",
         "vite": "^7.2.4"
     }
 }

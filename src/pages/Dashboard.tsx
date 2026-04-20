@@ -79,7 +79,7 @@ export function DashboardPage() {
     const versionQuery = useQuery({
         queryKey: ['core', 'version'],
         queryFn: async () => await rclone('/core/version'),
-        staleTime: 1000 * 60 * 5,
+        staleTime: Infinity,
     })
 
     const remotes = useMemo((): RemoteWithUsage[] => {

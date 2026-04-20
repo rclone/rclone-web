@@ -58,21 +58,24 @@ export function MountsNewPage() {
     })
 
     const optionsInfoQuery = useQuery({
-        queryKey: ['mounts', 'new', 'options', 'info'],
+        queryKey: ['options', 'info'],
         queryFn: async () => await rclone('/options/info'),
+        staleTime: Infinity,
     })
 
     const optionsGetQuery = useQuery({
-        queryKey: ['mounts', 'new', 'options', 'get'],
+        queryKey: ['options', 'get'],
         queryFn: async () => await rclone('/options/get'),
+        staleTime: Infinity,
     })
 
     const mountTypesQuery = useQuery({
-        queryKey: ['mounts', 'new', 'types'],
+        queryKey: ['mounts', 'types'],
         queryFn: async () => {
             const response = await rclone('/mount/types')
             return response.mountTypes ?? []
         },
+        staleTime: Infinity,
     })
 
     const remotes = remotesQuery.data ?? []

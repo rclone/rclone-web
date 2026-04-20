@@ -134,6 +134,7 @@ export function SettingsPage() {
     const coreVersionQuery = useQuery({
         queryKey: ['core', 'version'],
         queryFn: () => rclone('/core/version'),
+        staleTime: Infinity,
     })
 
     const versionOutput = useMemo(() => {

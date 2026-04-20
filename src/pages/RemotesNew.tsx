@@ -35,6 +35,7 @@ export function RemotesNewPage() {
             const response = await rclone('/config/providers')
             return response.providers
         },
+        staleTime: Infinity,
     })
 
     const sortedEnrichedBackends = useMemo(() => {

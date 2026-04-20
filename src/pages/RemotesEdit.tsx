@@ -40,6 +40,7 @@ export function RemotesEditPage() {
             const response = await rclone('/config/providers')
             return response.providers
         },
+        staleTime: Infinity,
     })
 
     const remoteType = remoteConfigQuery.data?.type

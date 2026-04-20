@@ -275,7 +275,7 @@ export function Changelog() {
     const versionQuery = useQuery({
         queryKey: ['core', 'version'],
         queryFn: async () => await rclone('/core/version'),
-        staleTime: 1000 * 60 * 5,
+        staleTime: Infinity,
     })
 
     const installedVersion = versionQuery.data?.version ?? ''
@@ -283,8 +283,7 @@ export function Changelog() {
     const changelogQuery = useQuery({
         queryKey: ['changelog', installedVersion] as const,
         enabled: Boolean(installedVersion),
-        staleTime: 1000 * 60 * 60 * 24,
-        gcTime: 1000 * 60 * 60 * 24 * 7,
+        staleTime: Infinity,
         queryFn: async ({ queryKey: [, qVersion], signal }) => {
             const response = await fetch(CHANGELOG_SOURCE_URL, { signal })
 

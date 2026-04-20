@@ -59,21 +59,24 @@ export function ServesNewPage() {
     })
 
     const optionsInfoQuery = useQuery({
-        queryKey: ['serves', 'new', 'options', 'info'],
+        queryKey: ['options', 'info'],
         queryFn: async () => await rclone('/options/info'),
+        staleTime: Infinity,
     })
 
     const optionsGetQuery = useQuery({
-        queryKey: ['serves', 'new', 'options', 'get'],
+        queryKey: ['options', 'get'],
         queryFn: async () => await rclone('/options/get'),
+        staleTime: Infinity,
     })
 
     const serveTypesQuery = useQuery({
-        queryKey: ['serves', 'new', 'types'],
+        queryKey: ['serves', 'types'],
         queryFn: async () => {
             const response = await rclone('/serve/types')
             return response.types
         },
+        staleTime: Infinity,
     })
 
     const remotes = remotesQuery.data ?? []

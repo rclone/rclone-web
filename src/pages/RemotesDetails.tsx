@@ -56,6 +56,7 @@ import { formatBytes } from '@/lib/format'
 import { useAuthStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
+import { fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
 
 const IMAGE_EXTS = new Set([
     'jpg',
@@ -169,16 +170,17 @@ export function RemotesDetailsPage() {
 
     // --- Queries ---
 
-    const remotesQuery = useQuery({
-        queryKey: ['remote-names'],
-        queryFn: async () => {
-            const response = await rclone('/config/listremotes')
-            return [...(response.remotes ?? [])].sort((a, b) => a.localeCompare(b))
-        },
+    const remotesListQuery = useQuery({
+        queryKey: ['remotes', 'list'],
+        queryFn: fetchRemotesList,
     })
 
+    const remotes = useMemo(() => remotesListQuery.data ?? [], [remotesListQuery.data])
+
+    const remoteNames = useMemo(() => remotes.map((r) => r.name) ?? [], [remotes])
+
     const remoteExists =
-        !!remoteName && (!remotesQuery.isSuccess || (remotesQuery.data ?? []).includes(remoteName))
+        !!remoteName && (!remotesListQuery.isSuccess || remoteNames.includes(remoteName))
 
     const listQuery = useQuery({
         queryKey: ['remote-browse', remoteName, currentPath],
@@ -206,14 +208,13 @@ export function RemotesDetailsPage() {
     })
 
     const usageQuery = useQuery({
-        queryKey: ['remote-usage', remoteName],
-        queryFn: async () => {
-            const response = await rclone('/operations/about', {
-                params: { query: { fs: `${remoteName}:` } },
-            })
-            return response
-        },
-        enabled: remoteExists,
+        queryKey: ['remotes', 'usage', remoteName],
+        queryFn: () =>
+            fetchRemoteUsage(
+                remoteName,
+                remotes.find((r) => r.name === remoteName)?.type ?? 'unknown'
+            ),
+        staleTime: 5 * 60 * 1000,
         retry: false,
     })
 
@@ -472,7 +473,10 @@ export function RemotesDetailsPage() {
 
     // --- Memos ---
 
-    const remoteNames = useMemo(() => remotesQuery.data ?? [], [remotesQuery.data])
+    const sortedRemotes = useMemo(
+        () => remoteNames.sort((a, b) => a.localeCompare(b)),
+        [remoteNames]
+    )
     const items = useMemo(() => listQuery.data ?? [], [listQuery.data])
     const filteredItems = useMemo(() => {
         const q = searchTerm.trim().toLowerCase()
@@ -490,21 +494,14 @@ export function RemotesDetailsPage() {
 
     const usage = useMemo(() => {
         const data = usageQuery.data
-        if (!data || data.used === undefined) return null
-        const used = data.used
-        const total = data.total
-        const hasTotal = total !== undefined && total > 0
-
-        return {
-            usedLabel: formatBytes(used),
-            totalLabel: hasTotal ? formatBytes(total) : null,
-            percent: hasTotal ? Math.min(Math.round((used / total) * 100), 100) : null,
-        }
+        if (!data || data.state !== 'success') return null
+        return data.usage
     }, [usageQuery.data])
 
     const remoteNotFound = useMemo(
-        () => remotesQuery.isSuccess && remoteName !== '' && !remoteNames.includes(remoteName),
-        [remotesQuery.isSuccess, remoteName, remoteNames]
+        () =>
+            remotesListQuery.isSuccess && remoteName !== '' && !sortedRemotes.includes(remoteName),
+        [remotesListQuery.isSuccess, remoteName, sortedRemotes]
     )
 
     const isMutating = useMemo(
@@ -662,18 +659,18 @@ export function RemotesDetailsPage() {
                 </h2>
 
                 <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
-                    {remotesQuery.isPending ? (
+                    {remotesListQuery.isPending ? (
                         <div className="flex justify-center py-6">
                             <Spinner className="size-5" />
                         </div>
-                    ) : remotesQuery.isError ? (
+                    ) : remotesListQuery.isError ? (
                         <p className="px-3 py-2 text-sm text-destructive">Failed to load remotes</p>
-                    ) : remoteNames.length === 0 ? (
+                    ) : sortedRemotes.length === 0 ? (
                         <p className="px-3 py-2 text-sm text-muted-foreground">
                             No remotes configured
                         </p>
                     ) : (
-                        remoteNames.map((name) => (
+                        sortedRemotes.map((name) => (
                             <NavLink
                                 key={name}
                                 to={buildRemotePathHref(name, '')}
@@ -789,15 +786,15 @@ export function RemotesDetailsPage() {
                                 <CardHeader className="pb-0">
                                     <div className="flex items-center justify-between gap-3">
                                         <CardTitle className="text-sm">Storage</CardTitle>
-                                        {usage.percent !== null ? (
+                                        {usage.percentLabel ? (
                                             <span className="text-xs text-muted-foreground">
-                                                {usage.percent}%
+                                                {usage.percentLabel}
                                             </span>
                                         ) : null}
                                     </div>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
-                                    <Progress value={usage.percent ?? 50} />
+                                    <Progress value={usage.barPercent ?? 50} />
                                     <p className="text-xs text-muted-foreground">
                                         {usage.totalLabel
                                             ? `${usage.usedLabel} of ${usage.totalLabel} used`

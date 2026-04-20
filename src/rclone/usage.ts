@@ -176,18 +176,3 @@ export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatu
         }
     })
 }
-
-export async function fetchRemotesWithUsage(): Promise<RemoteWithUsage[]> {
-    const remotes = await fetchRemotesList()
-
-    return Promise.all(
-        remotes.map(async (remote): Promise<RemoteWithUsage> => {
-            const status = await fetchRemoteUsage(remote.name, remote.type)
-            return {
-                ...remote,
-                usage: status.state === 'success' ? status.usage : null,
-                reachable: status.state !== 'auth_error' && status.state !== 'error',
-            }
-        })
-    )
-}

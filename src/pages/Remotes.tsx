@@ -317,20 +317,26 @@ function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isL
                 <div className="w-[240px] space-y-2">
                     <div className="flex items-center justify-between gap-4">
                         <span className="font-mono text-sm text-muted-foreground">
-                            {status.usage.usedLabel} / {status.usage.totalLabel}
+                            {status.usage.totalLabel
+                                ? `${status.usage.usedLabel} / ${status.usage.totalLabel}`
+                                : status.usage.usedLabel}
                         </span>
-                        <span className="font-mono text-sm text-muted-foreground">
-                            {status.usage.percentLabel}
-                        </span>
+                        {status.usage.percentLabel ? (
+                            <span className="font-mono text-sm text-muted-foreground">
+                                {status.usage.percentLabel}
+                            </span>
+                        ) : null}
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                         <div
                             className={cn(
                                 'h-full rounded-full transition-all',
-                                status.usage.barPercent >= 85 ? 'bg-destructive' : 'bg-primary'
+                                (status.usage.barPercent ?? 0) >= 85
+                                    ? 'bg-destructive'
+                                    : 'bg-primary'
                             )}
                             style={{
-                                width: `${status.usage.barPercent}%`,
+                                width: `${status.usage.barPercent ?? 50}%`,
                             }}
                         />
                     </div>

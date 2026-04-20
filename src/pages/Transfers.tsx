@@ -18,7 +18,7 @@ export function TransfersPage() {
     const jobsQuery = useQuery({
         queryKey: ['jobs'],
         queryFn: fetchJobsSnapshot,
-        refetchInterval: 3000,
+        refetchInterval: 1500,
     })
 
     const stopMutation = useMutation({

@@ -3,13 +3,17 @@ import rclone from '@/rclone/client'
 
 export type RemoteUsage = {
     used: number
-    total: number
-    free: number
     usedLabel: string
-    totalLabel: string
-    percentLabel: string
-    barPercent: number
-}
+} & (
+    | { total: number; free: number; totalLabel: string; percentLabel: string; barPercent: number }
+    | {
+          total?: undefined
+          free?: undefined
+          totalLabel?: undefined
+          percentLabel?: undefined
+          barPercent?: undefined
+      }
+)
 
 export type UsageStatus =
     | { state: 'idle' }
@@ -68,10 +72,13 @@ function parseRemoteUsage(data: {
     free?: number
 }): RemoteUsage | null {
     const used = data.used
-    const total = data.total
+    if (used === undefined) return null
 
-    if (used === undefined || total === undefined || total === 0) {
-        return null
+    const total = data.total
+    const hasTotal = total !== undefined && total > 0
+
+    if (!hasTotal) {
+        return { used, usedLabel: formatBytes(used) }
     }
 
     const free = data.free ?? total - used

@@ -105,7 +105,7 @@ function isAuthError(message: string): boolean {
 }
 
 const aboutLimit = (() => {
-    const max = 6
+    const max = 15
     let active = 0
     const queue: Array<() => void> = []
 

@@ -124,18 +124,24 @@ export function RemotesEditPage() {
     }, [remoteConfigQuery.data, selectedBackend, initialized])
 
     const updateRemoteMutation = useMutation({
-        mutationFn: async (parameters: Record<string, unknown>) => {
+        mutationFn: async ({
+            name,
+            parameters,
+        }: {
+            name: string
+            parameters: Record<string, unknown>
+        }) => {
             await rclone('/config/update', {
                 params: {
                     query: {
-                        name: remoteName!,
+                        name,
                         parameters: JSON.stringify(parameters),
                     },
                 },
             })
         },
-        onSuccess: () => {
-            toast.success(`Remote "${remoteName}" updated successfully.`)
+        onSuccess: (_data, { name }) => {
+            toast.success(`Remote "${name}" updated successfully.`)
             queryClient.invalidateQueries({ queryKey: ['remotes'] })
             navigate('/remotes')
         },
@@ -147,8 +153,8 @@ export function RemotesEditPage() {
 
     const handleSave = useCallback(() => {
         const parameters = { ...config }
-        updateRemoteMutation.mutate(parameters)
-    }, [config, updateRemoteMutation])
+        updateRemoteMutation.mutate({ name: remoteName!, parameters })
+    }, [config, updateRemoteMutation, remoteName])
 
     const isPending = remoteConfigQuery.isPending || backendsQuery.isPending
     const isError = remoteConfigQuery.isError || backendsQuery.isError

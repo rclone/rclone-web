@@ -223,7 +223,15 @@ export function RemotesDetailsPage() {
     // --- Mutations ---
 
     const deleteMutation = useMutation({
-        mutationFn: async ({ path, isDir }: { path: string; isDir: boolean }) => {
+        mutationFn: async ({
+            remoteName,
+            path,
+            isDir,
+        }: {
+            remoteName: string
+            path: string
+            isDir: boolean
+        }) => {
             if (isDir) {
                 await rclone('/operations/purge', {
                     params: { query: { fs: `${remoteName}:`, remote: path } },
@@ -234,7 +242,7 @@ export function RemotesDetailsPage() {
                 })
             }
         },
-        onSuccess: () => {
+        onSuccess: (_data, { remoteName }) => {
             toast.success('Deleted successfully.')
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
         },
@@ -264,10 +272,12 @@ export function RemotesDetailsPage() {
 
     const renameMutation = useMutation({
         mutationFn: async ({
+            remoteName,
             oldPath,
             newPath,
             isDir,
         }: {
+            remoteName: string
             oldPath: string
             newPath: string
             isDir: boolean
@@ -295,7 +305,7 @@ export function RemotesDetailsPage() {
                 })
             }
         },
-        onSuccess: () => {
+        onSuccess: (_data, { remoteName }) => {
             toast.success('Renamed successfully.')
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
         },
@@ -307,7 +317,15 @@ export function RemotesDetailsPage() {
     })
 
     const uploadMutation = useMutation({
-        mutationFn: async (files: File[]) => {
+        mutationFn: async ({
+            remoteName,
+            currentPath,
+            files,
+        }: {
+            remoteName: string
+            currentPath: string
+            files: File[]
+        }) => {
             const { url, user, pass } = useAuthStore.getState()
             const baseUrl = url.trim().replace(/\/+$/, '')
             const params = new URLSearchParams({
@@ -338,7 +356,7 @@ export function RemotesDetailsPage() {
                 }
             }
         },
-        onSuccess: () => {
+        onSuccess: (_data, { remoteName, currentPath }) => {
             toast.success('Upload complete.')
             queryClient.invalidateQueries({
                 queryKey: ['remote-browse', remoteName, currentPath],
@@ -353,10 +371,12 @@ export function RemotesDetailsPage() {
 
     const downloadMutation = useMutation({
         mutationFn: async ({
+            remoteName,
             name,
             path,
             isDir,
         }: {
+            remoteName: string
             name: string
             path: string
             isDir: boolean
@@ -409,21 +429,25 @@ export function RemotesDetailsPage() {
     const transferMutation = useMutation({
         mutationFn: async ({
             source,
+            dstRemoteName,
+            dstCurrentPath,
             mode,
         }: {
             source: { remoteName: string; path: string; name: string; isDir: boolean }
+            dstRemoteName: string
+            dstCurrentPath: string
             mode: 'copy' | 'move'
         }) => {
-            const dstPath = [currentPath, source.name].filter(Boolean).join('/')
+            const dstPath = [dstCurrentPath, source.name].filter(Boolean).join('/')
 
             if (source.isDir) {
                 await rclone('/operations/mkdir', {
-                    params: { query: { fs: `${remoteName}:`, remote: dstPath } },
+                    params: { query: { fs: `${dstRemoteName}:`, remote: dstPath } },
                 })
 
                 const syncBody = {
                     srcFs: `${source.remoteName}:${source.path}`,
-                    dstFs: `${remoteName}:${dstPath}`,
+                    dstFs: `${dstRemoteName}:${dstPath}`,
                     createEmptySrcDirs: true,
                     _async: true,
                 }
@@ -449,7 +473,7 @@ export function RemotesDetailsPage() {
             const fileBody = {
                 srcFs: `${source.remoteName}:`,
                 srcRemote: source.path,
-                dstFs: `${remoteName}:`,
+                dstFs: `${dstRemoteName}:`,
                 dstRemote: dstPath,
                 _async: true,
             }
@@ -561,9 +585,9 @@ export function RemotesDetailsPage() {
             if (!newName?.trim() || newName.trim() === item.Name) return
             const oldPath = [currentPath, item.Name].filter(Boolean).join('/')
             const newPath = [currentPath, newName.trim()].filter(Boolean).join('/')
-            renameMutation.mutate({ oldPath, newPath, isDir: item.IsDir })
+            renameMutation.mutate({ remoteName, oldPath, newPath, isDir: item.IsDir })
         },
-        [currentPath]
+        [currentPath, remoteName]
     )
 
     const handleDelete = useCallback(
@@ -573,17 +597,17 @@ export function RemotesDetailsPage() {
             )
             if (!confirmed) return
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
-            deleteMutation.mutate({ path: itemPath, isDir: item.IsDir })
+            deleteMutation.mutate({ remoteName, path: itemPath, isDir: item.IsDir })
         },
-        [currentPath]
+        [currentPath, remoteName]
     )
 
     const handleDownload = useCallback(
         (item: ListItem) => {
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
-            downloadMutation.mutate({ name: item.Name, path: itemPath, isDir: item.IsDir })
+            downloadMutation.mutate({ remoteName, name: item.Name, path: itemPath, isDir: item.IsDir })
         },
-        [currentPath]
+        [currentPath, remoteName]
     )
 
     const handleTransfer = useCallback(
@@ -604,7 +628,7 @@ export function RemotesDetailsPage() {
             if (!transferSource) return
 
             transferMutation.mutate(
-                { source: transferSource, mode },
+                { source: transferSource, dstRemoteName: remoteName, dstCurrentPath: currentPath, mode },
                 {
                     onSuccess: () => {
                         setTransferSource(null)
@@ -638,9 +662,9 @@ export function RemotesDetailsPage() {
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const files = event.target.files
             if (!files || files.length === 0) return
-            uploadMutation.mutate(Array.from(files))
+            uploadMutation.mutate({ remoteName, currentPath, files: Array.from(files) })
         },
-        [uploadMutation]
+        [uploadMutation, remoteName, currentPath]
     )
 
     // --- Render ---

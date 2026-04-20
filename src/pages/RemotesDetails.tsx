@@ -245,6 +245,7 @@ export function RemotesDetailsPage() {
         onSuccess: (_data, { remoteName }) => {
             toast.success('Deleted successfully.')
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
+            queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
             toast.error(
@@ -308,6 +309,7 @@ export function RemotesDetailsPage() {
         onSuccess: (_data, { remoteName }) => {
             toast.success('Renamed successfully.')
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
+            queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
             toast.error(
@@ -361,6 +363,7 @@ export function RemotesDetailsPage() {
             queryClient.invalidateQueries({
                 queryKey: ['remote-browse', remoteName, currentPath],
             })
+            queryClient.invalidateQueries({ queryKey: ['jobs'] })
             if (fileInputRef.current) fileInputRef.current.value = ''
         },
         onError: (error) => {
@@ -605,7 +608,12 @@ export function RemotesDetailsPage() {
     const handleDownload = useCallback(
         (item: ListItem) => {
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
-            downloadMutation.mutate({ remoteName, name: item.Name, path: itemPath, isDir: item.IsDir })
+            downloadMutation.mutate({
+                remoteName,
+                name: item.Name,
+                path: itemPath,
+                isDir: item.IsDir,
+            })
         },
         [currentPath, remoteName]
     )
@@ -657,6 +665,8 @@ export function RemotesDetailsPage() {
                                 onClick: () => navigate('/transfers'),
                             },
                         })
+
+                        queryClient.invalidateQueries({ queryKey: ['jobs'] })
                     },
                     onError: (error) => {
                         toast.error(

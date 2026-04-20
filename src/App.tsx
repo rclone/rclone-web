@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LogOutIcon } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { clearAuthSession, useAuthStore } from '@/lib/store'
@@ -30,7 +30,7 @@ const MESSAGES = [
 export function App() {
     const location = useLocation()
     const navigate = useNavigate()
-    const [isUpdating, setIsUpdating] = useState(false)
+    const queryClient = useQueryClient()
     const hasAuthCredentials = useAuthStore((state) => Boolean(state.user && state.pass))
 
     const updateCheckQuery = useQuery(updateCheckQueryOptions())
@@ -46,29 +46,32 @@ export function App() {
         navigate('/login', { replace: true })
     }, [navigate])
 
-    const handleRcloneUpdate = useCallback(async () => {
-        const shouldUpdate = window.confirm(
-            'Are you sure you want to update rclone? This will run rclone selfupdate.'
-        )
-        if (!shouldUpdate || isUpdating) {
-            return
-        }
-
-        setIsUpdating(true)
-
-        try {
+    const updateMutation = useMutation({
+        mutationFn: async () => {
             await rclone('/core/command', {
                 body: { command: 'selfupdate' },
             })
-            toast.success('rclone updated. Restart rclone to use the new version.')
-            updateCheckQuery.refetch()
-        } catch (error) {
+        },
+        onSuccess: () => {
+            toast.success('rclone updated. You may need to restart rclone to use the new version.')
+            queryClient.setQueryData(['core', 'updateCheck'], null)
+            setTimeout(() => {
+                queryClient.invalidateQueries({ queryKey: ['core', 'version'] })
+            }, 5000)
+        },
+        onError: (error) => {
             const message = error instanceof Error ? error.message : 'Unknown error occurred'
             toast.error(`Could not update rclone: ${message}`)
-        } finally {
-            setIsUpdating(false)
-        }
-    }, [isUpdating, updateCheckQuery])
+        },
+    })
+
+    const handleRcloneUpdate = useCallback(() => {
+        const shouldUpdate = window.confirm(
+            'Are you sure you want to update rclone? This will run rclone selfupdate.'
+        )
+        if (!shouldUpdate) return
+        updateMutation.mutate()
+    }, [updateMutation])
 
     return (
         <div className="flex h-dvh min-h-screen flex-col overflow-hidden overscroll-none bg-background text-foreground">
@@ -109,10 +112,10 @@ export function App() {
                             <button
                                 type="button"
                                 onClick={() => handleRcloneUpdate()}
-                                disabled={isUpdating}
+                                disabled={updateMutation.isPending}
                                 className="px-3 py-1.5 text-sm text-blue-800 transition-colors hover:bg-muted hover:text-blue-700 disabled:opacity-50"
                             >
-                                {isUpdating ? 'Updating…' : 'Update available'}
+                                {updateMutation.isPending ? 'Updating…' : 'Update available'}
                             </button>
                         )}
                         {hasAuthCredentials && (

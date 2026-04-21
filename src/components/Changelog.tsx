@@ -351,15 +351,9 @@ export function Changelog() {
                             </EmptyHeader>
 
                             <EmptyContent>
-                                <a
-                                    href={CHANGELOG_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-1 text-sm transition-colors text-primary hover:text-primary/80"
-                                >
-                                    Open online changelog
-                                    <ArrowUpRightIcon className="size-4" />
-                                </a>
+                                <p className="text-sm text-muted-foreground">
+                                    Are you working on a new version? 🧑‍💻
+                                </p>
                             </EmptyContent>
                         </Empty>
                     ) : (

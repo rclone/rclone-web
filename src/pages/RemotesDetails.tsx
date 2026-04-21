@@ -8,6 +8,7 @@ import {
     FileSpreadsheetIcon,
     FileTextIcon,
     FolderIcon,
+    FolderPlusIcon,
     HardDriveIcon,
     HouseIcon,
     PencilIcon,
@@ -254,22 +255,22 @@ export function RemotesDetailsPage() {
         },
     })
 
-    // const mkdirMutation = useMutation({
-    //     mutationFn: async (path: string) => {
-    //         await rclone('/operations/mkdir', {
-    //             params: { query: { fs: `${remoteName}:`, remote: path } },
-    //         })
-    //     },
-    //     onSuccess: () => {
-    //         toast.success('Folder created.')
-    //         queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
-    //     },
-    //     onError: (error) => {
-    //         toast.error(
-    //             `Could not create folder: ${error instanceof Error ? error.message : 'Unknown error'}`
-    //         )
-    //     },
-    // })
+    const mkdirMutation = useMutation({
+        mutationFn: async ({ remoteName, path }: { remoteName: string; path: string }) => {
+            await rclone('/operations/mkdir', {
+                params: { query: { fs: `${remoteName}:`, remote: path } },
+            })
+        },
+        onSuccess: (_, { remoteName }) => {
+            toast.success('Folder created.')
+            queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
+        },
+        onError: (error) => {
+            toast.error(
+                `Could not create folder: ${error instanceof Error ? error.message : 'Unknown error'}`
+            )
+        },
+    })
 
     const renameMutation = useMutation({
         mutationFn: async ({
@@ -536,13 +537,14 @@ export function RemotesDetailsPage() {
     const isMutating = useMemo(
         () =>
             deleteMutation.isPending ||
-            // mkdirMutation.isPending ||
+            mkdirMutation.isPending ||
             renameMutation.isPending ||
             uploadMutation.isPending ||
             downloadMutation.isPending ||
             transferMutation.isPending,
         [
             deleteMutation.isPending,
+            mkdirMutation.isPending,
             renameMutation.isPending,
             uploadMutation.isPending,
             downloadMutation.isPending,
@@ -575,12 +577,12 @@ export function RemotesDetailsPage() {
         [setPath, currentPath]
     )
 
-    // const handleNewFolder = useCallback(() => {
-    //     const name = window.prompt('Enter folder name:')
-    //     if (!name?.trim()) return
-    //     const folderPath = [currentPath, name.trim()].filter(Boolean).join('/')
-    //     mkdirMutation.mutate(folderPath)
-    // }, [currentPath])
+    const handleNewFolder = useCallback(() => {
+        const name = window.prompt('Enter folder name:')
+        if (!name?.trim()) return
+        const folderPath = [currentPath, name.trim()].filter(Boolean).join('/')
+        mkdirMutation.mutate({ remoteName, path: folderPath })
+    }, [currentPath, remoteName])
 
     const handleRename = useCallback(
         (item: ListItem) => {
@@ -928,21 +930,22 @@ export function RemotesDetailsPage() {
                             <div className="flex items-center gap-2">
                                 <Button
                                     type="button"
+                                    onClick={handleNewFolder}
+                                    disabled={mkdirMutation.isPending}
+                                >
+                                    <FolderPlusIcon />
+                                    {mkdirMutation.isPending ? 'Creating\u2026' : 'New Folder'}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
                                     onClick={handleUpload}
                                     disabled={uploadMutation.isPending || !!transferSource}
                                 >
                                     <UploadIcon />
                                     {uploadMutation.isPending ? 'Uploading\u2026' : 'Upload'}
                                 </Button>
-                                {/* <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleNewFolder}
-                                    disabled={mkdirMutation.isPending}
-                                >
-                                    <FolderPlusIcon />
-                                    New Folder
-                                </Button> */}
+
                                 <RefreshButton
                                     isFetching={listQuery.isFetching}
                                     refetch={listQuery.refetch}

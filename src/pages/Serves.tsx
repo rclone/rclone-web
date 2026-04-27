@@ -29,8 +29,10 @@ import {
 } from '@/components/ui/table'
 import rclone from '@/rclone/client'
 import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
+import { useT } from '@/lib/i18n'
 
 export function ServesPage() {
+    const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
@@ -49,12 +51,12 @@ export function ServesPage() {
             })
         },
         onSuccess: () => {
-            toast.success('Serve stopped successfully.')
+            toast.success(t('serves.stopSuccess'))
             queryClient.invalidateQueries({ queryKey: ['serves'] })
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error occurred'
-            toast.error(`Could not stop serve: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('serves.stopError', { message }))
         },
     })
 
@@ -78,13 +80,13 @@ export function ServesPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="Serves"
-                description="Manage active serve endpoints such as WebDAV, SFTP, and HTTP."
+                title={t('serves.title')}
+                description={t('serves.description')}
                 actions={
                     <div className="flex items-center gap-2">
                         <Button size="lg" type="button" onClick={() => navigate('/serves/new')}>
                             <PlusIcon />
-                            New Serve
+                            {t('serves.newServe')}
                         </Button>
                         <RefreshButton
                             isFetching={servesQuery.isFetching}
@@ -101,25 +103,25 @@ export function ServesPage() {
                             <TableHeader className="bg-muted/40">
                                 <TableRow className="hover:bg-muted/40">
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Id
+                                        {t('serves.id')}
                                     </TableHead>
                                     <TableHead className="h-14 px-6 font-semibold text-muted-foreground uppercase">
-                                        Remote
+                                        {t('serves.remote')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Source
+                                        {t('serves.source')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Protocol
+                                        {t('serves.protocol')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Address
+                                        {t('serves.address')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Auth
+                                        {t('serves.auth')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 text-right font-semibold text-muted-foreground uppercase">
-                                        Actions
+                                        {t('common.actions')}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -132,11 +134,11 @@ export function ServesPage() {
 
                 {servesQuery.isError ? (
                     <Alert variant="destructive">
-                        <AlertTitle>Unable to load serves</AlertTitle>
+                        <AlertTitle>{t('serves.loadError')}</AlertTitle>
                         <AlertDescription>
                             {servesQuery.error instanceof Error
                                 ? servesQuery.error.message
-                                : 'Unknown error occurred'}
+                                : t('common.unknownError')}
                         </AlertDescription>
                         <AlertAction>
                             <Button
@@ -147,7 +149,7 @@ export function ServesPage() {
                                     servesQuery.refetch()
                                 }}
                             >
-                                Retry
+                                {t('common.retry')}
                             </Button>
                         </AlertAction>
                     </Alert>
@@ -159,10 +161,9 @@ export function ServesPage() {
                             <EmptyMedia variant="icon">
                                 <GlobeIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No active serves</EmptyTitle>
+                            <EmptyTitle>{t('serves.emptyTitle')}</EmptyTitle>
                             <EmptyDescription>
-                                Start a new serve to expose a remote over HTTP, WebDAV, SFTP, or
-                                other protocols.
+                                {t('serves.emptyDescription')}
                             </EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
@@ -171,7 +172,7 @@ export function ServesPage() {
                                 variant="outline"
                                 onClick={() => navigate('/serves/new')}
                             >
-                                New Serve
+                                {t('serves.newServe')}
                             </Button>
                         </EmptyContent>
                     </Empty>
@@ -183,25 +184,25 @@ export function ServesPage() {
                             <TableHeader className="bg-muted/40">
                                 <TableRow className="hover:bg-muted/40">
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Id
+                                        {t('serves.id')}
                                     </TableHead>
                                     <TableHead className="h-14 px-6 font-semibold text-muted-foreground uppercase">
-                                        Remote
+                                        {t('serves.remote')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Source
+                                        {t('serves.source')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Protocol
+                                        {t('serves.protocol')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Address
+                                        {t('serves.address')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 font-semibold text-muted-foreground uppercase">
-                                        Auth
+                                        {t('serves.auth')}
                                     </TableHead>
                                     <TableHead className="h-14 px-4 text-right font-semibold text-muted-foreground uppercase">
-                                        Actions
+                                        {t('common.actions')}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -236,14 +237,14 @@ export function ServesPage() {
                                                 onClick={() => {
                                                     if (
                                                         window.confirm(
-                                                            `Are you sure you want to stop serve "${serve.id}"?`
+                                                            t('serves.stopConfirm', { id: serve.id })
                                                         )
                                                     ) {
                                                         stopMutation.mutate(serve.id)
                                                     }
                                                 }}
                                             >
-                                                Stop
+                                                {t('common.stop')}
                                             </Button>
                                         </TableCell>
                                     </TableRow>

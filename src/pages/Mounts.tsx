@@ -20,6 +20,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { formatTime } from '@/lib/format'
 import rclone from '@/rclone/client'
+import { useT } from '@/lib/i18n'
 import { getRemoteName } from '@/rclone/utils'
 
 function formatUptime(value: string) {
@@ -46,6 +47,7 @@ function formatUptime(value: string) {
 }
 
 export function MountsPage() {
+    const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
@@ -64,12 +66,12 @@ export function MountsPage() {
             })
         },
         onSuccess: () => {
-            toast.success('Mount ejected successfully.')
+            toast.success(t('mounts.ejectSuccess'))
             queryClient.invalidateQueries({ queryKey: ['mounts'] })
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error occurred'
-            toast.error(`Could not eject mount: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('mounts.ejectError', { message }))
         },
     })
 
@@ -78,13 +80,13 @@ export function MountsPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="Mounts"
-                description="Manage active remote mounts."
+                title={t('mounts.title')}
+                description={t('mounts.description')}
                 actions={
                     <div className="flex items-center gap-2">
                         <Button size="lg" type="button" onClick={() => navigate('/mounts/new')}>
                             <PlusIcon />
-                            New Mount
+                            {t('mounts.newMount')}
                         </Button>
                         <RefreshButton
                             isFetching={mountsQuery.isFetching}
@@ -103,11 +105,11 @@ export function MountsPage() {
 
                 {mountsQuery.isError ? (
                     <Alert variant="destructive">
-                        <AlertTitle>Unable to load mounts</AlertTitle>
+                        <AlertTitle>{t('mounts.loadError')}</AlertTitle>
                         <AlertDescription>
                             {mountsQuery.error instanceof Error
                                 ? mountsQuery.error.message
-                                : 'Unknown error occurred'}
+                                : t('common.unknownError')}
                         </AlertDescription>
                         <AlertAction>
                             <Button
@@ -118,7 +120,7 @@ export function MountsPage() {
                                     mountsQuery.refetch()
                                 }}
                             >
-                                Retry
+                                {t('common.retry')}
                             </Button>
                         </AlertAction>
                     </Alert>
@@ -130,8 +132,8 @@ export function MountsPage() {
                             <EmptyMedia variant="icon">
                                 <HardDriveIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No active mounts</EmptyTitle>
-                            <EmptyDescription>Create a new mount to get started.</EmptyDescription>
+                            <EmptyTitle>{t('mounts.emptyTitle')}</EmptyTitle>
+                            <EmptyDescription>{t('mounts.emptyDescription')}</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <Button
@@ -139,7 +141,7 @@ export function MountsPage() {
                                 variant="outline"
                                 onClick={() => navigate('/mounts/new')}
                             >
-                                New Mount
+                                {t('mounts.newMount')}
                             </Button>
                         </EmptyContent>
                     </Empty>
@@ -159,7 +161,7 @@ export function MountsPage() {
                                     <dl className="space-y-4">
                                         <div className="space-y-1.5">
                                             <dt className="text-xs tracking-wide uppercase text-muted-foreground">
-                                                Source
+                                                {t('mounts.source')}
                                             </dt>
                                             <dd className="font-mono text-base font-medium break-all">
                                                 {mount.Fs}
@@ -167,7 +169,7 @@ export function MountsPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <dt className="text-xs tracking-wide uppercase text-muted-foreground">
-                                                Mount Point
+                                                {t('mounts.mountPoint')}
                                             </dt>
                                             <dd className="font-mono text-base font-medium break-all">
                                                 {mount.MountPoint}
@@ -175,7 +177,7 @@ export function MountsPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <dt className="text-xs tracking-wide uppercase text-muted-foreground">
-                                                Mounted On
+                                                {t('mounts.mountedOn')}
                                             </dt>
                                             <dd className="text-base font-medium tabular-nums">
                                                 {formatTime(mount.MountedOn)}
@@ -183,7 +185,7 @@ export function MountsPage() {
                                         </div>
                                         <div className="space-y-1.5">
                                             <dt className="text-xs tracking-wide uppercase text-muted-foreground">
-                                                Uptime
+                                                {t('mounts.uptime')}
                                             </dt>
                                             <dd className="text-base font-medium tabular-nums">
                                                 {formatUptime(mount.MountedOn)}
@@ -200,14 +202,14 @@ export function MountsPage() {
                                         onClick={() => {
                                             if (
                                                 window.confirm(
-                                                    `Are you sure you want to unmount ${getRemoteName(mount.Fs)}?`
+                                                    t('mounts.unmountConfirm', { name: getRemoteName(mount.Fs) })
                                                 )
                                             ) {
                                                 unmountMutation.mutate(mount.MountPoint)
                                             }
                                         }}
                                     >
-                                        {unmountMutation.isPending ? 'Ejecting...' : 'Eject'}
+                                        {unmountMutation.isPending ? t('mounts.ejecting') : t('mounts.eject')}
                                     </Button>
                                 </CardFooter>
                             </Card>

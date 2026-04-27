@@ -13,8 +13,10 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { Spinner } from '@/components/ui/spinner'
 import { fetchJobsSnapshot, stopJob } from '@/rclone/jobs'
 import { fetchRemotesList } from '@/rclone/usage'
+import { useT } from '@/lib/i18n'
 
 export function TransfersPage() {
+    const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
@@ -34,12 +36,12 @@ export function TransfersPage() {
     const stopMutation = useMutation({
         mutationFn: stopJob,
         onSuccess: () => {
-            toast.success('Job stopped.')
+            toast.success(t('transfers.stopSuccess'))
             queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error'
-            toast.error(`Could not stop job: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('transfers.stopError', { message }))
         },
     })
 
@@ -48,8 +50,8 @@ export function TransfersPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="Transfers"
-                description="Manage active file transfers and view history."
+                title={t('transfers.title')}
+                description={t('transfers.description')}
                 actions={
                     <div className="flex items-center gap-2">
                         {firstRemote ? (
@@ -59,7 +61,7 @@ export function TransfersPage() {
                                 onClick={() => navigate(`/remotes/${firstRemote.name}`)}
                             >
                                 <PlusIcon />
-                                New Transfer
+                                {t('transfers.newTransfer')}
                             </Button>
                         ) : null}
                         <RefreshButton
@@ -78,11 +80,11 @@ export function TransfersPage() {
 
                 {jobsQuery.isError ? (
                     <Alert variant="destructive">
-                        <AlertTitle>Unable to load transfers</AlertTitle>
+                        <AlertTitle>{t('transfers.loadError')}</AlertTitle>
                         <AlertDescription>
                             {jobsQuery.error instanceof Error
                                 ? jobsQuery.error.message
-                                : 'Unknown error occurred'}
+                                : t('common.unknownError')}
                         </AlertDescription>
                         <AlertAction>
                             <Button
@@ -93,7 +95,7 @@ export function TransfersPage() {
                                     jobsQuery.refetch()
                                 }}
                             >
-                                Retry
+                                {t('common.retry')}
                             </Button>
                         </AlertAction>
                     </Alert>
@@ -105,9 +107,9 @@ export function TransfersPage() {
                             <EmptyMedia variant="icon">
                                 <CircleDotIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No transfers</EmptyTitle>
+                            <EmptyTitle>{t('transfers.emptyTitle')}</EmptyTitle>
                             <EmptyDescription>
-                                There are no active or recent background transfers.
+                                {t('transfers.emptyDescription')}
                             </EmptyDescription>
                         </EmptyHeader>
                     </Empty>

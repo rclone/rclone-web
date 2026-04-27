@@ -22,8 +22,10 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
+import { useT } from '@/lib/i18n'
 
 export function RemotesNewPage() {
+    const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const [config, setConfig] = useState<Record<string, unknown>>({})
@@ -120,22 +122,20 @@ export function RemotesNewPage() {
             return name
         },
         onSuccess: async (name) => {
-            toast.success(`Remote "${name}" created successfully.`)
+            toast.success(t('remotesNew.createSuccess', { name }))
             await queryClient.invalidateQueries({ queryKey: ['remotes'] })
             setConfig({})
             setShowMoreOptions(false)
             navigate('/remotes')
         },
         onError: (error) => {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+            const errorMessage = error instanceof Error ? error.message : t('common.unknownError')
 
             if (errorMessage.includes('address already in use')) {
-                toast.error(
-                    'Rclone Oauth Client is stuck, please restart the UI to add new remotes.'
-                )
+                toast.error(t('remotesNew.oauthStuck'))
             }
 
-            toast.error(`Could not create remote: ${errorMessage}`)
+            toast.error(t('remotesNew.createError', { message: errorMessage }))
         },
     })
 
@@ -179,11 +179,11 @@ export function RemotesNewPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="New Remote"
-                description="Set up a new remote endpoint and choose its connection settings."
+                title={t('remotesNew.title')}
+                description={t('remotesNew.description')}
                 actions={
                     <Button type="button" variant="outline" onClick={handleReset}>
-                        Reset
+                        {t('common.reset')}
                     </Button>
                 }
             />
@@ -198,11 +198,11 @@ export function RemotesNewPage() {
 
                     {backendsQuery.isError ? (
                         <Alert variant="destructive">
-                            <AlertTitle>Unable to load remote providers</AlertTitle>
+                            <AlertTitle>{t('remotesNew.providersLoadError')}</AlertTitle>
                             <AlertDescription>
                                 {backendsQuery.error instanceof Error
                                     ? backendsQuery.error.message
-                                    : 'Unknown error occurred'}
+                                    : t('common.unknownError')}
                             </AlertDescription>
                         </Alert>
                     ) : null}
@@ -211,11 +211,11 @@ export function RemotesNewPage() {
                         <div className="space-y-6">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="remote-name">name</FieldLabel>
+                                    <FieldLabel htmlFor="remote-name">{t('remotesNew.name')}</FieldLabel>
                                     <Input
                                         id="remote-name"
                                         name="name"
-                                        placeholder="Remote name (for your reference)"
+                                        placeholder={t('remotesNew.namePlaceholder')}
                                         value={remoteName}
                                         onChange={(event) =>
                                             setConfig((previous) => ({
@@ -232,7 +232,7 @@ export function RemotesNewPage() {
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel>type</FieldLabel>
+                                    <FieldLabel>{t('remotesNew.type')}</FieldLabel>
                                     <Combobox
                                         items={sortedEnrichedBackends}
                                         value={selectedBackend}
@@ -243,12 +243,12 @@ export function RemotesNewPage() {
                                         }
                                     >
                                         <ComboboxInput
-                                            placeholder="Select type or search"
+                                            placeholder={t('remotesNew.typePlaceholder')}
                                             className="w-full"
                                             showClear={true}
                                         />
                                         <ComboboxContent>
-                                            <ComboboxEmpty>No backends found.</ComboboxEmpty>
+                                            <ComboboxEmpty>{t('remotesNew.backendEmptySearch')}</ComboboxEmpty>
                                             <ComboboxList>
                                                 {(
                                                     backend: components['schemas']['ConfigProvider']
@@ -304,7 +304,7 @@ export function RemotesNewPage() {
                                             ) : (
                                                 <ChevronDownIcon />
                                             )}
-                                            More Options
+                                            {t('common.moreOptions')}
                                         </Button>
                                         {showMoreOptions ? (
                                             <FieldGroup>
@@ -341,12 +341,12 @@ export function RemotesNewPage() {
                                     onClick={() => navigate('/remotes')}
                                     disabled={createRemoteMutation.isPending}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button type="button" onClick={handleCreate} disabled={!canCreate}>
                                     {createRemoteMutation.isPending
-                                        ? 'Creating...'
-                                        : 'Create Remote'}
+                                        ? t('common.creating')
+                                        : t('remotesNew.createRemote')}
                                 </Button>
                             </div>
                         </div>

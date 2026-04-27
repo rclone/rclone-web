@@ -11,6 +11,7 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 
@@ -272,6 +273,7 @@ function renderChangelogBlock(block: ChangelogBlock, index: number) {
 }
 
 export function Changelog() {
+    const t = useT()
     const versionQuery = useQuery({
         queryKey: ['core', 'version'],
         queryFn: async () => await rclone('/core/version'),
@@ -307,9 +309,9 @@ export function Changelog() {
                 <CardHeader>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1">
-                            <CardTitle>Changelog</CardTitle>
+                            <CardTitle>{t('changelog.title')}</CardTitle>
                             <CardDescription>
-                                Release notes for the installed rclone version.
+                                {t('changelog.description')}
                             </CardDescription>
                         </div>
 
@@ -319,7 +321,7 @@ export function Changelog() {
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-sm transition-colors text-primary hover:text-primary/80"
                         >
-                            View full changelog
+                            {t('changelog.viewFull')}
                             <ArrowUpRightIcon className="size-4" />
                         </a>
                     </div>
@@ -340,19 +342,19 @@ export function Changelog() {
                                 <EmptyMedia variant="icon">
                                     <InfoIcon />
                                 </EmptyMedia>
-                                <EmptyTitle>No changelog found for this version</EmptyTitle>
+                                <EmptyTitle>{t('changelog.notFound')}</EmptyTitle>
                                 <EmptyDescription>
                                     {changelogQuery.isError
-                                        ? 'The upstream changelog could not be loaded right now.'
+                                        ? t('changelog.loadError')
                                         : installedVersion
-                                          ? `The upstream changelog could not be matched to ${installedVersion}.`
-                                          : 'Version information is unavailable right now.'}
+                                          ? t('changelog.noMatch', { version: installedVersion })
+                                          : t('changelog.versionUnavailable')}
                                 </EmptyDescription>
                             </EmptyHeader>
 
                             <EmptyContent>
                                 <p className="text-sm text-muted-foreground">
-                                    Are you working on a new version? 🧑‍💻
+                                    {t('changelog.devMessage')}
                                 </p>
                             </EmptyContent>
                         </Empty>

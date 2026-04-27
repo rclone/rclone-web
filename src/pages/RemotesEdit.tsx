@@ -13,8 +13,10 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
+import { useT } from '@/lib/i18n'
 
 export function RemotesEditPage() {
+    const t = useT()
     const { remoteName } = useParams<{ remoteName: string }>()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
@@ -142,13 +144,13 @@ export function RemotesEditPage() {
             })
         },
         onSuccess: (_data, { name }) => {
-            toast.success(`Remote "${name}" updated successfully.`)
+            toast.success(t('remotesEdit.updateSuccess', { name }))
             queryClient.invalidateQueries({ queryKey: ['remotes'] })
             navigate('/remotes')
         },
         onError: (error) => {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-            toast.error(`Could not update remote: ${errorMessage}`)
+            const errorMessage = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('remotesEdit.updateError', { message: errorMessage }))
         },
     })
 
@@ -170,8 +172,8 @@ export function RemotesEditPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title={`Edit Remote: ${remoteName}`}
-                description="Modify the configuration for this remote."
+                title={t('remotesEdit.title', { name: remoteName! })}
+                description={t('remotesEdit.description')}
             />
 
             <PageContent>
@@ -184,7 +186,7 @@ export function RemotesEditPage() {
 
                     {isError ? (
                         <Alert variant="destructive">
-                            <AlertTitle>Unable to load remote configuration</AlertTitle>
+                            <AlertTitle>{t('remotesEdit.configLoadError')}</AlertTitle>
                             <AlertDescription>{errorMessage}</AlertDescription>
                         </Alert>
                     ) : null}
@@ -193,12 +195,12 @@ export function RemotesEditPage() {
                         <div className="space-y-6">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="remote-name">name</FieldLabel>
+                                    <FieldLabel htmlFor="remote-name">{t('remotesEdit.name')}</FieldLabel>
                                     <Input id="remote-name" value={remoteName} disabled={true} />
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel>type</FieldLabel>
+                                    <FieldLabel>{t('remotesEdit.type')}</FieldLabel>
                                     <Input
                                         value={selectedBackend.Description || remoteType!}
                                         disabled={true}
@@ -236,7 +238,7 @@ export function RemotesEditPage() {
                                             ) : (
                                                 <ChevronDownIcon />
                                             )}
-                                            More Options
+                                            {t('common.moreOptions')}
                                         </Button>
                                         {showMoreOptions ? (
                                             <FieldGroup>
@@ -273,14 +275,14 @@ export function RemotesEditPage() {
                                     onClick={() => navigate('/remotes')}
                                     disabled={updateRemoteMutation.isPending}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     type="button"
                                     onClick={handleSave}
                                     disabled={updateRemoteMutation.isPending}
                                 >
-                                    {updateRemoteMutation.isPending ? 'Saving...' : 'Save Changes'}
+                                    {updateRemoteMutation.isPending ? t('common.saving') : t('common.saveChanges')}
                                 </Button>
                             </div>
                         </div>

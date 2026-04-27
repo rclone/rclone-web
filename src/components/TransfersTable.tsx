@@ -1,6 +1,8 @@
 import { CheckCircle2Icon, RefreshCwIcon, XCircleIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import {
     Table,
     TableBody,
@@ -31,26 +33,26 @@ function TransferLocationCell({ value }: { value: string }) {
 const statusUi: Record<
     JobRow['status'],
     {
-        label: string
+        label: TranslationKey
         icon: typeof RefreshCwIcon
         badgeClassName: string
         progressClassName: string
     }
 > = {
     running: {
-        label: 'RUNNING',
+        label: 'transfersTable.running',
         icon: RefreshCwIcon,
         badgeClassName: 'bg-emerald-500/15 text-emerald-500',
         progressClassName: 'bg-emerald-500',
     },
     completed: {
-        label: 'COMPLETED',
+        label: 'transfersTable.completed',
         icon: CheckCircle2Icon,
         badgeClassName: 'bg-sky-500/15 text-sky-500',
         progressClassName: 'bg-sky-500',
     },
     failed: {
-        label: 'FAILED',
+        label: 'transfersTable.failed',
         icon: XCircleIcon,
         badgeClassName: 'bg-destructive/15 text-destructive',
         progressClassName: 'bg-destructive',
@@ -77,6 +79,7 @@ export function TransfersTable({
     onStop: (jobid: number) => void
     isStopping: boolean
 }) {
+    const t = useT()
     return (
         <div className="overflow-hidden rounded-xl border">
             <Table className="min-w-[1664px] table-fixed">
@@ -88,7 +91,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            GROUP
+                            {t('transfersTable.group')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -96,7 +99,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            STATUS
+                            {t('transfersTable.status')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -104,7 +107,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            SOURCE
+                            {t('transfersTable.source')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -112,7 +115,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            DESTINATION
+                            {t('transfersTable.destination')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -120,7 +123,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            PROGRESS
+                            {t('transfersTable.progress')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -128,7 +131,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            SPEED
+                            {t('transfersTable.speed')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -136,7 +139,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            ETA
+                            {t('transfersTable.eta')}
                         </TableHead>
                         <TableHead
                             className={cn(
@@ -144,7 +147,7 @@ export function TransfersTable({
                                 'h-12 px-4 text-left font-semibold text-muted-foreground'
                             )}
                         >
-                            ACTIONS
+                            {t('transfersTable.actions')}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -166,7 +169,7 @@ export function TransfersTable({
                                         job.status === 'running' && 'animate-spin'
                                     )}
                                 />
-                                {ui.label}
+                                {t(ui.label)}
                             </Badge>
                         )
 
@@ -280,7 +283,7 @@ export function TransfersTable({
                                                 disabled={isStopping}
                                                 onClick={() => onStop(job.id)}
                                             >
-                                                Stop
+                                                {t('common.stop')}
                                             </Button>
                                         </div>
                                     ) : null}

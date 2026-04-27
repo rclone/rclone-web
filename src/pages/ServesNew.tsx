@@ -22,10 +22,12 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
+import { useT } from '@/lib/i18n'
 
 const SERVE_BLOCK_CANDIDATES = ['dlna', 'ftp', 'http', 'nfs', 'restic', 's3', 'sftp', 'webdav']
 
 export function ServesNewPage() {
+    const t = useT()
     const navigate = useNavigate()
 
     const [remoteName, setRemoteName] = useState('')
@@ -206,7 +208,7 @@ export function ServesNewPage() {
             const serveAddr = normalizeText(resolvedServeValues.addr).trim()
 
             if (!normalizedRemoteName || !normalizedServeType || !serveAddr) {
-                throw new Error('Remote, serve type, and addr are required')
+                throw new Error(t('servesNew.requiredFields'))
             }
 
             const query: {
@@ -250,15 +252,15 @@ export function ServesNewPage() {
         onSuccess: (result) => {
             const id = toRecord(result).id
             if (typeof id === 'string' && id.length > 0) {
-                toast.success(`Serve started (id: ${id}).`)
+                toast.success(t('servesNew.startSuccessWithId', { id }))
             } else {
-                toast.success('Serve started successfully.')
+                toast.success(t('servesNew.startSuccess'))
             }
             navigate('/serves')
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error occurred'
-            toast.error(`Could not start serve: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('servesNew.createError', { message }))
         },
     })
 
@@ -304,8 +306,8 @@ export function ServesNewPage() {
     const groupEntries = [
         {
             key: 'serve',
-            title: serveType ? `Serve (${serveType})` : 'Serve',
-            description: 'Protocol-specific options including listen address and auth.',
+            title: serveType ? t('servesNew.groupServeWithType', { type: serveType }) : t('servesNew.groupServe'),
+            description: t('servesNew.groupServeDescription'),
             options: serveOptions,
             initialValues: serveInitialValues,
             editedValues: editedServe,
@@ -314,8 +316,8 @@ export function ServesNewPage() {
         },
         {
             key: 'vfs',
-            title: 'VFS',
-            description: 'Virtual file system behavior for serve backends.',
+            title: t('servesNew.groupVfs'),
+            description: t('servesNew.groupVfsDescription'),
             options: vfsOptions,
             initialValues: vfsInitialValues,
             editedValues: editedVfs,
@@ -324,8 +326,8 @@ export function ServesNewPage() {
         },
         {
             key: 'filter',
-            title: 'Filter',
-            description: 'Inclusion and exclusion rules for served data.',
+            title: t('servesNew.groupFilter'),
+            description: t('servesNew.groupFilterDescription'),
             options: filterOptions,
             initialValues: filterInitialValues,
             editedValues: editedFilter,
@@ -334,8 +336,8 @@ export function ServesNewPage() {
         },
         {
             key: 'config',
-            title: 'Config',
-            description: 'Runtime rclone configuration overrides.',
+            title: t('servesNew.groupConfig'),
+            description: t('servesNew.groupConfigDescription'),
             options: configOptions,
             initialValues: configInitialValues,
             editedValues: editedConfig,
@@ -347,11 +349,11 @@ export function ServesNewPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="New Serve"
-                description="Start a new serve endpoint from one of your configured remotes."
+                title={t('servesNew.title')}
+                description={t('servesNew.description')}
                 actions={
                     <Button type="button" variant="outline" onClick={handleReset}>
-                        Reset
+                        {t('common.reset')}
                     </Button>
                 }
             />
@@ -366,7 +368,7 @@ export function ServesNewPage() {
 
                     {hasDependencyErrors ? (
                         <Alert variant="destructive">
-                            <AlertTitle>Unable to load serve dependencies</AlertTitle>
+                            <AlertTitle>{t('servesNew.loadError')}</AlertTitle>
                             <AlertDescription>
                                 <ul className="space-y-1">
                                     {failedQueries.map((entry) => (
@@ -383,7 +385,7 @@ export function ServesNewPage() {
                                     size="xs"
                                     onClick={retryFailedQueries}
                                 >
-                                    Retry
+                                    {t('common.retry')}
                                 </Button>
                             </AlertAction>
                         </Alert>
@@ -393,16 +395,15 @@ export function ServesNewPage() {
                         <div className="space-y-4">
                             <Card>
                                 <CardHeader className="border-b">
-                                    <CardTitle>Source and Protocol</CardTitle>
+                                    <CardTitle>{t('servesNew.sourceAndProtocol')}</CardTitle>
                                     <CardDescription>
-                                        Choose which remote path to serve and which protocol to
-                                        expose.
+                                        {t('servesNew.sourceAndProtocolDescription')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="pt-4">
                                     <FieldGroup>
                                         <Field>
-                                            <FieldLabel>remote</FieldLabel>
+                                            <FieldLabel>{t('common.remote')}</FieldLabel>
                                             <Combobox
                                                 items={remotes}
                                                 value={remoteName || null}
@@ -413,12 +414,12 @@ export function ServesNewPage() {
                                                 itemToStringLabel={(item) => item}
                                             >
                                                 <ComboboxInput
-                                                    placeholder="Select remote"
+                                                    placeholder={t('common.selectRemote')}
                                                     className="w-full"
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
-                                                    <ComboboxEmpty>No remotes found.</ComboboxEmpty>
+                                                    <ComboboxEmpty>{t('common.noRemotesCombobox')}</ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
                                                             <ComboboxItem key={item} value={item}>
@@ -432,14 +433,14 @@ export function ServesNewPage() {
                                             </Combobox>
                                             {remoteName.trim().length === 0 ? (
                                                 <FieldDescription className="text-destructive">
-                                                    Remote is required.
+                                                    {t('common.remoteRequired')}
                                                 </FieldDescription>
                                             ) : null}
                                         </Field>
 
                                         <Field>
                                             <FieldLabel htmlFor="serve-source-subpath">
-                                                source subpath
+                                                {t('common.sourceSubpath')}
                                             </FieldLabel>
                                             <Input
                                                 id="serve-source-subpath"
@@ -447,7 +448,7 @@ export function ServesNewPage() {
                                                 onChange={(event) =>
                                                     setSourceSubpath(event.target.value)
                                                 }
-                                                placeholder="Optional path inside the remote"
+                                                placeholder={t('common.subpathPlaceholder')}
                                                 autoComplete="off"
                                                 autoCapitalize="off"
                                                 autoCorrect="off"
@@ -455,13 +456,13 @@ export function ServesNewPage() {
                                             />
                                             <FieldDescription>
                                                 {fsPreview
-                                                    ? `Resolved fs: ${fsPreview}`
-                                                    : 'Leave empty to serve the remote root.'}
+                                                    ? t('common.resolvedFs', { fs: fsPreview })
+                                                    : t('servesNew.leaveEmpty')}
                                             </FieldDescription>
                                         </Field>
 
                                         <Field>
-                                            <FieldLabel>serve type</FieldLabel>
+                                            <FieldLabel>{t('servesNew.serveType')}</FieldLabel>
                                             <Combobox
                                                 items={serveTypes}
                                                 value={serveType || null}
@@ -470,13 +471,13 @@ export function ServesNewPage() {
                                                 itemToStringLabel={(item) => item}
                                             >
                                                 <ComboboxInput
-                                                    placeholder="Select serve type"
+                                                    placeholder={t('servesNew.selectServeType')}
                                                     className="w-full"
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
                                                     <ComboboxEmpty>
-                                                        No serve types available.
+                                                        {t('servesNew.noServeTypes')}
                                                     </ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
@@ -489,7 +490,7 @@ export function ServesNewPage() {
                                             </Combobox>
                                             {serveType.trim().length === 0 ? (
                                                 <FieldDescription className="text-destructive">
-                                                    Serve type is required.
+                                                    {t('servesNew.serveTypeRequired')}
                                                 </FieldDescription>
                                             ) : null}
                                         </Field>
@@ -499,10 +500,9 @@ export function ServesNewPage() {
 
                             {remotes.length === 0 ? (
                                 <Alert>
-                                    <AlertTitle>No remotes found</AlertTitle>
+                                    <AlertTitle>{t('common.noRemotesTitle')}</AlertTitle>
                                     <AlertDescription>
-                                        Create a remote first, then return to this page to start a
-                                        serve.
+                                        {t('servesNew.noRemotesDescription')}
                                     </AlertDescription>
                                     <AlertAction>
                                         <Button
@@ -511,7 +511,7 @@ export function ServesNewPage() {
                                             size="xs"
                                             onClick={() => navigate('/remotes/new')}
                                         >
-                                            Create Remote
+                                            {t('common.createRemote')}
                                         </Button>
                                     </AlertAction>
                                 </Alert>
@@ -519,10 +519,9 @@ export function ServesNewPage() {
 
                             {serveTypes.length === 0 ? (
                                 <Alert variant="destructive">
-                                    <AlertTitle>No serve types available</AlertTitle>
+                                    <AlertTitle>{t('servesNew.noServeTypesTitle')}</AlertTitle>
                                     <AlertDescription>
-                                        The daemon did not expose any serve protocols for this
-                                        environment.
+                                        {t('servesNew.noServeTypesDescription')}
                                     </AlertDescription>
                                 </Alert>
                             ) : null}
@@ -564,14 +563,14 @@ export function ServesNewPage() {
                                     disabled={serveMutation.isPending}
                                     onClick={() => navigate('/serves')}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     type="button"
                                     onClick={() => serveMutation.mutate()}
                                     disabled={submitDisabled}
                                 >
-                                    {serveMutation.isPending ? 'Starting...' : 'Start Serve'}
+                                    {serveMutation.isPending ? t('servesNew.starting') : t('servesNew.startServe')}
                                 </Button>
                             </div>
                         </div>

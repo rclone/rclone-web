@@ -23,20 +23,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatBytes, formatDuration, formatTime } from '@/lib/format'
+import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchJobsSnapshot, type JobRow } from '@/rclone/jobs'
 import { fetchRemotesList, fetchRemoteUsage, type RemoteWithUsage } from '@/rclone/usage'
 import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
+import { type TranslationKey, useT, t as tStandalone } from '@/lib/i18n'
 
-const LINKS = [
-    { label: 'Docs', href: 'https://rclone.org/docs/' },
-    { label: 'Forum', href: 'https://forum.rclone.org/' },
-    { label: 'GitHub', href: 'https://github.com/rclone/rclone' },
-    { label: 'Business', href: 'https://rclone.com/' },
-] as const
+const LINKS: readonly { key: TranslationKey; href: string }[] = [
+    { key: 'dashboard.linkDocs', href: 'https://rclone.org/docs/' },
+    { key: 'dashboard.linkForum', href: 'https://forum.rclone.org/' },
+    { key: 'dashboard.linkGithub', href: 'https://github.com/rclone/rclone' },
+    { key: 'dashboard.linkBusiness', href: 'https://rclone.com/' },
+]
 
 export function DashboardPage() {
+    const t = useT()
     const queryClient = useQueryClient()
     const remotesListQuery = useQuery({
         queryKey: ['remotes', 'list'],
@@ -138,8 +141,8 @@ export function DashboardPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="Dashboard"
-                description="Monitor active resources, runtime status, and the current release notes."
+                title={t('dashboard.title')}
+                description={t('dashboard.description')}
                 actions={<RefreshButton isFetching={isFetchingAny} refetch={handleRefresh} />}
             />
 
@@ -147,18 +150,18 @@ export function DashboardPage() {
                 <div className="space-y-6">
                     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                         <DashboardMetricCard
-                            title="Remotes"
+                            title={t('dashboard.remotes')}
                             value={String(remotes.length)}
                             icon={CloudIcon}
                             attention={
                                 remoteErrors.length > 0
                                     ? {
-                                          heading: 'Some remotes are not reachable',
+                                          heading: t('dashboard.remotesUnreachable'),
                                           items: remoteErrors,
                                       }
                                     : remoteAttention.length > 0
                                       ? {
-                                            heading: 'Some remotes are nearing full usage',
+                                            heading: t('dashboard.remotesNearingFull'),
                                             items: remoteAttention,
                                         }
                                       : undefined
@@ -168,7 +171,7 @@ export function DashboardPage() {
                         />
 
                         <DashboardMetricCard
-                            title="Mounts"
+                            title={t('dashboard.mounts')}
                             value={String(mounts.length)}
                             icon={HardDriveIcon}
                             isPending={mountsQuery.isPending}
@@ -176,13 +179,13 @@ export function DashboardPage() {
                         />
 
                         <DashboardMetricCard
-                            title="Serves"
+                            title={t('dashboard.serves')}
                             value={String(serves.length)}
                             icon={GlobeIcon}
                             attention={
                                 serveAttention.length > 0
                                     ? {
-                                          heading: 'Serves without authentication',
+                                          heading: t('dashboard.servesNoAuth'),
                                           items: serveAttention,
                                       }
                                     : undefined
@@ -211,8 +214,8 @@ export function DashboardPage() {
                     <section className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
                         <Card className="h-full">
                             <CardHeader>
-                                <CardTitle>Stats</CardTitle>
-                                <CardDescription>Global transfer counters.</CardDescription>
+                                <CardTitle>{t('dashboard.statsTitle')}</CardTitle>
+                                <CardDescription>{t('dashboard.statsDescription')}</CardDescription>
                             </CardHeader>
 
                             <CardContent className="flex flex-1">
@@ -222,13 +225,13 @@ export function DashboardPage() {
                                     </div>
                                 ) : globalStatsQuery.isError ? (
                                     <p className="self-center text-sm text-muted-foreground">
-                                        Unable to load global stats.
+                                        {t('dashboard.statsError')}
                                     </p>
                                 ) : (
                                     <dl className="grid flex-1 h-full gap-x-6 gap-y-4 md:auto-rows-fr md:grid-cols-2">
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Bytes Transferred
+                                                {t('dashboard.bytesTransferred')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {formatBytes(globalStats?.bytes ?? 0)}
@@ -236,7 +239,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Average Speed
+                                                {t('dashboard.averageSpeed')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {`${formatBytes(globalStats?.speed ?? 0)}PS`}
@@ -244,7 +247,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Checks
+                                                {t('dashboard.checks')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {globalStats?.checks ?? 0}
@@ -252,7 +255,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Deletes
+                                                {t('dashboard.deletes')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {globalStats?.deletes ?? 0}
@@ -260,7 +263,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Running Since
+                                                {t('dashboard.runningSince')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {formatDuration(globalStats?.elapsedTime ?? 0)}
@@ -268,7 +271,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Errors
+                                                {t('dashboard.errors')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {globalStats?.errors ?? 0}
@@ -276,7 +279,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Transfers
+                                                {t('dashboard.transfers')}
                                             </dt>
                                             <dd className="text-lg font-medium tabular-nums">
                                                 {globalStats?.transfers ?? 0}
@@ -284,7 +287,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="p-4 space-y-1 border rounded-lg">
                                             <dt className="text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                                                Last Error
+                                                {t('dashboard.lastError')}
                                             </dt>
                                             <dd className="flex items-start justify-between gap-3">
                                                 <div className="min-w-0 space-y-1">
@@ -303,7 +306,7 @@ export function DashboardPage() {
                                                         to="/transfers"
                                                         className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                                     >
-                                                        Jobs
+                                                        {t('dashboard.jobs')}
                                                         <ArrowRightIcon className="size-3.5" />
                                                     </Link>
                                                 ) : null}
@@ -316,9 +319,9 @@ export function DashboardPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle>About</CardTitle>
+                                <CardTitle>{t('dashboard.aboutTitle')}</CardTitle>
                                 <CardDescription>
-                                    Runtime details and official rclone resources.
+                                    {t('dashboard.aboutDescription')}
                                 </CardDescription>
                             </CardHeader>
 
@@ -330,7 +333,7 @@ export function DashboardPage() {
                                 ) : versionQuery.isError ? (
                                     <div className="space-y-3">
                                         <p className="text-sm text-muted-foreground">
-                                            Unable to load version information.
+                                            {t('dashboard.versionError')}
                                         </p>
 
                                         {LINKS.map((link) => (
@@ -342,7 +345,7 @@ export function DashboardPage() {
                                                 className="flex items-center justify-between gap-4 p-3 transition-colors border rounded-lg hover:bg-muted"
                                             >
                                                 <span className="text-sm text-muted-foreground">
-                                                    {link.label}
+                                                    {t(link.key)}
                                                 </span>
                                                 <ExternalLinkIcon className="size-3.5 text-muted-foreground" />
                                             </a>
@@ -352,7 +355,7 @@ export function DashboardPage() {
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between gap-4 p-3 border rounded-lg">
                                             <span className="text-sm text-muted-foreground">
-                                                Version
+                                                {t('dashboard.version')}
                                             </span>
                                             <span className="font-mono text-sm">
                                                 {versionQuery.data?.version || '--'}
@@ -360,7 +363,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="flex items-center justify-between gap-4 p-3 border rounded-lg">
                                             <span className="text-sm text-muted-foreground">
-                                                OS
+                                                {t('dashboard.os')}
                                             </span>
                                             <span className="font-mono text-sm">
                                                 {versionQuery.data?.os || '--'}
@@ -368,7 +371,7 @@ export function DashboardPage() {
                                         </div>
                                         <div className="flex items-center justify-between gap-4 p-3 border rounded-lg">
                                             <span className="text-sm text-muted-foreground">
-                                                Arch
+                                                {t('dashboard.arch')}
                                             </span>
                                             <span className="font-mono text-sm">
                                                 {versionQuery.data?.arch || '--'}
@@ -383,7 +386,7 @@ export function DashboardPage() {
                                                 className="flex items-center justify-between gap-4 p-3 transition-colors border rounded-lg hover:bg-muted"
                                             >
                                                 <span className="text-sm text-muted-foreground">
-                                                    {link.label}
+                                                    {t(link.key)}
                                                 </span>
                                                 <ExternalLinkIcon className="size-3.5 text-muted-foreground" />
                                             </a>
@@ -432,6 +435,7 @@ function DashboardMetricCard({
     isPending: boolean
     isError: boolean
 }) {
+    const t = useT()
     const visibleItems = attention?.items.slice(0, 3) ?? []
     const remainingCount = attention ? Math.max(attention.items.length - visibleItems.length, 0) : 0
 
@@ -456,9 +460,9 @@ function DashboardMetricCard({
 
             <CardContent className="space-y-3">
                 {isError ? (
-                    <div className="text-sm text-muted-foreground">Refresh to retry.</div>
+                    <div className="text-sm text-muted-foreground">{t('dashboard.refreshToRetry')}</div>
                 ) : isPending ? (
-                    <div className="text-sm text-muted-foreground">Loading...</div>
+                    <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
                 ) : attention ? (
                     <Tooltip>
                         <TooltipTrigger
@@ -470,7 +474,7 @@ function DashboardMetricCard({
                                     className="w-fit bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
                                 >
                                     <AlertTriangleIcon className="size-3.5" />
-                                    Needs attention
+                                    {t('dashboard.needsAttention')}
                                 </Button>
                             }
                         />
@@ -498,7 +502,7 @@ function DashboardMetricCard({
                                 </div>
 
                                 {remainingCount > 0 ? (
-                                    <p className="text-background/70">{`+${remainingCount} more`}</p>
+                                    <p className="text-background/70">{t('dashboard.countMore', { count: String(remainingCount) })}</p>
                                 ) : null}
                             </div>
                         </TooltipContent>
@@ -506,7 +510,7 @@ function DashboardMetricCard({
                 ) : (
                     <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                         <CheckCircle2Icon className="size-4 text-emerald-500" />
-                        OK
+                        {t('dashboard.ok')}
                     </div>
                 )}
             </CardContent>
@@ -519,7 +523,7 @@ function getRemoteErrors(remotes: RemoteWithUsage[]) {
         .filter((remote) => !remote.reachable)
         .map((remote) => ({
             title: remote.name,
-            description: 'Not reachable',
+            description: tStandalone('dashboard.notReachable'),
         }))
 }
 
@@ -533,7 +537,7 @@ function getRemoteAttention(remotes: RemoteWithUsage[]) {
         .sort((a, b) => (b.usage?.barPercent ?? 0) - (a.usage?.barPercent ?? 0))
         .map((remote) => ({
             title: remote.name,
-            description: `${remote.usage?.percentLabel ?? '--'} used`,
+            description: tStandalone('dashboard.percentUsed', { percent: remote.usage?.percentLabel ?? '--' }),
         }))
 }
 
@@ -560,8 +564,8 @@ function getJobAttention(jobs: JobRow[]) {
             seen.add(job.id)
 
             return {
-                title: `Job ${job.id}`,
-                description: job.errorText || 'Job failed',
+                title: tStandalone('dashboard.jobTitle', { id: String(job.id) }),
+                description: job.errorText || tStandalone('dashboard.jobFailed'),
                 meta: job.startTime,
             }
         })

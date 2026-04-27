@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { clearPersistedQueryCache } from '@/lib/query'
 import { useStore } from '@/lib/store'
 import { isAuthFailureError, validateConnection } from '@/rclone/client'
+import { useT } from '@/lib/i18n'
 
 export function LoginPage() {
     const location = useLocation()
@@ -24,6 +25,8 @@ export function LoginPage() {
     const [showPass, setShowPass] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const lastAutoSubmitKeyRef = useRef<string | null>(null)
+
+    const t = useT()
 
     const loginSearchState = useMemo(() => {
         const searchParams = new URLSearchParams(location.search)
@@ -54,14 +57,14 @@ export function LoginPage() {
             if (isAuthFailureError(error)) {
                 setErrorMessage(
                     variables.user.trim()
-                        ? 'Invalid rclone RC credentials.'
-                        : 'This rclone RC requires credentials.'
+                        ? t('login.invalidCredentials')
+                        : t('login.credentialsRequired')
                 )
                 return
             }
 
             setErrorMessage(
-                error instanceof Error ? error.message : 'Could not connect to rclone RC.'
+                error instanceof Error ? error.message : t('login.connectionFailed')
             )
         },
     })
@@ -152,7 +155,7 @@ export function LoginPage() {
 
     const reasonMessage = useMemo(() => {
         return loginSearchState.reason === 'auth'
-            ? 'Your saved rclone RC session is no longer valid. Enter the connection details again.'
+            ? t('login.sessionExpired')
             : ''
     }, [loginSearchState.reason])
 
@@ -175,10 +178,10 @@ export function LoginPage() {
                     <CardHeader className="items-center pb-0">
                         <div className="text-center">
                             <h1 className="text-lg font-semibold tracking-tight">
-                                Connect to rclone
+                                {t('login.title')}
                             </h1>
                             <p className="mt-1 text-xs text-muted-foreground">
-                                User and password are optional for no-auth setups.
+                                {t('login.subtitle')}
                             </p>
                         </div>
                     </CardHeader>
@@ -189,7 +192,7 @@ export function LoginPage() {
                                 <div className="flex items-start gap-2 border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
                                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                                     <span>
-                                        URL is not configured. Start the GUI launcher again.
+                                        {t('login.urlNotConfigured')}
                                     </span>
                                 </div>
                             )}
@@ -210,7 +213,7 @@ export function LoginPage() {
 
                             <div className="flex flex-col gap-2">
                                 <label className="text-sm leading-none font-medium" htmlFor="user">
-                                    User
+                                    {t('login.userLabel')}
                                 </label>
                                 <div className="relative">
                                     <User className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -220,7 +223,7 @@ export function LoginPage() {
                                         disabled={loginMutation.isPending}
                                         id="user"
                                         name="user"
-                                        placeholder="admin"
+                                        placeholder={t('login.userPlaceholder')}
                                         onChange={(event) => {
                                             setUser(event.target.value)
                                             setErrorMessage('')
@@ -232,7 +235,7 @@ export function LoginPage() {
 
                             <div className="flex flex-col gap-2">
                                 <label className="text-sm leading-none font-medium" htmlFor="pass">
-                                    Password
+                                    {t('login.passwordLabel')}
                                 </label>
                                 <div className="relative">
                                     <KeyRound className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -273,12 +276,12 @@ export function LoginPage() {
                                 {loginMutation.isPending ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        Connecting...
+                                        {t('login.connecting')}
                                     </>
                                 ) : (
                                     <>
                                         <LogIn className="h-4 w-4" />
-                                        Connect
+                                        {t('login.connect')}
                                     </>
                                 )}
                             </Button>

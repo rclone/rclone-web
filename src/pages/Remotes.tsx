@@ -28,11 +28,13 @@ import {
     TableRow,
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchRemotesList, fetchRemoteUsage, type UsageStatus } from '@/rclone/usage'
 
 export function RemotesPage() {
+    const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
@@ -78,31 +80,31 @@ export function RemotesPage() {
             })
         },
         onSuccess: () => {
-            toast.success('Remote deleted successfully.')
+            toast.success(t('remotes.deleteSuccess'))
             queryClient.invalidateQueries({ queryKey: ['remotes'] })
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error occurred'
-            toast.error(`Could not delete remote: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('remotes.deleteError', { message }))
         },
     })
 
     return (
         <PageWrapper>
             <PageHeader
-                title="Remotes"
-                description="Manage connected storage remotes and monitor usage."
+                title={t('remotes.title')}
+                description={t('remotes.description')}
                 actions={
                     <div className="flex items-center gap-2">
                         <Input
-                            placeholder="Search by name or type"
+                            placeholder={t('remotes.searchPlaceholder')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-56"
                         />
                         <Button size="lg" type="button" onClick={() => navigate('/remotes/new')}>
                             <PlusIcon />
-                            Add New Remote
+                            {t('remotes.addNew')}
                         </Button>
                         <RefreshButton
                             isFetching={remotesListQuery.isFetching || isFetchingUsage}
@@ -119,16 +121,16 @@ export function RemotesPage() {
                             <TableHeader className="bg-muted/40">
                                 <TableRow className="hover:bg-muted/40">
                                     <TableHead className="px-6 font-semibold uppercase h-14 text-muted-foreground">
-                                        Name
+                                        {t('remotes.name')}
                                     </TableHead>
                                     <TableHead className="px-4 font-semibold uppercase h-14 text-muted-foreground">
-                                        Type
+                                        {t('remotes.type')}
                                     </TableHead>
                                     <TableHead className="px-4 font-semibold uppercase h-14 text-muted-foreground">
-                                        Usage
+                                        {t('remotes.usage')}
                                     </TableHead>
                                     <TableHead className="px-4 font-semibold text-right uppercase h-14 text-muted-foreground">
-                                        Actions
+                                        {t('common.actions')}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -141,11 +143,11 @@ export function RemotesPage() {
 
                 {remotesListQuery.isError ? (
                     <Alert variant="destructive">
-                        <AlertTitle>Unable to load remotes</AlertTitle>
+                        <AlertTitle>{t('remotes.loadError')}</AlertTitle>
                         <AlertDescription>
                             {remotesListQuery.error instanceof Error
                                 ? remotesListQuery.error.message
-                                : 'Unknown error occurred'}
+                                : t('common.unknownError')}
                         </AlertDescription>
                         <AlertAction>
                             <Button
@@ -156,7 +158,7 @@ export function RemotesPage() {
                                     remotesListQuery.refetch()
                                 }}
                             >
-                                Retry
+                                {t('common.retry')}
                             </Button>
                         </AlertAction>
                     </Alert>
@@ -168,8 +170,8 @@ export function RemotesPage() {
                             <EmptyMedia variant="icon">
                                 <HardDriveIcon />
                             </EmptyMedia>
-                            <EmptyTitle>No remotes configured</EmptyTitle>
-                            <EmptyDescription>Add a new remote to get started.</EmptyDescription>
+                            <EmptyTitle>{t('remotes.emptyTitle')}</EmptyTitle>
+                            <EmptyDescription>{t('remotes.emptyDescription')}</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <Button
@@ -177,7 +179,7 @@ export function RemotesPage() {
                                 variant="outline"
                                 onClick={() => navigate('/remotes/new')}
                             >
-                                Add New Remote
+                                {t('remotes.addNew')}
                             </Button>
                         </EmptyContent>
                     </Empty>
@@ -189,16 +191,16 @@ export function RemotesPage() {
                             <TableHeader className="bg-muted/40">
                                 <TableRow className="hover:bg-muted/40">
                                     <TableHead className="px-6 font-semibold uppercase h-14 text-muted-foreground">
-                                        Name
+                                        {t('remotes.name')}
                                     </TableHead>
                                     <TableHead className="px-4 font-semibold uppercase h-14 text-muted-foreground">
-                                        Type
+                                        {t('remotes.type')}
                                     </TableHead>
                                     <TableHead className="px-4 font-semibold uppercase h-14 text-muted-foreground">
-                                        Usage
+                                        {t('remotes.usage')}
                                     </TableHead>
                                     <TableHead className="px-4 font-semibold text-right uppercase h-14 text-muted-foreground">
-                                        Actions
+                                        {t('common.actions')}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -260,7 +262,7 @@ export function RemotesPage() {
                                                             </Button>
                                                         }
                                                     />
-                                                    <TooltipContent>Edit</TooltipContent>
+                                                    <TooltipContent>{t('remotes.edit')}</TooltipContent>
                                                 </Tooltip>
                                                 <Tooltip>
                                                     <TooltipTrigger
@@ -274,7 +276,7 @@ export function RemotesPage() {
                                                                 onClick={() => {
                                                                     if (
                                                                         window.confirm(
-                                                                            `Are you sure you want to delete the remote "${remote.name}"?`
+                                                                            t('remotes.deleteConfirm', { name: remote.name })
                                                                         )
                                                                     ) {
                                                                         deleteMutation.mutate(
@@ -287,7 +289,7 @@ export function RemotesPage() {
                                                             </Button>
                                                         }
                                                     />
-                                                    <TooltipContent>Delete</TooltipContent>
+                                                    <TooltipContent>{t('common.delete')}</TooltipContent>
                                                 </Tooltip>
                                             </div>
                                         </TableCell>
@@ -303,6 +305,8 @@ export function RemotesPage() {
 }
 
 function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isLoading: boolean }) {
+    const t = useT()
+
     if (isLoading) {
         return <Spinner className="size-4" />
     }
@@ -350,7 +354,7 @@ function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isL
                         render={
                             <span className="inline-flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
                                 <AlertTriangleIcon className="size-3.5" />
-                                Needs reconnection
+                                {t('remotes.needsReconnection')}
                             </span>
                         }
                     />
@@ -365,7 +369,7 @@ function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isL
                         render={
                             <span className="inline-flex items-center gap-1.5 text-sm text-destructive">
                                 <AlertTriangleIcon className="size-3.5" />
-                                Error
+                                {t('remotes.error')}
                             </span>
                         }
                     />

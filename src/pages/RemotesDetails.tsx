@@ -58,6 +58,7 @@ import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
+import { useT } from '@/lib/i18n'
 
 const IMAGE_EXTS = new Set([
     'jpg',
@@ -154,6 +155,7 @@ type ListItem = {
 }
 
 export function RemotesDetailsPage() {
+    const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const { remoteName = '' } = useParams()
@@ -244,13 +246,13 @@ export function RemotesDetailsPage() {
             }
         },
         onSuccess: (_data, { remoteName }) => {
-            toast.success('Deleted successfully.')
+            toast.success(t('remotesDetails.deleteSuccess'))
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
             queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
             toast.error(
-                `Delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                t('remotesDetails.deleteError', { message: error instanceof Error ? error.message : t('common.unknownError') })
             )
         },
     })
@@ -262,12 +264,12 @@ export function RemotesDetailsPage() {
             })
         },
         onSuccess: (_, { remoteName }) => {
-            toast.success('Folder created.')
+            toast.success(t('remotesDetails.createFolderSuccess'))
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
         },
         onError: (error) => {
             toast.error(
-                `Could not create folder: ${error instanceof Error ? error.message : 'Unknown error'}`
+                t('remotesDetails.createFolderError', { message: error instanceof Error ? error.message : t('common.unknownError') })
             )
         },
     })
@@ -308,13 +310,13 @@ export function RemotesDetailsPage() {
             }
         },
         onSuccess: (_data, { remoteName }) => {
-            toast.success('Renamed successfully.')
+            toast.success(t('remotesDetails.renameSuccess'))
             queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
             queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
             toast.error(
-                `Rename failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                t('remotesDetails.renameError', { message: error instanceof Error ? error.message : t('common.unknownError') })
             )
         },
     })
@@ -360,7 +362,7 @@ export function RemotesDetailsPage() {
             }
         },
         onSuccess: (_data, { remoteName, currentPath }) => {
-            toast.success('Upload complete.')
+            toast.success(t('remotesDetails.uploadComplete'))
             queryClient.invalidateQueries({
                 queryKey: ['remote-browse', remoteName, currentPath],
             })
@@ -368,7 +370,7 @@ export function RemotesDetailsPage() {
             if (fileInputRef.current) fileInputRef.current.value = ''
         },
         onError: (error) => {
-            toast.error(error instanceof Error ? error.message : 'Upload failed')
+            toast.error(error instanceof Error ? error.message : t('remotesDetails.uploadFailed'))
             if (fileInputRef.current) fileInputRef.current.value = ''
         },
     })
@@ -425,7 +427,7 @@ export function RemotesDetailsPage() {
         },
         onError: (error) => {
             toast.error(
-                `Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                t('remotesDetails.downloadError', { message: error instanceof Error ? error.message : t('common.unknownError') })
             )
         },
     })
@@ -578,7 +580,7 @@ export function RemotesDetailsPage() {
     )
 
     const handleNewFolder = useCallback(() => {
-        const name = window.prompt('Enter folder name:')
+        const name = window.prompt(t('remotesDetails.folderNamePrompt'))
         if (!name?.trim()) return
         const folderPath = [currentPath, name.trim()].filter(Boolean).join('/')
         mkdirMutation.mutate({ remoteName, path: folderPath })
@@ -586,7 +588,7 @@ export function RemotesDetailsPage() {
 
     const handleRename = useCallback(
         (item: ListItem) => {
-            const newName = window.prompt('Enter new name:', item.Name)
+            const newName = window.prompt(t('remotesDetails.renamePrompt'), item.Name)
             if (!newName?.trim() || newName.trim() === item.Name) return
             const oldPath = [currentPath, item.Name].filter(Boolean).join('/')
             const newPath = [currentPath, newName.trim()].filter(Boolean).join('/')
@@ -598,7 +600,7 @@ export function RemotesDetailsPage() {
     const handleDelete = useCallback(
         (item: ListItem) => {
             const confirmed = window.confirm(
-                `Are you sure you want to delete "${item.Name}"?${item.IsDir ? ' This will delete all contents.' : ''}`
+                item.IsDir ? t('remotesDetails.deleteFolderConfirm', { name: item.Name }) : t('remotesDetails.deleteConfirm', { name: item.Name })
             )
             if (!confirmed) return
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
@@ -654,16 +656,16 @@ export function RemotesDetailsPage() {
                             source.remoteName !== remoteName || sourceDir !== currentPath
                         const sourcePath = buildRemotePathHref(source.remoteName, sourceDir)
 
-                        toast(`${mode === 'copy' ? 'Copy' : 'Move'} started successfully.`, {
+                        toast(mode === 'copy' ? t('remotesDetails.copyStarted') : t('remotesDetails.moveStarted'), {
                             position: 'bottom-left',
                             action: movedAway
                                 ? {
-                                      label: 'Back to source',
+                                      label: t('remotesDetails.backToSource'),
                                       onClick: () => navigate(sourcePath),
                                   }
                                 : undefined,
                             cancel: {
-                                label: 'View Transfers',
+                                label: t('remotesDetails.viewTransfers'),
                                 onClick: () => navigate('/transfers'),
                             },
                         })
@@ -672,7 +674,7 @@ export function RemotesDetailsPage() {
                     },
                     onError: (error) => {
                         toast.error(
-                            `Transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                            t('remotesDetails.transferError', { message: error instanceof Error ? error.message : t('common.unknownError') })
                         )
                     },
                 }
@@ -708,7 +710,7 @@ export function RemotesDetailsPage() {
 
             <aside className="hidden w-72 shrink-0 flex-col border-r bg-background sm:flex">
                 <h2 className="px-4 py-4 pb-0 font-semibold tracking-wide text-muted-foreground uppercase">
-                    Remotes
+                    {t('remotesDetails.sidebarRemotes')}
                 </h2>
 
                 <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
@@ -717,10 +719,10 @@ export function RemotesDetailsPage() {
                             <Spinner className="size-5" />
                         </div>
                     ) : remotesListQuery.isError ? (
-                        <p className="px-3 py-2 text-sm text-destructive">Failed to load remotes</p>
+                        <p className="px-3 py-2 text-sm text-destructive">{t('remotesDetails.failedToLoadRemotes')}</p>
                     ) : sortedRemotes.length === 0 ? (
                         <p className="px-3 py-2 text-sm text-muted-foreground">
-                            No remotes configured
+                            {t('remotesDetails.noRemotes')}
                         </p>
                     ) : (
                         sortedRemotes.map((name) => (
@@ -748,12 +750,12 @@ export function RemotesDetailsPage() {
                         <Card size="sm" className="gap-0">
                             <CardHeader className="pb-2">
                                 <div className="flex items-center justify-between gap-2">
-                                    <CardTitle className="text-sm">Transfer</CardTitle>
+                                    <CardTitle className="text-sm">{t('remotesDetails.transfer')}</CardTitle>
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="icon-xs"
-                                        aria-label="Cancel transfer"
+                                        aria-label={t('remotesDetails.cancelTransfer')}
                                         onClick={() => {
                                             const source = transferSource
                                             setTransferSource(null)
@@ -770,10 +772,10 @@ export function RemotesDetailsPage() {
                                                         source.remoteName,
                                                         sourceDir
                                                     )
-                                                    toast('Transfer cancelled.', {
+                                                    toast(t('remotesDetails.transferCancelled'), {
                                                         position: 'bottom-left',
                                                         action: {
-                                                            label: 'Back to source',
+                                                            label: t('remotesDetails.backToSource'),
                                                             onClick: () => navigate(sourcePath),
                                                         },
                                                     })
@@ -797,12 +799,10 @@ export function RemotesDetailsPage() {
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    From {transferSource.remoteName}:
-                                    {transferSource.path.split('/').slice(0, -1).join('/') || '/'}
+                                    {t('remotesDetails.transferFrom', { remote: transferSource.remoteName, path: transferSource.path.split('/').slice(0, -1).join('/') || '/' })}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Navigate to the destination remote/folder and pick an action
-                                    below.
+                                    {t('remotesDetails.navigateToDestination')}
                                 </p>
                                 <div className="flex gap-2">
                                     <Button
@@ -813,7 +813,7 @@ export function RemotesDetailsPage() {
                                         disabled={transferMutation.isPending}
                                         onClick={() => handleTransferExecute('move')}
                                     >
-                                        Move here
+                                        {t('remotesDetails.moveHere')}
                                     </Button>
                                     <Button
                                         type="button"
@@ -822,7 +822,7 @@ export function RemotesDetailsPage() {
                                         disabled={transferMutation.isPending}
                                         onClick={() => handleTransferExecute('copy')}
                                     >
-                                        Copy here
+                                        {t('remotesDetails.copyHere')}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -838,7 +838,7 @@ export function RemotesDetailsPage() {
                             <Card size="sm" className="gap-3">
                                 <CardHeader className="pb-0">
                                     <div className="flex items-center justify-between gap-3">
-                                        <CardTitle className="text-sm">Storage</CardTitle>
+                                        <CardTitle className="text-sm">{t('remotesDetails.storageTitle')}</CardTitle>
                                         {usage.percentLabel ? (
                                             <span className="text-xs text-muted-foreground">
                                                 {usage.percentLabel}
@@ -850,8 +850,8 @@ export function RemotesDetailsPage() {
                                     <Progress value={usage.barPercent ?? 50} />
                                     <p className="text-xs text-muted-foreground">
                                         {usage.totalLabel
-                                            ? `${usage.usedLabel} of ${usage.totalLabel} used`
-                                            : `${usage.usedLabel} used`}
+                                            ? t('remotesDetails.storageUsedOf', { used: usage.usedLabel, total: usage.totalLabel })
+                                            : t('remotesDetails.storageUsed', { used: usage.usedLabel })}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -859,7 +859,7 @@ export function RemotesDetailsPage() {
                             <Card size="sm">
                                 <CardContent>
                                     <p className="text-xs text-muted-foreground">
-                                        Usage info not available for this remote.
+                                        {t('remotesDetails.storageUnavailable')}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -868,7 +868,7 @@ export function RemotesDetailsPage() {
                         <Card size="sm">
                             <CardContent>
                                 <p className="text-xs text-muted-foreground">
-                                    Select a remote to view storage.
+                                    {t('remotesDetails.selectRemoteStorage')}
                                 </p>
                             </CardContent>
                         </Card>
@@ -879,8 +879,8 @@ export function RemotesDetailsPage() {
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
                 {remoteNotFound ? (
                     <div className="border-b px-6 py-4">
-                        <p className="text-2xl font-semibold tracking-tight">Remote Not Found</p>
-                        <p className="text-muted-foreground">{`No remote found for "${remoteName}".`}</p>
+                        <p className="text-2xl font-semibold tracking-tight">{t('remotesDetails.notFoundTitle')}</p>
+                        <p className="text-muted-foreground">{t('remotesDetails.notFoundDescription', { name: remoteName })}</p>
                     </div>
                 ) : remoteName ? (
                     <div className="sticky top-0 z-10 border-b bg-background px-6 py-4 space-y-3">
@@ -923,7 +923,7 @@ export function RemotesDetailsPage() {
                                 <InputGroupInput
                                     value={searchTerm}
                                     onChange={(event) => setSearchTerm(event.target.value)}
-                                    placeholder="Search in current folder..."
+                                    placeholder={t('remotesDetails.searchPlaceholder')}
                                     aria-label="Search files and folders"
                                 />
                             </InputGroup>
@@ -934,7 +934,7 @@ export function RemotesDetailsPage() {
                                     disabled={mkdirMutation.isPending}
                                 >
                                     <FolderPlusIcon />
-                                    {mkdirMutation.isPending ? 'Creating\u2026' : 'New Folder'}
+                                    {mkdirMutation.isPending ? t('remotesDetails.newFolderCreating') : t('remotesDetails.newFolder')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -943,7 +943,7 @@ export function RemotesDetailsPage() {
                                     disabled={uploadMutation.isPending || !!transferSource}
                                 >
                                     <UploadIcon />
-                                    {uploadMutation.isPending ? 'Uploading\u2026' : 'Upload'}
+                                    {uploadMutation.isPending ? t('remotesDetails.uploading') : t('remotesDetails.upload')}
                                 </Button>
 
                                 <RefreshButton
@@ -962,9 +962,9 @@ export function RemotesDetailsPage() {
                                 <EmptyMedia variant="icon">
                                     <HardDriveIcon />
                                 </EmptyMedia>
-                                <EmptyTitle>Remote not found</EmptyTitle>
+                                <EmptyTitle>{t('remotesDetails.notFoundEmptyTitle')}</EmptyTitle>
                                 <EmptyDescription>
-                                    {`The remote "${remoteName}" does not exist.`}
+                                    {t('remotesDetails.notFoundEmptyDescription', { name: remoteName })}
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
@@ -973,7 +973,7 @@ export function RemotesDetailsPage() {
                                     variant="outline"
                                     onClick={() => navigate('/remotes')}
                                 >
-                                    Go to remotes
+                                    {t('remotesDetails.goToRemotes')}
                                 </Button>
                             </EmptyContent>
                         </Empty>
@@ -984,11 +984,11 @@ export function RemotesDetailsPage() {
                     ) : listQuery.isError ? (
                         <div className="mt-6">
                             <Alert variant="destructive">
-                                <AlertTitle>Unable to list files</AlertTitle>
+                                <AlertTitle>{t('remotesDetails.listError')}</AlertTitle>
                                 <AlertDescription>
                                     {listQuery.error instanceof Error
                                         ? listQuery.error.message
-                                        : 'Unknown error occurred'}
+                                        : t('common.unknownError')}
                                 </AlertDescription>
                                 <AlertAction>
                                     <Button
@@ -997,7 +997,7 @@ export function RemotesDetailsPage() {
                                         size="xs"
                                         onClick={() => listQuery.refetch()}
                                     >
-                                        Retry
+                                        {t('common.retry')}
                                     </Button>
                                 </AlertAction>
                             </Alert>
@@ -1009,16 +1009,16 @@ export function RemotesDetailsPage() {
                                     <TableHeader className="bg-muted/40">
                                         <TableRow className="hover:bg-muted/40">
                                             <TableHead className="px-2 font-semibold text-muted-foreground uppercase">
-                                                Name
+                                                {t('remotesDetails.name')}
                                             </TableHead>
                                             <TableHead className="w-40 px-4 font-semibold text-muted-foreground uppercase">
-                                                Size
+                                                {t('remotesDetails.size')}
                                             </TableHead>
                                             <TableHead className="w-44 px-4 font-semibold text-muted-foreground uppercase">
-                                                Modified
+                                                {t('remotesDetails.modified')}
                                             </TableHead>
                                             <TableHead className="w-44 px-4 text-right font-semibold text-muted-foreground uppercase">
-                                                Actions
+                                                {t('common.actions')}
                                             </TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -1033,13 +1033,13 @@ export function RemotesDetailsPage() {
                                                     <div className="space-y-1">
                                                         <p className="text-sm font-medium">
                                                             {searchTerm
-                                                                ? 'No items match your search.'
-                                                                : 'This folder is empty.'}
+                                                                ? t('remotesDetails.noItemsMatch')
+                                                                : t('remotesDetails.emptyFolder')}
                                                         </p>
                                                         <p className="text-sm text-muted-foreground">
                                                             {searchTerm
-                                                                ? 'Try a different file or folder name.'
-                                                                : 'Upload files or create a new folder to get started.'}
+                                                                ? t('remotesDetails.noItemsMatchHint')
+                                                                : t('remotesDetails.emptyFolderHint')}
                                                         </p>
                                                     </div>
                                                 </TableCell>
@@ -1121,7 +1121,7 @@ export function RemotesDetailsPage() {
                                                                             }
                                                                         />
                                                                         <TooltipContent>
-                                                                            Transfer
+                                                                            {t('remotesDetails.transfer')}
                                                                         </TooltipContent>
                                                                     </Tooltip>
                                                                 </div>
@@ -1148,8 +1148,7 @@ export function RemotesDetailsPage() {
                                                                         }
                                                                     />
                                                                     <TooltipContent>
-                                                                        Download{' '}
-                                                                        {item.IsDir ? '(ZIP)' : ''}
+                                                                        {item.IsDir ? t('remotesDetails.downloadZip') : t('remotesDetails.download')}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                                 <Tooltip>
@@ -1175,7 +1174,7 @@ export function RemotesDetailsPage() {
                                                                         }
                                                                     />
                                                                     <TooltipContent>
-                                                                        Rename
+                                                                        {t('remotesDetails.rename')}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                                 <Tooltip>
@@ -1201,7 +1200,7 @@ export function RemotesDetailsPage() {
                                                                         }
                                                                     />
                                                                     <TooltipContent>
-                                                                        Delete
+                                                                        {t('common.delete')}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </div>

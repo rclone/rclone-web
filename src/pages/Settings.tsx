@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import rclone, { rcloneUploadFile } from '@/rclone/client'
+import { t as tFn, useT } from '@/lib/i18n'
 
 function normalizeConfigPath(path: string) {
     return path.trim().replace(/\\/g, '/')
@@ -35,7 +36,7 @@ function getConfigUploadTarget(configPath: string) {
     const normalizedPath = normalizeConfigPath(configPath).replace(/\/+$/, '')
 
     if (!normalizedPath) {
-        throw new Error('Config path is required.')
+        throw new Error(tFn('settings.configPathRequired'))
     }
 
     const lastSlash = normalizedPath.lastIndexOf('/')
@@ -47,7 +48,7 @@ function getConfigUploadTarget(configPath: string) {
     const filename = normalizedPath.slice(lastSlash + 1)
 
     if (!filename) {
-        throw new Error('Config path must include a file name.')
+        throw new Error(tFn('settings.configPathRequiresFile'))
     }
 
     return {
@@ -66,6 +67,7 @@ const logLevelItems = [
 ]
 
 export function SettingsPage() {
+    const t = useT()
     const queryClient = useQueryClient()
 
     // Fetch current rclone options
@@ -139,11 +141,11 @@ export function SettingsPage() {
     })
 
     const versionOutput = useMemo(() => {
-        if (coreVersionQuery.isPending) return 'Loading rclone core/version...'
+        if (coreVersionQuery.isPending) return t('settings.versionLoading')
         if (coreVersionQuery.isError) {
             return coreVersionQuery.error instanceof Error
                 ? coreVersionQuery.error.message
-                : 'Unknown error while fetching core/version'
+                : t('settings.versionError')
         }
         return JSON.stringify(
             { ...(coreVersionQuery.data ?? {}), webVersion: `v${APP_VERSION}` },
@@ -245,7 +247,7 @@ export function SettingsPage() {
                 const nextConfigPath = configEdits.configPath
 
                 if (!nextConfigPath.trim()) {
-                    throw new Error('Config path is required.')
+                    throw new Error(t('settings.configPathRequired'))
                 }
 
                 if ('configContents' in configEdits) {
@@ -278,7 +280,7 @@ export function SettingsPage() {
             }
         },
         onSuccess: () => {
-            toast.success('Settings saved.')
+            toast.success(t('settings.saveSuccess'))
             setPerformanceEdits({})
             setLoggingEdits({})
             setConfigEdits({})
@@ -287,8 +289,8 @@ export function SettingsPage() {
             queryClient.invalidateQueries({ queryKey: ['remotes'] })
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error'
-            toast.error(`Could not save settings: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('settings.saveError', { message }))
         },
     })
 
@@ -296,8 +298,8 @@ export function SettingsPage() {
         <section className="flex flex-col w-full xl:h-full xl:min-h-0 xl:flex-row xl:overflow-hidden">
             <div className="flex flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
                 <PageHeader
-                    title="Settings"
-                    description="Manage global application preferences and performance tuning."
+                    title={t('settings.title')}
+                    description={t('settings.description')}
                 />
 
                 <PageContent>
@@ -309,30 +311,27 @@ export function SettingsPage() {
                                         <GaugeIcon className="size-4" />
                                     </span>
                                     <h2 className="text-2xl font-semibold tracking-tight">
-                                        Performance
+                                        {t('settings.performance')}
                                     </h2>
                                 </div>
 
                                 {optionsQuery.isPending ? (
                                     <div className="flex items-center gap-3 py-8 justify-center text-muted-foreground">
                                         <Spinner />
-                                        <span>Loading options...</span>
+                                        <span>{t('settings.loadingOptions')}</span>
                                     </div>
                                 ) : optionsQuery.isError ? (
                                     <p className="text-sm text-destructive py-4">
-                                        Could not load options:{' '}
-                                        {optionsQuery.error instanceof Error
-                                            ? optionsQuery.error.message
-                                            : 'Unknown error'}
+                                        {t('settings.loadError', { message: optionsQuery.error instanceof Error ? optionsQuery.error.message : t('common.unknownError') })}
                                     </p>
                                 ) : (
                                     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                                         <div className="space-y-2.5">
                                             <h3 className="text-xl font-medium">
-                                                Max Parallel Transfers
+                                                {t('settings.maxTransfers')}
                                             </h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Number of files to transfer in parallel.
+                                                {t('settings.maxTransfersDescription')}
                                             </p>
                                             <Input
                                                 type="number"
@@ -349,9 +348,9 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">Checkers</h3>
+                                            <h3 className="text-xl font-medium">{t('settings.checkers')}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Number of checkers to run in parallel.
+                                                {t('settings.checkersDescription')}
                                             </p>
                                             <Input
                                                 type="number"
@@ -368,25 +367,24 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">Bandwidth Limit</h3>
+                                            <h3 className="text-xl font-medium">{t('settings.bandwidthLimit')}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Global limit for transfer rate (e.g. 10M, 1G). Empty
-                                                means unlimited.
+                                                {t('settings.bandwidthLimitDescription')}
                                             </p>
                                             <Input
                                                 value={bwLimit}
                                                 onChange={(event) =>
                                                     updatePerformance('bwLimit', event.target.value)
                                                 }
-                                                placeholder="Unlimited"
+                                                placeholder={t('settings.unlimitedPlaceholder')}
                                                 className="h-12"
                                             />
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">TPS Limit</h3>
+                                            <h3 className="text-xl font-medium">{t('settings.tpsLimit')}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Limit transactions per second (0 for none).
+                                                {t('settings.tpsLimitDescription')}
                                             </p>
                                             <Input
                                                 type="number"
@@ -414,7 +412,7 @@ export function SettingsPage() {
                                         <FileCogIcon className="size-4" />
                                     </span>
                                     <h2 className="text-2xl font-semibold tracking-tight">
-                                        Logging
+                                        {t('settings.logging')}
                                     </h2>
                                 </div>
 
@@ -422,10 +420,10 @@ export function SettingsPage() {
                                     <>
                                         <div className="space-y-2.5">
                                             <h3 className="text-xl font-medium">
-                                                Default Log Level
+                                                {t('settings.defaultLogLevel')}
                                             </h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Standard verbosity level for system logs.
+                                                {t('settings.defaultLogLevelDescription')}
                                             </p>
                                             <Select
                                                 items={logLevelItems}
@@ -453,10 +451,9 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">Log File Path</h3>
+                                            <h3 className="text-xl font-medium">{t('settings.logFilePath')}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                Path to save application logs locally. Leave empty
-                                                to disable file logging.
+                                                {t('settings.logFilePathDescription')}
                                             </p>
                                             <div className="flex flex-col gap-2 sm:flex-row">
                                                 <Input
@@ -467,7 +464,7 @@ export function SettingsPage() {
                                                             event.target.value
                                                         )
                                                     }
-                                                    placeholder="No log file"
+                                                    placeholder={t('settings.logFilePathPlaceholder')}
                                                     className="h-12 font-mono"
                                                 />
                                             </div>
@@ -484,22 +481,19 @@ export function SettingsPage() {
                                         <LayersIcon className="size-4" />
                                     </span>
                                     <h2 className="text-2xl font-semibold tracking-tight">
-                                        Config File
+                                        {t('settings.configFile')}
                                     </h2>
                                 </div>
 
                                 <div className="space-y-5">
                                     <div className="space-y-2.5">
-                                        <h3 className="text-xl font-medium">Path</h3>
+                                        <h3 className="text-xl font-medium">{t('settings.configPath')}</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Path to the active configuration file.
+                                            {t('settings.configPathDescription')}
                                         </p>
                                         {configPathsQuery.isError ? (
                                             <p className="text-sm text-destructive">
-                                                Could not load config path:{' '}
-                                                {configPathsQuery.error instanceof Error
-                                                    ? configPathsQuery.error.message
-                                                    : 'Unknown error'}
+                                                {t('settings.configPathLoadError', { message: configPathsQuery.error instanceof Error ? configPathsQuery.error.message : t('common.unknownError') })}
                                             </p>
                                         ) : null}
                                         <Input
@@ -517,24 +511,21 @@ export function SettingsPage() {
                                     </div>
 
                                     <div className="space-y-2.5">
-                                        <h3 className="text-xl font-medium">Contents</h3>
+                                        <h3 className="text-xl font-medium">{t('settings.configContents')}</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Full .conf file contents.
+                                            {t('settings.configContentsDescription')}
                                         </p>
                                         {configContentsQuery.isPending &&
                                         !('configContents' in configEdits) ? (
                                             <div className="flex items-center gap-3 py-2 text-sm text-muted-foreground">
                                                 <Spinner />
-                                                <span>Loading config contents...</span>
+                                                <span>{t('settings.configContentsLoading')}</span>
                                             </div>
                                         ) : null}
                                         {configContentsQuery.isError &&
                                         !('configContents' in configEdits) ? (
                                             <p className="text-sm text-destructive">
-                                                Could not load config contents:{' '}
-                                                {configContentsQuery.error instanceof Error
-                                                    ? configContentsQuery.error.message
-                                                    : 'Unknown error'}
+                                                {t('settings.configContentsLoadError', { message: configContentsQuery.error instanceof Error ? configContentsQuery.error.message : t('common.unknownError') })}
                                             </p>
                                         ) : null}
                                         <div className="relative">
@@ -560,7 +551,7 @@ export function SettingsPage() {
                                                         onClick={() => setIsConfigRevealed(true)}
                                                     >
                                                         <EyeIcon />
-                                                        Show config
+                                                        {t('settings.showConfig')}
                                                     </Button>
                                                 </div>
                                             ) : null}
@@ -583,14 +574,14 @@ export function SettingsPage() {
                                 }}
                                 disabled={!isDirty || saveMutation.isPending}
                             >
-                                Reset
+                                {t('common.reset')}
                             </Button>
                             <Button
                                 type="button"
                                 disabled={!isDirty || saveMutation.isPending}
                                 onClick={() => saveMutation.mutate()}
                             >
-                                {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+                                {saveMutation.isPending ? t('common.saving') : t('common.saveChanges')}
                             </Button>
                         </div>
                     </div>
@@ -602,17 +593,16 @@ export function SettingsPage() {
                     <div className="p-5 border rounded-xl bg-primary/5">
                         <div className="inline-flex items-center gap-2 mb-3 text-sm font-semibold uppercase text-primary">
                             <InfoIcon className="size-4" />
-                            Pro Tip
+                            {t('settings.proTip')}
                         </div>
                         <p className="text-base leading-8 text-muted-foreground">
-                            Most changes take effect immediately, but core transfer engine updates
-                            may require restarting active jobs.
+                            {t('settings.proTipText')}
                         </p>
                     </div>
 
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-                            Related Documentation
+                            {t('settings.relatedDocs')}
                         </h3>
                         <ul className="space-y-3">
                             <li className="flex items-center gap-3 text-xl">
@@ -623,7 +613,7 @@ export function SettingsPage() {
                                     rel="noreferrer"
                                     className="text-muted-foreground transition-colors hover:text-foreground"
                                 >
-                                    Global Flags Reference
+                                    {t('settings.globalFlagsReference')}
                                 </a>
                             </li>
                             <li className="flex items-center gap-3 text-xl">
@@ -634,7 +624,7 @@ export function SettingsPage() {
                                     rel="noreferrer"
                                     className="text-muted-foreground transition-colors hover:text-foreground"
                                 >
-                                    Performance Tuning
+                                    {t('settings.performanceTuning')}
                                 </a>
                             </li>
                         </ul>
@@ -645,7 +635,7 @@ export function SettingsPage() {
                     <div className="p-5 border rounded-xl bg-primary/5">
                         <div className="flex items-center justify-between mb-3">
                             <div className="text-sm font-semibold uppercase text-muted-foreground">
-                                Your rclone version
+                                {t('settings.versionTitle')}
                             </div>
                             <Button
                                 variant="ghost"
@@ -653,7 +643,7 @@ export function SettingsPage() {
                                 className="size-7"
                                 onClick={() => {
                                     navigator.clipboard.writeText(versionOutput)
-                                    toast.success('Copied to clipboard')
+                                    toast.success(t('settings.copiedToClipboard'))
                                 }}
                             >
                                 <ClipboardCopyIcon className="size-3.5" />

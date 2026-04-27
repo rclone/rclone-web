@@ -16,6 +16,7 @@ import {
     CardTitle,
 } from '@/components/ui/card'
 import { FieldGroup } from '@/components/ui/field'
+import { useT } from '@/lib/i18n'
 
 function upsertEditedValue(
     previous: Record<string, unknown>,
@@ -61,6 +62,7 @@ export function OptionGroupCard({
     collapsed?: boolean
     onCollapsedChange?: (value: boolean) => void
 }) {
+    const t = useT()
     const defaultOptions = options.filter((option) => option.Required || !option.Advanced)
     const advancedOptions = options.filter((option) => option.Advanced && !option.Required)
     const hasAdvancedOptions = advancedOptions.some((option) => (option.Hide ?? 0) === 0)
@@ -88,7 +90,7 @@ export function OptionGroupCard({
                 <CardDescription>{description}</CardDescription>
                 <CardAction>
                     <span className="rounded-md border px-2 py-1 text-xs text-muted-foreground">
-                        {changedCount} changed
+                        {t('optionGroup.changed', { count: String(changedCount) })}
                     </span>
                 </CardAction>
             </CardHeader>
@@ -118,7 +120,7 @@ export function OptionGroupCard({
                                 onClick={() => onShowAdvancedChange(!showAdvanced)}
                             >
                                 {showAdvanced ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                                More options
+                                {t('optionGroup.moreOptions')}
                             </Button>
 
                             {showAdvanced ? (

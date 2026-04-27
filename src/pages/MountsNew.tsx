@@ -22,8 +22,10 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import rclone from '@/rclone/client'
+import { useT } from '@/lib/i18n'
 
 export function MountsNewPage() {
+    const t = useT()
     const navigate = useNavigate()
 
     const [remoteName, setRemoteName] = useState('')
@@ -162,8 +164,8 @@ export function MountsNewPage() {
     const optionGroups = [
         {
             key: 'mount',
-            title: 'Mount',
-            description: 'Mount-specific options.',
+            title: t('mountsNew.groupMount'),
+            description: t('mountsNew.groupMountDescription'),
             options: mountOptions,
             initialValues: mountInitialValues,
             editedValues: editedMount,
@@ -172,8 +174,8 @@ export function MountsNewPage() {
         },
         {
             key: 'vfs',
-            title: 'VFS',
-            description: 'Virtual file system behavior.',
+            title: t('mountsNew.groupVfs'),
+            description: t('mountsNew.groupVfsDescription'),
             options: vfsOptions,
             initialValues: vfsInitialValues,
             editedValues: editedVfs,
@@ -182,8 +184,8 @@ export function MountsNewPage() {
         },
         {
             key: 'filter',
-            title: 'Filter',
-            description: 'Inclusion and exclusion rules.',
+            title: t('mountsNew.groupFilter'),
+            description: t('mountsNew.groupFilterDescription'),
             options: filterOptions,
             initialValues: filterInitialValues,
             editedValues: editedFilter,
@@ -192,8 +194,8 @@ export function MountsNewPage() {
         },
         {
             key: 'config',
-            title: 'Config',
-            description: 'Runtime rclone configuration overrides.',
+            title: t('mountsNew.groupConfig'),
+            description: t('mountsNew.groupConfigDescription'),
             options: configOptions,
             initialValues: configInitialValues,
             editedValues: editedConfig,
@@ -227,11 +229,11 @@ export function MountsNewPage() {
             const normalizedMountType = mountType.trim()
 
             if (!normalizedRemoteName || !normalizedMountPoint) {
-                throw new Error('Remote and mount point are required')
+                throw new Error(t('mountsNew.remoteAndMountRequired'))
             }
 
             if (mountTypes.length > 0 && !normalizedMountType) {
-                throw new Error('Mount type is required')
+                throw new Error(t('mountsNew.mountTypeRequiredError'))
             }
 
             const query: {
@@ -274,12 +276,12 @@ export function MountsNewPage() {
             })
         },
         onSuccess: () => {
-            toast.success('Mount created successfully.')
+            toast.success(t('mountsNew.createSuccess'))
             navigate('/mounts')
         },
         onError: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error occurred'
-            toast.error(`Could not create mount: ${message}`)
+            const message = error instanceof Error ? error.message : t('common.unknownError')
+            toast.error(t('mountsNew.createError', { message }))
         },
     })
 
@@ -319,11 +321,11 @@ export function MountsNewPage() {
     return (
         <PageWrapper>
             <PageHeader
-                title="New Mount"
-                description="Create a new mount from one of your configured remotes."
+                title={t('mountsNew.title')}
+                description={t('mountsNew.description')}
                 actions={
                     <Button type="button" variant="outline" onClick={handleReset}>
-                        Reset
+                        {t('common.reset')}
                     </Button>
                 }
             />
@@ -338,7 +340,7 @@ export function MountsNewPage() {
 
                     {hasDependencyErrors ? (
                         <Alert variant="destructive">
-                            <AlertTitle>Unable to load mount dependencies</AlertTitle>
+                            <AlertTitle>{t('mountsNew.loadError')}</AlertTitle>
                             <AlertDescription>
                                 <ul className="space-y-1">
                                     {failedQueries.map((entry) => (
@@ -355,7 +357,7 @@ export function MountsNewPage() {
                                     size="xs"
                                     onClick={retryFailedQueries}
                                 >
-                                    Retry
+                                    {t('common.retry')}
                                 </Button>
                             </AlertAction>
                         </Alert>
@@ -365,16 +367,15 @@ export function MountsNewPage() {
                         <div className="space-y-4">
                             <Card>
                                 <CardHeader className="border-b">
-                                    <CardTitle>Source and Destination</CardTitle>
+                                    <CardTitle>{t('mountsNew.sourceAndDestination')}</CardTitle>
                                     <CardDescription>
-                                        Choose a remote source, optional subpath, and local mount
-                                        point.
+                                        {t('mountsNew.sourceAndDestinationDescription')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="pt-4">
                                     <FieldGroup>
                                         <Field>
-                                            <FieldLabel>remote</FieldLabel>
+                                            <FieldLabel>{t('common.remote')}</FieldLabel>
                                             <Combobox
                                                 items={remotes}
                                                 value={remoteName || null}
@@ -385,12 +386,12 @@ export function MountsNewPage() {
                                                 itemToStringLabel={(item) => item}
                                             >
                                                 <ComboboxInput
-                                                    placeholder="Select remote"
+                                                    placeholder={t('common.selectRemote')}
                                                     className="w-full"
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
-                                                    <ComboboxEmpty>No remotes found.</ComboboxEmpty>
+                                                    <ComboboxEmpty>{t('common.noRemotesCombobox')}</ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
                                                             <ComboboxItem key={item} value={item}>
@@ -404,14 +405,14 @@ export function MountsNewPage() {
                                             </Combobox>
                                             {remoteName.trim().length === 0 ? (
                                                 <FieldDescription className="text-destructive">
-                                                    Remote is required.
+                                                    {t('common.remoteRequired')}
                                                 </FieldDescription>
                                             ) : null}
                                         </Field>
 
                                         <Field>
                                             <FieldLabel htmlFor="source-subpath">
-                                                source subpath
+                                                {t('common.sourceSubpath')}
                                             </FieldLabel>
                                             <Input
                                                 id="source-subpath"
@@ -419,7 +420,7 @@ export function MountsNewPage() {
                                                 onChange={(event) =>
                                                     setSourceSubpath(event.target.value)
                                                 }
-                                                placeholder="Optional path inside the remote"
+                                                placeholder={t('common.subpathPlaceholder')}
                                                 autoComplete="off"
                                                 autoCapitalize="off"
                                                 autoCorrect="off"
@@ -427,14 +428,14 @@ export function MountsNewPage() {
                                             />
                                             <FieldDescription>
                                                 {fsPreview
-                                                    ? `Resolved fs: ${fsPreview}`
-                                                    : 'Leave empty to mount the remote root.'}
+                                                    ? t('common.resolvedFs', { fs: fsPreview })
+                                                    : t('mountsNew.leaveEmpty')}
                                             </FieldDescription>
                                         </Field>
 
                                         <Field>
                                             <FieldLabel htmlFor="mount-point">
-                                                mount point
+                                                {t('mountsNew.mountPoint')}
                                             </FieldLabel>
                                             <Input
                                                 id="mount-point"
@@ -442,7 +443,7 @@ export function MountsNewPage() {
                                                 onChange={(event) =>
                                                     setMountPoint(event.target.value)
                                                 }
-                                                placeholder="/path/to/mount, X: or * on Windows to assign a new drive letter"
+                                                placeholder={t('mountsNew.mountPointPlaceholder')}
                                                 required={true}
                                                 autoComplete="off"
                                                 autoCapitalize="off"
@@ -451,13 +452,13 @@ export function MountsNewPage() {
                                             />
                                             {mountPoint.trim().length === 0 ? (
                                                 <FieldDescription className="text-destructive">
-                                                    Mount point is required.
+                                                    {t('mountsNew.mountPointRequired')}
                                                 </FieldDescription>
                                             ) : null}
                                         </Field>
 
                                         <Field>
-                                            <FieldLabel>mount type</FieldLabel>
+                                            <FieldLabel>{t('mountsNew.mountType')}</FieldLabel>
                                             <Combobox
                                                 items={mountTypes}
                                                 value={mountType || null}
@@ -468,15 +469,15 @@ export function MountsNewPage() {
                                                 <ComboboxInput
                                                     placeholder={
                                                         mountTypes.length > 0
-                                                            ? 'Select mount type'
-                                                            : 'Optional mount type override'
+                                                            ? t('mountsNew.mountTypePlaceholder')
+                                                            : t('mountsNew.mountTypeOptionalPlaceholder')
                                                     }
                                                     className="w-full"
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
                                                     <ComboboxEmpty>
-                                                        No mount types available.
+                                                        {t('mountsNew.noMountTypes')}
                                                     </ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
@@ -490,7 +491,7 @@ export function MountsNewPage() {
                                             {isMountTypeRequired &&
                                             mountType.trim().length === 0 ? (
                                                 <FieldDescription className="text-destructive">
-                                                    Mount type is required.
+                                                    {t('mountsNew.mountTypeRequired')}
                                                 </FieldDescription>
                                             ) : null}
                                         </Field>
@@ -500,10 +501,9 @@ export function MountsNewPage() {
 
                             {remotes.length === 0 ? (
                                 <Alert>
-                                    <AlertTitle>No remotes found</AlertTitle>
+                                    <AlertTitle>{t('common.noRemotesTitle')}</AlertTitle>
                                     <AlertDescription>
-                                        Create a remote first, then return to this page to start a
-                                        mount.
+                                        {t('mountsNew.noRemotesDescription')}
                                     </AlertDescription>
                                     <AlertAction>
                                         <Button
@@ -512,7 +512,7 @@ export function MountsNewPage() {
                                             size="xs"
                                             onClick={() => navigate('/remotes/new')}
                                         >
-                                            Create Remote
+                                            {t('common.createRemote')}
                                         </Button>
                                     </AlertAction>
                                 </Alert>
@@ -553,14 +553,14 @@ export function MountsNewPage() {
                                     disabled={mountMutation.isPending}
                                     onClick={() => navigate('/mounts')}
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button
                                     type="button"
                                     onClick={() => mountMutation.mutate()}
                                     disabled={submitDisabled}
                                 >
-                                    {mountMutation.isPending ? 'Creating...' : 'Create Mount'}
+                                    {mountMutation.isPending ? t('common.creating') : t('mountsNew.createMount')}
                                 </Button>
                             </div>
                         </div>

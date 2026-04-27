@@ -6,20 +6,20 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { clearPersistedQueryCache } from '@/lib/query'
-import { useAuthStore } from '@/lib/store'
+import { useStore } from '@/lib/store'
 import { isAuthFailureError, validateConnection } from '@/rclone/client'
 
 export function LoginPage() {
     const location = useLocation()
     const navigate = useNavigate()
 
-    const storedUrl = useAuthStore((state) => state.url)
-    const storedUser = useAuthStore((state) => state.user)
-    const storedPass = useAuthStore((state) => state.pass)
+    const storedUrl = useStore((state) => state.url)
+    const storedUser = useStore((state) => state.user)
+    const storedPass = useStore((state) => state.pass)
 
-    const [url, setUrl] = useState(() => useAuthStore.getState().url)
-    const [user, setUser] = useState(() => useAuthStore.getState().user)
-    const [pass, setPass] = useState(() => useAuthStore.getState().pass)
+    const [url, setUrl] = useState(() => useStore.getState().url)
+    const [user, setUser] = useState(() => useStore.getState().user)
+    const [pass, setPass] = useState(() => useStore.getState().pass)
 
     const [showPass, setShowPass] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
@@ -47,7 +47,7 @@ export function LoginPage() {
         },
         onSuccess: (authFields) => {
             clearPersistedQueryCache()
-            useAuthStore.setState(authFields)
+            useStore.setState(authFields)
             navigate('/', { replace: true })
         },
         onError: (error, variables) => {

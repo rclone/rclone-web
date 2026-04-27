@@ -54,7 +54,7 @@ import {
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatBytes } from '@/lib/format'
-import { useAuthStore } from '@/lib/store'
+import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
@@ -329,7 +329,7 @@ export function RemotesDetailsPage() {
             currentPath: string
             files: File[]
         }) => {
-            const { url, user, pass } = useAuthStore.getState()
+            const { url, user, pass } = useStore.getState()
             const baseUrl = url.trim().replace(/\/+$/, '')
             const params = new URLSearchParams({
                 fs: `${remoteName}:`,
@@ -392,7 +392,7 @@ export function RemotesDetailsPage() {
             const { id: serveId, addr: serveAddr } = result
 
             try {
-                const { url } = useAuthStore.getState()
+                const { url } = useStore.getState()
                 const serveBaseUrl = buildServeUrl(url, serveAddr)
 
                 const downloadUrl = isDir

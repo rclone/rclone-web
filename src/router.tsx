@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { Spinner } from '@/components/ui/spinner'
-import { useAuthStore } from '@/lib/store'
+import { useStore } from '@/lib/store'
 import { DashboardPage } from '@/pages/Dashboard'
 import { JobsOldPage } from '@/pages/jobs-old-page'
 import { LoginPage } from '@/pages/Login'
@@ -17,8 +17,8 @@ import App from './App'
 import { TransfersPage } from './pages/Transfers'
 
 function AuthGate() {
-    const url = useAuthStore((state) => state.url)
-    const hasHydrated = useAuthStore((state) => state.hasHydrated)
+    const url = useStore((state) => state.url)
+    const hasHydrated = useStore((state) => state.hasHydrated)
 
     if (!hasHydrated) {
         return (
@@ -36,7 +36,7 @@ function AuthGate() {
 }
 
 function LoginGate() {
-    const hasHydrated = useAuthStore((state) => state.hasHydrated)
+    const hasHydrated = useStore((state) => state.hasHydrated)
 
     if (!hasHydrated) {
         return (

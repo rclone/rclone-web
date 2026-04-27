@@ -7,7 +7,7 @@ import createRCDClient, {
     type OpenApiRequiredKeysOf,
     type RCDClient,
 } from 'rclone-sdk'
-import { clearAuthSession, useAuthStore } from '@/lib/store'
+import { clearAuthSession, useStore } from '@/lib/store'
 
 type InitParam<Init> =
     OpenApiRequiredKeysOf<Init> extends never
@@ -157,7 +157,7 @@ export async function rcloneUploadFile({
     filename: string
     contents: string
 }) {
-    const auth = resolveAuth(useAuthStore.getState())
+    const auth = resolveAuth(useStore.getState())
 
     if (!auth.url) {
         throwRcloneError('No rclone RC connection configured.')
@@ -226,7 +226,7 @@ export default async function rclone<
     path: Path,
     ...init: InitParam<Init>
 ): Promise<OpenApiMethodResponse<RCDClient, 'post', Path, Init>> {
-    const auth = resolveAuth(useAuthStore.getState())
+    const auth = resolveAuth(useStore.getState())
 
     if (!auth.url) {
         throwRcloneError('No rclone RC connection configured.')

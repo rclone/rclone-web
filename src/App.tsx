@@ -3,7 +3,7 @@ import { LogOutIcon } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { clearAuthSession, useAuthStore } from '@/lib/store'
+import { clearAuthSession, useStore } from '@/lib/store'
 import rclone from '@/rclone/client'
 import { updateCheckQueryOptions } from '@/rclone/update'
 
@@ -31,7 +31,7 @@ export function App() {
     const location = useLocation()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
-    const hasAuthCredentials = useAuthStore((state) => Boolean(state.user && state.pass))
+    const hasAuthCredentials = useStore((state) => Boolean(state.user && state.pass))
 
     const updateCheckQuery = useQuery(updateCheckQueryOptions())
 

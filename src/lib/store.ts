@@ -1,40 +1,54 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import type { Language } from '@/lib/i18n'
 import { clearPersistedQueryCache } from '@/lib/query'
 
-type AuthStore = {
+type Store = {
     url: string
     user: string
     pass: string
+    bannerDismissed: boolean
+    language: Language | undefined
     hasHydrated: boolean
 }
 
-type PersistedAuthStore = Pick<AuthStore, 'url' | 'user' | 'pass'>
+type PersistedStore = Pick<
+    Store,
+    'url' | 'user' | 'pass' | 'bannerDismissed' | 'language'
+>
 
-export const useAuthStore = create<AuthStore>()(
+export const useStore = create<Store>()(
     persist(
-        (): AuthStore => ({
+        (): Store => ({
             url: '',
             user: '',
             pass: '',
+            bannerDismissed: false,
+            language: undefined, 
             hasHydrated: false,
         }),
         {
             name: 'lite-auth-store',
-            storage: createJSONStorage<PersistedAuthStore>(() => localStorage),
-            partialize: ({ url, user, pass }): PersistedAuthStore => ({ url, user, pass }),
+            storage: createJSONStorage<PersistedStore>(() => localStorage),
+            partialize: ({ url, user, pass, bannerDismissed, language }): PersistedStore => ({
+                url,
+                user,
+                pass,
+                bannerDismissed,
+                language,
+            }),
         }
     )
 )
 
-if (useAuthStore.persist.hasHydrated()) {
-    useAuthStore.setState({ hasHydrated: true })
+if (useStore.persist.hasHydrated()) {
+    useStore.setState({ hasHydrated: true })
 }
-useAuthStore.persist.onFinishHydration(() => {
-    useAuthStore.setState({ hasHydrated: true })
+useStore.persist.onFinishHydration(() => {
+    useStore.setState({ hasHydrated: true })
 })
 
 export function clearAuthSession() {
-    useAuthStore.setState({ user: '', pass: '' })
+    useStore.setState({ user: '', pass: '' })
     clearPersistedQueryCache()
 }

@@ -4,7 +4,7 @@
     "version": "1.1.1",
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "dev": "rclone rcd --rc-addr 127.0.0.1:5572 --rc-user dev --rc-pass dev --rc-allow-origin http://localhost:5173 & vite --open '/login?url=http://127.0.0.1:5572&user=dev&pass=dev'",
         "build": "tsc -b && vite build",
         "preview": "vite preview",
         "lint": "biome check .",

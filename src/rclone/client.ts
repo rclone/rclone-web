@@ -14,6 +14,11 @@ type InitParam<Init> =
         ? [(Init & { [key: string]: unknown })?]
         : [Init & { [key: string]: unknown }]
 
+const TRANSLATABLE_PATHS = new Set([
+    '/config/providers',
+    '/options/info',
+])
+
 let isRedirectingToLogin = false
 
 class RcloneError extends Error {
@@ -244,7 +249,7 @@ export default async function rclone<
         const data = result.data as OpenApiMethodResponse<RCDClient, 'post', Path, Init>
         const { language } = useStore.getState()
 
-        if (!language) return data
+        if (!language || !TRANSLATABLE_PATHS.has(path as string)) return data
 
         try {
             return await translate(data, { lang: language })

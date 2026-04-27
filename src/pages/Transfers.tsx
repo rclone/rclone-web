@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleDotIcon } from 'lucide-react'
+import { CircleDotIcon, PlusIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { PageHeader } from '@/components/PageHeader'
@@ -11,8 +12,10 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
 import { fetchJobsSnapshot, stopJob } from '@/rclone/jobs'
+import { fetchRemotesList } from '@/rclone/usage'
 
 export function TransfersPage() {
+    const navigate = useNavigate()
     const queryClient = useQueryClient()
 
     const jobsQuery = useQuery({
@@ -20,6 +23,13 @@ export function TransfersPage() {
         queryFn: fetchJobsSnapshot,
         refetchInterval: 1500,
     })
+
+    const remotesListQuery = useQuery({
+        queryKey: ['remotes', 'list'],
+        queryFn: fetchRemotesList,
+    })
+
+    const firstRemote = remotesListQuery.data?.[0]
 
     const stopMutation = useMutation({
         mutationFn: stopJob,
@@ -41,7 +51,22 @@ export function TransfersPage() {
                 title="Transfers"
                 description="Manage active file transfers and view history."
                 actions={
-                    <RefreshButton isFetching={jobsQuery.isFetching} refetch={jobsQuery.refetch} />
+                    <div className="flex items-center gap-2">
+                        {firstRemote ? (
+                            <Button
+                                size="lg"
+                                type="button"
+                                onClick={() => navigate(`/remotes/${firstRemote.name}`)}
+                            >
+                                <PlusIcon />
+                                New Transfer
+                            </Button>
+                        ) : null}
+                        <RefreshButton
+                            isFetching={jobsQuery.isFetching}
+                            refetch={jobsQuery.refetch}
+                        />
+                    </div>
                 }
             />
             <PageContent>

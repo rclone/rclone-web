@@ -1,3 +1,4 @@
+import { RcloneTranslationError, translate } from 'rclone-i18n'
 import type { paths } from 'rclone-openapi'
 import createRCDClient, {
     type OpenApiClientPathsWithMethod,
@@ -240,7 +241,17 @@ export default async function rclone<
 
         checkResult(result, true)
 
-        return result.data as OpenApiMethodResponse<RCDClient, 'post', Path, Init>
+        const data = result.data as OpenApiMethodResponse<RCDClient, 'post', Path, Init>
+        const { language } = useStore.getState()
+
+        if (!language) return data
+
+        try {
+            return await translate(data, { lang: language })
+        } catch (error) {
+            if (error instanceof RcloneTranslationError) return data
+            throw error
+        }
     } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') throw error
         if (error instanceof RcloneError) throw error

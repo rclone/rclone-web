@@ -688,12 +688,14 @@ async function fetchSponsor(): Promise<Sponsor | null> {
     )
     if (!res.ok) return null
     const data = await res.json()
-    if (!data || typeof data !== 'object' || typeof data.link !== 'string') return null
-    if (data.type === 'banner' && typeof data.message === 'string') {
-        return { type: 'banner', message: data.message, link: data.link }
+    if (!data || typeof data !== 'object') return null
+    const obj = data as Record<string, unknown>
+    if (typeof obj.link !== 'string') return null
+    if (obj.type === 'banner' && typeof obj.message === 'string') {
+        return { type: 'banner', message: obj.message, link: obj.link }
     }
-    if (data.type === 'card' && typeof data.image === 'string') {
-        return { type: 'card', image: data.image, link: data.link }
+    if (obj.type === 'card' && typeof obj.image === 'string') {
+        return { type: 'card', image: obj.image, link: obj.link }
     }
     return null
 }

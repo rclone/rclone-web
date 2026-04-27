@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     BookOpenIcon,
     ClipboardCopyIcon,
+    EyeIcon,
     FileCogIcon,
     GaugeIcon,
     InfoIcon,
@@ -178,6 +179,7 @@ export function SettingsPage() {
     })
 
     const [configEdits, setConfigEdits] = useState<Record<string, string>>({})
+    const [isConfigRevealed, setIsConfigRevealed] = useState(false)
 
     const fetchedConfig = useMemo(() => {
         return {
@@ -535,18 +537,34 @@ export function SettingsPage() {
                                                     : 'Unknown error'}
                                             </p>
                                         ) : null}
-                                        <Textarea
-                                            value={configContents}
-                                            onChange={(event) =>
-                                                updateConfig('configContents', event.target.value)
-                                            }
-                                            disabled={
-                                                (configContentsQuery.isPending &&
-                                                    !('configContents' in configEdits)) ||
-                                                saveMutation.isPending
-                                            }
-                                            className="min-h-96 font-mono text-sm"
-                                        />
+                                        <div className="relative">
+                                            <Textarea
+                                                value={configContents}
+                                                onChange={(event) =>
+                                                    updateConfig(
+                                                        'configContents',
+                                                        event.target.value
+                                                    )
+                                                }
+                                                disabled={
+                                                    (configContentsQuery.isPending &&
+                                                        !('configContents' in configEdits)) ||
+                                                    saveMutation.isPending
+                                                }
+                                                className="min-h-96 max-h-[60vh] font-mono text-sm"
+                                            />
+                                            {!isConfigRevealed ? (
+                                                <div className="absolute inset-0 flex items-center justify-center rounded-md bg-background/40 backdrop-blur-md">
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => setIsConfigRevealed(true)}
+                                                    >
+                                                        <EyeIcon />
+                                                        Show config
+                                                    </Button>
+                                                </div>
+                                            ) : null}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

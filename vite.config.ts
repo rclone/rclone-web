@@ -14,7 +14,9 @@ function devLoginUrl(): import('vite').Plugin {
                 const base = server.resolvedUrls?.local[0]
                 if (base) {
                     const url = `${base}login?url=http://127.0.0.1:5572&user=dev&pass=dev`
-                    server.config.logger.info(`  \x1b[32m➜\x1b[0m  \x1b[1mLogin:\x1b[0m   \x1b[36m${url}\x1b[0m`)
+                    server.config.logger.info(
+                        `  \x1b[32m➜\x1b[0m  \x1b[1mLogin:\x1b[0m   \x1b[36m${url}\x1b[0m`
+                    )
                 }
             }
         },

@@ -3,13 +3,13 @@
     "message": "Sponsor: INTERNXT - Secure cloud storage - Automate backups and transfers with end-to-end encrypted cloud storage.",
     "link": "https://internxt.com/specialoffer/rclone",
     "//": {
-		"banner-example": {
-			"link": "https://internxt.com/specialoffer/rclone",
-			"message": "Sponsor: INTERNXT - Secure cloud storage - Automate backups and transfers with end-to-end encrypted cloud storage.",
-		}
-		"card-example": {
-			"link": "https://internxt.com/specialoffer/rclone",
-			"image": "https://rclone.org/img/logos/internxt.jpg",
-		}
-	}
+        "banner-example": {
+            "link": "https://internxt.com/specialoffer/rclone",
+            "message": "Sponsor: INTERNXT - Secure cloud storage - Automate backups and transfers with end-to-end encrypted cloud storage."
+        },
+        "card-example": {
+            "link": "https://internxt.com/specialoffer/rclone",
+            "image": "https://rclone.org/img/logos/internxt.jpg"
+        }
+    }
 }

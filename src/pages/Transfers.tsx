@@ -11,9 +11,9 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
+import { useT } from '@/lib/i18n'
 import { fetchJobsSnapshot, stopJob } from '@/rclone/jobs'
 import { fetchRemotesList } from '@/rclone/usage'
-import { useT } from '@/lib/i18n'
 
 export function TransfersPage() {
     const t = useT()
@@ -108,9 +108,7 @@ export function TransfersPage() {
                                 <CircleDotIcon />
                             </EmptyMedia>
                             <EmptyTitle>{t('transfers.emptyTitle')}</EmptyTitle>
-                            <EmptyDescription>
-                                {t('transfers.emptyDescription')}
-                            </EmptyDescription>
+                            <EmptyDescription>{t('transfers.emptyDescription')}</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 ) : null}

@@ -54,11 +54,11 @@ import {
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatBytes } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
-import { useT } from '@/lib/i18n'
 
 const IMAGE_EXTS = new Set([
     'jpg',
@@ -252,7 +252,9 @@ export function RemotesDetailsPage() {
         },
         onError: (error) => {
             toast.error(
-                t('remotesDetails.deleteError', { message: error instanceof Error ? error.message : t('common.unknownError') })
+                t('remotesDetails.deleteError', {
+                    message: error instanceof Error ? error.message : t('common.unknownError'),
+                })
             )
         },
     })
@@ -269,7 +271,9 @@ export function RemotesDetailsPage() {
         },
         onError: (error) => {
             toast.error(
-                t('remotesDetails.createFolderError', { message: error instanceof Error ? error.message : t('common.unknownError') })
+                t('remotesDetails.createFolderError', {
+                    message: error instanceof Error ? error.message : t('common.unknownError'),
+                })
             )
         },
     })
@@ -316,7 +320,9 @@ export function RemotesDetailsPage() {
         },
         onError: (error) => {
             toast.error(
-                t('remotesDetails.renameError', { message: error instanceof Error ? error.message : t('common.unknownError') })
+                t('remotesDetails.renameError', {
+                    message: error instanceof Error ? error.message : t('common.unknownError'),
+                })
             )
         },
     })
@@ -427,7 +433,9 @@ export function RemotesDetailsPage() {
         },
         onError: (error) => {
             toast.error(
-                t('remotesDetails.downloadError', { message: error instanceof Error ? error.message : t('common.unknownError') })
+                t('remotesDetails.downloadError', {
+                    message: error instanceof Error ? error.message : t('common.unknownError'),
+                })
             )
         },
     })
@@ -600,7 +608,9 @@ export function RemotesDetailsPage() {
     const handleDelete = useCallback(
         (item: ListItem) => {
             const confirmed = window.confirm(
-                item.IsDir ? t('remotesDetails.deleteFolderConfirm', { name: item.Name }) : t('remotesDetails.deleteConfirm', { name: item.Name })
+                item.IsDir
+                    ? t('remotesDetails.deleteFolderConfirm', { name: item.Name })
+                    : t('remotesDetails.deleteConfirm', { name: item.Name })
             )
             if (!confirmed) return
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
@@ -656,25 +666,35 @@ export function RemotesDetailsPage() {
                             source.remoteName !== remoteName || sourceDir !== currentPath
                         const sourcePath = buildRemotePathHref(source.remoteName, sourceDir)
 
-                        toast(mode === 'copy' ? t('remotesDetails.copyStarted') : t('remotesDetails.moveStarted'), {
-                            position: 'bottom-left',
-                            action: movedAway
-                                ? {
-                                      label: t('remotesDetails.backToSource'),
-                                      onClick: () => navigate(sourcePath),
-                                  }
-                                : undefined,
-                            cancel: {
-                                label: t('remotesDetails.viewTransfers'),
-                                onClick: () => navigate('/transfers'),
-                            },
-                        })
+                        toast(
+                            mode === 'copy'
+                                ? t('remotesDetails.copyStarted')
+                                : t('remotesDetails.moveStarted'),
+                            {
+                                position: 'bottom-left',
+                                action: movedAway
+                                    ? {
+                                          label: t('remotesDetails.backToSource'),
+                                          onClick: () => navigate(sourcePath),
+                                      }
+                                    : undefined,
+                                cancel: {
+                                    label: t('remotesDetails.viewTransfers'),
+                                    onClick: () => navigate('/transfers'),
+                                },
+                            }
+                        )
 
                         queryClient.invalidateQueries({ queryKey: ['jobs'] })
                     },
                     onError: (error) => {
                         toast.error(
-                            t('remotesDetails.transferError', { message: error instanceof Error ? error.message : t('common.unknownError') })
+                            t('remotesDetails.transferError', {
+                                message:
+                                    error instanceof Error
+                                        ? error.message
+                                        : t('common.unknownError'),
+                            })
                         )
                     },
                 }
@@ -719,7 +739,9 @@ export function RemotesDetailsPage() {
                             <Spinner className="size-5" />
                         </div>
                     ) : remotesListQuery.isError ? (
-                        <p className="px-3 py-2 text-sm text-destructive">{t('remotesDetails.failedToLoadRemotes')}</p>
+                        <p className="px-3 py-2 text-sm text-destructive">
+                            {t('remotesDetails.failedToLoadRemotes')}
+                        </p>
                     ) : sortedRemotes.length === 0 ? (
                         <p className="px-3 py-2 text-sm text-muted-foreground">
                             {t('remotesDetails.noRemotes')}
@@ -750,7 +772,9 @@ export function RemotesDetailsPage() {
                         <Card size="sm" className="gap-0">
                             <CardHeader className="pb-2">
                                 <div className="flex items-center justify-between gap-2">
-                                    <CardTitle className="text-sm">{t('remotesDetails.transfer')}</CardTitle>
+                                    <CardTitle className="text-sm">
+                                        {t('remotesDetails.transfer')}
+                                    </CardTitle>
                                     <Button
                                         type="button"
                                         variant="ghost"
@@ -799,7 +823,12 @@ export function RemotesDetailsPage() {
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    {t('remotesDetails.transferFrom', { remote: transferSource.remoteName, path: transferSource.path.split('/').slice(0, -1).join('/') || '/' })}
+                                    {t('remotesDetails.transferFrom', {
+                                        remote: transferSource.remoteName,
+                                        path:
+                                            transferSource.path.split('/').slice(0, -1).join('/') ||
+                                            '/',
+                                    })}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     {t('remotesDetails.navigateToDestination')}
@@ -838,7 +867,9 @@ export function RemotesDetailsPage() {
                             <Card size="sm" className="gap-3">
                                 <CardHeader className="pb-0">
                                     <div className="flex items-center justify-between gap-3">
-                                        <CardTitle className="text-sm">{t('remotesDetails.storageTitle')}</CardTitle>
+                                        <CardTitle className="text-sm">
+                                            {t('remotesDetails.storageTitle')}
+                                        </CardTitle>
                                         {usage.percentLabel ? (
                                             <span className="text-xs text-muted-foreground">
                                                 {usage.percentLabel}
@@ -850,8 +881,13 @@ export function RemotesDetailsPage() {
                                     <Progress value={usage.barPercent ?? 50} />
                                     <p className="text-xs text-muted-foreground">
                                         {usage.totalLabel
-                                            ? t('remotesDetails.storageUsedOf', { used: usage.usedLabel, total: usage.totalLabel })
-                                            : t('remotesDetails.storageUsed', { used: usage.usedLabel })}
+                                            ? t('remotesDetails.storageUsedOf', {
+                                                  used: usage.usedLabel,
+                                                  total: usage.totalLabel,
+                                              })
+                                            : t('remotesDetails.storageUsed', {
+                                                  used: usage.usedLabel,
+                                              })}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -879,8 +915,12 @@ export function RemotesDetailsPage() {
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
                 {remoteNotFound ? (
                     <div className="border-b px-6 py-4">
-                        <p className="text-2xl font-semibold tracking-tight">{t('remotesDetails.notFoundTitle')}</p>
-                        <p className="text-muted-foreground">{t('remotesDetails.notFoundDescription', { name: remoteName })}</p>
+                        <p className="text-2xl font-semibold tracking-tight">
+                            {t('remotesDetails.notFoundTitle')}
+                        </p>
+                        <p className="text-muted-foreground">
+                            {t('remotesDetails.notFoundDescription', { name: remoteName })}
+                        </p>
                     </div>
                 ) : remoteName ? (
                     <div className="sticky top-0 z-10 border-b bg-background px-6 py-4 space-y-3">
@@ -934,7 +974,9 @@ export function RemotesDetailsPage() {
                                     disabled={mkdirMutation.isPending}
                                 >
                                     <FolderPlusIcon />
-                                    {mkdirMutation.isPending ? t('remotesDetails.newFolderCreating') : t('remotesDetails.newFolder')}
+                                    {mkdirMutation.isPending
+                                        ? t('remotesDetails.newFolderCreating')
+                                        : t('remotesDetails.newFolder')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -943,7 +985,9 @@ export function RemotesDetailsPage() {
                                     disabled={uploadMutation.isPending || !!transferSource}
                                 >
                                     <UploadIcon />
-                                    {uploadMutation.isPending ? t('remotesDetails.uploading') : t('remotesDetails.upload')}
+                                    {uploadMutation.isPending
+                                        ? t('remotesDetails.uploading')
+                                        : t('remotesDetails.upload')}
                                 </Button>
 
                                 <RefreshButton
@@ -964,7 +1008,9 @@ export function RemotesDetailsPage() {
                                 </EmptyMedia>
                                 <EmptyTitle>{t('remotesDetails.notFoundEmptyTitle')}</EmptyTitle>
                                 <EmptyDescription>
-                                    {t('remotesDetails.notFoundEmptyDescription', { name: remoteName })}
+                                    {t('remotesDetails.notFoundEmptyDescription', {
+                                        name: remoteName,
+                                    })}
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
@@ -1038,8 +1084,12 @@ export function RemotesDetailsPage() {
                                                         </p>
                                                         <p className="text-sm text-muted-foreground">
                                                             {searchTerm
-                                                                ? t('remotesDetails.noItemsMatchHint')
-                                                                : t('remotesDetails.emptyFolderHint')}
+                                                                ? t(
+                                                                      'remotesDetails.noItemsMatchHint'
+                                                                  )
+                                                                : t(
+                                                                      'remotesDetails.emptyFolderHint'
+                                                                  )}
                                                         </p>
                                                     </div>
                                                 </TableCell>
@@ -1121,7 +1171,9 @@ export function RemotesDetailsPage() {
                                                                             }
                                                                         />
                                                                         <TooltipContent>
-                                                                            {t('remotesDetails.transfer')}
+                                                                            {t(
+                                                                                'remotesDetails.transfer'
+                                                                            )}
                                                                         </TooltipContent>
                                                                     </Tooltip>
                                                                 </div>
@@ -1148,7 +1200,13 @@ export function RemotesDetailsPage() {
                                                                         }
                                                                     />
                                                                     <TooltipContent>
-                                                                        {item.IsDir ? t('remotesDetails.downloadZip') : t('remotesDetails.download')}
+                                                                        {item.IsDir
+                                                                            ? t(
+                                                                                  'remotesDetails.downloadZip'
+                                                                              )
+                                                                            : t(
+                                                                                  'remotesDetails.download'
+                                                                              )}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                                 <Tooltip>

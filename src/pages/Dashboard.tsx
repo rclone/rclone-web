@@ -9,7 +9,6 @@ import {
     GlobeIcon,
     HardDriveIcon,
     type LucideIcon,
-
 } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -24,12 +23,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatBytes, formatDuration, formatTime } from '@/lib/format'
+import { type TranslationKey, t as tStandalone, useT } from '@/lib/i18n'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchJobsSnapshot, type JobRow } from '@/rclone/jobs'
 import { fetchRemotesList, fetchRemoteUsage, type RemoteWithUsage } from '@/rclone/usage'
 import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
-import { type TranslationKey, useT, t as tStandalone } from '@/lib/i18n'
 
 const LINKS: readonly { key: TranslationKey; href: string }[] = [
     { key: 'dashboard.linkDocs', href: 'https://rclone.org/docs/' },
@@ -361,9 +360,7 @@ export function DashboardPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>{t('dashboard.aboutTitle')}</CardTitle>
-                                <CardDescription>
-                                    {t('dashboard.aboutDescription')}
-                                </CardDescription>
+                                <CardDescription>{t('dashboard.aboutDescription')}</CardDescription>
                             </CardHeader>
 
                             <CardContent>
@@ -501,7 +498,9 @@ function DashboardMetricCard({
 
             <CardContent className="space-y-3">
                 {isError ? (
-                    <div className="text-sm text-muted-foreground">{t('dashboard.refreshToRetry')}</div>
+                    <div className="text-sm text-muted-foreground">
+                        {t('dashboard.refreshToRetry')}
+                    </div>
                 ) : isPending ? (
                     <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
                 ) : attention ? (
@@ -543,7 +542,11 @@ function DashboardMetricCard({
                                 </div>
 
                                 {remainingCount > 0 ? (
-                                    <p className="text-background/70">{t('dashboard.countMore', { count: String(remainingCount) })}</p>
+                                    <p className="text-background/70">
+                                        {t('dashboard.countMore', {
+                                            count: String(remainingCount),
+                                        })}
+                                    </p>
                                 ) : null}
                             </div>
                         </TooltipContent>
@@ -578,7 +581,9 @@ function getRemoteAttention(remotes: RemoteWithUsage[]) {
         .sort((a, b) => (b.usage?.barPercent ?? 0) - (a.usage?.barPercent ?? 0))
         .map((remote) => ({
             title: remote.name,
-            description: tStandalone('dashboard.percentUsed', { percent: remote.usage?.percentLabel ?? '--' }),
+            description: tStandalone('dashboard.percentUsed', {
+                percent: remote.usage?.percentLabel ?? '--',
+            }),
         }))
 }
 
@@ -683,9 +688,7 @@ type Sponsor =
     | { type: 'card'; image: string; link: string }
 
 async function fetchSponsor(): Promise<Sponsor | null> {
-    const res = await fetch(
-        'https://cdn.jsdelivr.net/gh/rclone/rclone-web@main/src/sponsor.json'
-    )
+    const res = await fetch('https://cdn.jsdelivr.net/gh/rclone/rclone-web@main/src/sponsor.json')
     if (!res.ok) return null
     const data = await res.json()
     if (!data || typeof data !== 'object') return null

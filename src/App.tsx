@@ -10,7 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog'
-import { type Language, LANGUAGES, type TranslationKey, useT } from '@/lib/i18n'
+import { LANGUAGES, type Language, type TranslationKey, useT } from '@/lib/i18n'
 import { clearAuthSession, useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
@@ -106,11 +106,14 @@ export function App() {
         }
     }, [])
 
-    const selectLanguage = useCallback((language: Language | undefined) => {
-        useStore.setState({ language })
-        setIsLanguageDialogOpen(false)
-        queryClient.invalidateQueries()
-    }, [queryClient])
+    const selectLanguage = useCallback(
+        (language: Language | undefined) => {
+            useStore.setState({ language })
+            setIsLanguageDialogOpen(false)
+            queryClient.invalidateQueries()
+        },
+        [queryClient]
+    )
 
     return (
         <div className="flex h-dvh min-h-screen flex-col overflow-hidden overscroll-none bg-background text-foreground">
@@ -164,7 +167,9 @@ export function App() {
                                 disabled={updateMutation.isPending}
                                 className="px-3 py-1.5 text-sm text-blue-800 transition-colors hover:bg-muted hover:text-blue-700 disabled:opacity-50"
                             >
-                                {updateMutation.isPending ? t('app.updating') : t('app.updateAvailable')}
+                                {updateMutation.isPending
+                                    ? t('app.updating')
+                                    : t('app.updateAvailable')}
                             </button>
                         )}
                         {hasAuthCredentials && (
@@ -203,9 +208,7 @@ export function App() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{t('app.translateTitle')}</DialogTitle>
-                        <DialogDescription>
-                            {t('app.translateDescription')}
-                        </DialogDescription>
+                        <DialogDescription>{t('app.translateDescription')}</DialogDescription>
                     </DialogHeader>
 
                     <div className="flex flex-col gap-1">

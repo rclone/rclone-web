@@ -27,9 +27,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
+import { useT } from '@/lib/i18n'
 import rclone from '@/rclone/client'
 import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
-import { useT } from '@/lib/i18n'
 
 export function ServesPage() {
     const t = useT()
@@ -162,9 +162,7 @@ export function ServesPage() {
                                 <GlobeIcon />
                             </EmptyMedia>
                             <EmptyTitle>{t('serves.emptyTitle')}</EmptyTitle>
-                            <EmptyDescription>
-                                {t('serves.emptyDescription')}
-                            </EmptyDescription>
+                            <EmptyDescription>{t('serves.emptyDescription')}</EmptyDescription>
                         </EmptyHeader>
                         <EmptyContent>
                             <Button
@@ -237,7 +235,9 @@ export function ServesPage() {
                                                 onClick={() => {
                                                     if (
                                                         window.confirm(
-                                                            t('serves.stopConfirm', { id: serve.id })
+                                                            t('serves.stopConfirm', {
+                                                                id: serve.id,
+                                                            })
                                                         )
                                                     ) {
                                                         stopMutation.mutate(serve.id)

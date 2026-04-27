@@ -12,10 +12,7 @@ type Store = {
     hasHydrated: boolean
 }
 
-type PersistedStore = Pick<
-    Store,
-    'url' | 'user' | 'pass' | 'bannerDismissed' | 'language'
->
+type PersistedStore = Pick<Store, 'url' | 'user' | 'pass' | 'bannerDismissed' | 'language'>
 
 export const useStore = create<Store>()(
     persist(
@@ -24,7 +21,7 @@ export const useStore = create<Store>()(
             user: '',
             pass: '',
             bannerDismissed: false,
-            language: undefined, 
+            language: undefined,
             hasHydrated: false,
         }),
         {

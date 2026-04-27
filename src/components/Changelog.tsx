@@ -310,9 +310,7 @@ export function Changelog() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1">
                             <CardTitle>{t('changelog.title')}</CardTitle>
-                            <CardDescription>
-                                {t('changelog.description')}
-                            </CardDescription>
+                            <CardDescription>{t('changelog.description')}</CardDescription>
                         </div>
 
                         <a

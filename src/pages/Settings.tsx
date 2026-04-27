@@ -25,8 +25,8 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
-import rclone, { rcloneUploadFile } from '@/rclone/client'
 import { t as tFn, useT } from '@/lib/i18n'
+import rclone, { rcloneUploadFile } from '@/rclone/client'
 
 function normalizeConfigPath(path: string) {
     return path.trim().replace(/\\/g, '/')
@@ -297,10 +297,7 @@ export function SettingsPage() {
     return (
         <section className="flex flex-col w-full xl:h-full xl:min-h-0 xl:flex-row xl:overflow-hidden">
             <div className="flex flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto">
-                <PageHeader
-                    title={t('settings.title')}
-                    description={t('settings.description')}
-                />
+                <PageHeader title={t('settings.title')} description={t('settings.description')} />
 
                 <PageContent>
                     <div className="p-6 mt-6 border rounded-xl bg-card lg:p-8">
@@ -322,7 +319,12 @@ export function SettingsPage() {
                                     </div>
                                 ) : optionsQuery.isError ? (
                                     <p className="text-sm text-destructive py-4">
-                                        {t('settings.loadError', { message: optionsQuery.error instanceof Error ? optionsQuery.error.message : t('common.unknownError') })}
+                                        {t('settings.loadError', {
+                                            message:
+                                                optionsQuery.error instanceof Error
+                                                    ? optionsQuery.error.message
+                                                    : t('common.unknownError'),
+                                        })}
                                     </p>
                                 ) : (
                                     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -348,7 +350,9 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">{t('settings.checkers')}</h3>
+                                            <h3 className="text-xl font-medium">
+                                                {t('settings.checkers')}
+                                            </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {t('settings.checkersDescription')}
                                             </p>
@@ -367,7 +371,9 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">{t('settings.bandwidthLimit')}</h3>
+                                            <h3 className="text-xl font-medium">
+                                                {t('settings.bandwidthLimit')}
+                                            </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {t('settings.bandwidthLimitDescription')}
                                             </p>
@@ -382,7 +388,9 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">{t('settings.tpsLimit')}</h3>
+                                            <h3 className="text-xl font-medium">
+                                                {t('settings.tpsLimit')}
+                                            </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {t('settings.tpsLimitDescription')}
                                             </p>
@@ -451,7 +459,9 @@ export function SettingsPage() {
                                         </div>
 
                                         <div className="space-y-2.5">
-                                            <h3 className="text-xl font-medium">{t('settings.logFilePath')}</h3>
+                                            <h3 className="text-xl font-medium">
+                                                {t('settings.logFilePath')}
+                                            </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {t('settings.logFilePathDescription')}
                                             </p>
@@ -464,7 +474,9 @@ export function SettingsPage() {
                                                             event.target.value
                                                         )
                                                     }
-                                                    placeholder={t('settings.logFilePathPlaceholder')}
+                                                    placeholder={t(
+                                                        'settings.logFilePathPlaceholder'
+                                                    )}
                                                     className="h-12 font-mono"
                                                 />
                                             </div>
@@ -487,13 +499,20 @@ export function SettingsPage() {
 
                                 <div className="space-y-5">
                                     <div className="space-y-2.5">
-                                        <h3 className="text-xl font-medium">{t('settings.configPath')}</h3>
+                                        <h3 className="text-xl font-medium">
+                                            {t('settings.configPath')}
+                                        </h3>
                                         <p className="text-sm text-muted-foreground">
                                             {t('settings.configPathDescription')}
                                         </p>
                                         {configPathsQuery.isError ? (
                                             <p className="text-sm text-destructive">
-                                                {t('settings.configPathLoadError', { message: configPathsQuery.error instanceof Error ? configPathsQuery.error.message : t('common.unknownError') })}
+                                                {t('settings.configPathLoadError', {
+                                                    message:
+                                                        configPathsQuery.error instanceof Error
+                                                            ? configPathsQuery.error.message
+                                                            : t('common.unknownError'),
+                                                })}
                                             </p>
                                         ) : null}
                                         <Input
@@ -511,7 +530,9 @@ export function SettingsPage() {
                                     </div>
 
                                     <div className="space-y-2.5">
-                                        <h3 className="text-xl font-medium">{t('settings.configContents')}</h3>
+                                        <h3 className="text-xl font-medium">
+                                            {t('settings.configContents')}
+                                        </h3>
                                         <p className="text-sm text-muted-foreground">
                                             {t('settings.configContentsDescription')}
                                         </p>
@@ -525,7 +546,12 @@ export function SettingsPage() {
                                         {configContentsQuery.isError &&
                                         !('configContents' in configEdits) ? (
                                             <p className="text-sm text-destructive">
-                                                {t('settings.configContentsLoadError', { message: configContentsQuery.error instanceof Error ? configContentsQuery.error.message : t('common.unknownError') })}
+                                                {t('settings.configContentsLoadError', {
+                                                    message:
+                                                        configContentsQuery.error instanceof Error
+                                                            ? configContentsQuery.error.message
+                                                            : t('common.unknownError'),
+                                                })}
                                             </p>
                                         ) : null}
                                         <div className="relative">
@@ -581,7 +607,9 @@ export function SettingsPage() {
                                 disabled={!isDirty || saveMutation.isPending}
                                 onClick={() => saveMutation.mutate()}
                             >
-                                {saveMutation.isPending ? t('common.saving') : t('common.saveChanges')}
+                                {saveMutation.isPending
+                                    ? t('common.saving')
+                                    : t('common.saveChanges')}
                             </Button>
                         </div>
                     </div>

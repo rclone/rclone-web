@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import rclone from '@/rclone/client'
 import { useT } from '@/lib/i18n'
+import rclone from '@/rclone/client'
 
 export function RemotesEditPage() {
     const t = useT()
@@ -195,7 +195,9 @@ export function RemotesEditPage() {
                         <div className="space-y-6">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="remote-name">{t('remotesEdit.name')}</FieldLabel>
+                                    <FieldLabel htmlFor="remote-name">
+                                        {t('remotesEdit.name')}
+                                    </FieldLabel>
                                     <Input id="remote-name" value={remoteName} disabled={true} />
                                 </Field>
 
@@ -282,7 +284,9 @@ export function RemotesEditPage() {
                                     onClick={handleSave}
                                     disabled={updateRemoteMutation.isPending}
                                 >
-                                    {updateRemoteMutation.isPending ? t('common.saving') : t('common.saveChanges')}
+                                    {updateRemoteMutation.isPending
+                                        ? t('common.saving')
+                                        : t('common.saveChanges')}
                                 </Button>
                             </div>
                         </div>

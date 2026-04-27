@@ -14,10 +14,7 @@ type InitParam<Init> =
         ? [(Init & { [key: string]: unknown })?]
         : [Init & { [key: string]: unknown }]
 
-const TRANSLATABLE_PATHS = new Set([
-    '/config/providers',
-    '/options/info',
-])
+const TRANSLATABLE_PATHS = new Set(['/config/providers', '/options/info'])
 
 let isRedirectingToLogin = false
 

@@ -21,8 +21,8 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import rclone from '@/rclone/client'
 import { useT } from '@/lib/i18n'
+import rclone from '@/rclone/client'
 
 export function MountsNewPage() {
     const t = useT()
@@ -391,7 +391,9 @@ export function MountsNewPage() {
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
-                                                    <ComboboxEmpty>{t('common.noRemotesCombobox')}</ComboboxEmpty>
+                                                    <ComboboxEmpty>
+                                                        {t('common.noRemotesCombobox')}
+                                                    </ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
                                                             <ComboboxItem key={item} value={item}>
@@ -470,7 +472,9 @@ export function MountsNewPage() {
                                                     placeholder={
                                                         mountTypes.length > 0
                                                             ? t('mountsNew.mountTypePlaceholder')
-                                                            : t('mountsNew.mountTypeOptionalPlaceholder')
+                                                            : t(
+                                                                  'mountsNew.mountTypeOptionalPlaceholder'
+                                                              )
                                                     }
                                                     className="w-full"
                                                     showClear={true}
@@ -560,7 +564,9 @@ export function MountsNewPage() {
                                     onClick={() => mountMutation.mutate()}
                                     disabled={submitDisabled}
                                 >
-                                    {mountMutation.isPending ? t('common.creating') : t('mountsNew.createMount')}
+                                    {mountMutation.isPending
+                                        ? t('common.creating')
+                                        : t('mountsNew.createMount')}
                                 </Button>
                             </div>
                         </div>

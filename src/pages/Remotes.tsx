@@ -262,7 +262,9 @@ export function RemotesPage() {
                                                             </Button>
                                                         }
                                                     />
-                                                    <TooltipContent>{t('remotes.edit')}</TooltipContent>
+                                                    <TooltipContent>
+                                                        {t('remotes.edit')}
+                                                    </TooltipContent>
                                                 </Tooltip>
                                                 <Tooltip>
                                                     <TooltipTrigger
@@ -276,7 +278,12 @@ export function RemotesPage() {
                                                                 onClick={() => {
                                                                     if (
                                                                         window.confirm(
-                                                                            t('remotes.deleteConfirm', { name: remote.name })
+                                                                            t(
+                                                                                'remotes.deleteConfirm',
+                                                                                {
+                                                                                    name: remote.name,
+                                                                                }
+                                                                            )
                                                                         )
                                                                     ) {
                                                                         deleteMutation.mutate(
@@ -289,7 +296,9 @@ export function RemotesPage() {
                                                             </Button>
                                                         }
                                                     />
-                                                    <TooltipContent>{t('common.delete')}</TooltipContent>
+                                                    <TooltipContent>
+                                                        {t('common.delete')}
+                                                    </TooltipContent>
                                                 </Tooltip>
                                             </div>
                                         </TableCell>

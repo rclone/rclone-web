@@ -19,8 +19,8 @@ import {
 } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
 import { formatTime } from '@/lib/format'
-import rclone from '@/rclone/client'
 import { useT } from '@/lib/i18n'
+import rclone from '@/rclone/client'
 import { getRemoteName } from '@/rclone/utils'
 
 function formatUptime(value: string) {
@@ -202,14 +202,18 @@ export function MountsPage() {
                                         onClick={() => {
                                             if (
                                                 window.confirm(
-                                                    t('mounts.unmountConfirm', { name: getRemoteName(mount.Fs) })
+                                                    t('mounts.unmountConfirm', {
+                                                        name: getRemoteName(mount.Fs),
+                                                    })
                                                 )
                                             ) {
                                                 unmountMutation.mutate(mount.MountPoint)
                                             }
                                         }}
                                     >
-                                        {unmountMutation.isPending ? t('mounts.ejecting') : t('mounts.eject')}
+                                        {unmountMutation.isPending
+                                            ? t('mounts.ejecting')
+                                            : t('mounts.eject')}
                                     </Button>
                                 </CardFooter>
                             </Card>

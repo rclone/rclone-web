@@ -21,8 +21,8 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import rclone from '@/rclone/client'
 import { useT } from '@/lib/i18n'
+import rclone from '@/rclone/client'
 
 const SERVE_BLOCK_CANDIDATES = ['dlna', 'ftp', 'http', 'nfs', 'restic', 's3', 'sftp', 'webdav']
 
@@ -306,7 +306,9 @@ export function ServesNewPage() {
     const groupEntries = [
         {
             key: 'serve',
-            title: serveType ? t('servesNew.groupServeWithType', { type: serveType }) : t('servesNew.groupServe'),
+            title: serveType
+                ? t('servesNew.groupServeWithType', { type: serveType })
+                : t('servesNew.groupServe'),
             description: t('servesNew.groupServeDescription'),
             options: serveOptions,
             initialValues: serveInitialValues,
@@ -419,7 +421,9 @@ export function ServesNewPage() {
                                                     showClear={true}
                                                 />
                                                 <ComboboxContent>
-                                                    <ComboboxEmpty>{t('common.noRemotesCombobox')}</ComboboxEmpty>
+                                                    <ComboboxEmpty>
+                                                        {t('common.noRemotesCombobox')}
+                                                    </ComboboxEmpty>
                                                     <ComboboxList>
                                                         {(item: string) => (
                                                             <ComboboxItem key={item} value={item}>
@@ -570,7 +574,9 @@ export function ServesNewPage() {
                                     onClick={() => serveMutation.mutate()}
                                     disabled={submitDisabled}
                                 >
-                                    {serveMutation.isPending ? t('servesNew.starting') : t('servesNew.startServe')}
+                                    {serveMutation.isPending
+                                        ? t('servesNew.starting')
+                                        : t('servesNew.startServe')}
                                 </Button>
                             </div>
                         </div>

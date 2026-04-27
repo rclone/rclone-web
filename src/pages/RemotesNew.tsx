@@ -21,8 +21,8 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import rclone from '@/rclone/client'
 import { useT } from '@/lib/i18n'
+import rclone from '@/rclone/client'
 
 export function RemotesNewPage() {
     const t = useT()
@@ -211,7 +211,9 @@ export function RemotesNewPage() {
                         <div className="space-y-6">
                             <FieldGroup>
                                 <Field>
-                                    <FieldLabel htmlFor="remote-name">{t('remotesNew.name')}</FieldLabel>
+                                    <FieldLabel htmlFor="remote-name">
+                                        {t('remotesNew.name')}
+                                    </FieldLabel>
                                     <Input
                                         id="remote-name"
                                         name="name"
@@ -248,7 +250,9 @@ export function RemotesNewPage() {
                                             showClear={true}
                                         />
                                         <ComboboxContent>
-                                            <ComboboxEmpty>{t('remotesNew.backendEmptySearch')}</ComboboxEmpty>
+                                            <ComboboxEmpty>
+                                                {t('remotesNew.backendEmptySearch')}
+                                            </ComboboxEmpty>
                                             <ComboboxList>
                                                 {(
                                                     backend: components['schemas']['ConfigProvider']

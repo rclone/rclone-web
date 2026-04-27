@@ -5,10 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
 import { clearPersistedQueryCache } from '@/lib/query'
 import { useStore } from '@/lib/store'
 import { isAuthFailureError, validateConnection } from '@/rclone/client'
-import { useT } from '@/lib/i18n'
 
 export function LoginPage() {
     const location = useLocation()
@@ -63,9 +63,7 @@ export function LoginPage() {
                 return
             }
 
-            setErrorMessage(
-                error instanceof Error ? error.message : t('login.connectionFailed')
-            )
+            setErrorMessage(error instanceof Error ? error.message : t('login.connectionFailed'))
         },
     })
 
@@ -154,9 +152,7 @@ export function LoginPage() {
     }
 
     const reasonMessage = useMemo(() => {
-        return loginSearchState.reason === 'auth'
-            ? t('login.sessionExpired')
-            : ''
+        return loginSearchState.reason === 'auth' ? t('login.sessionExpired') : ''
     }, [loginSearchState.reason])
 
     return (
@@ -191,9 +187,7 @@ export function LoginPage() {
                             {!url && (
                                 <div className="flex items-start gap-2 border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
                                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                                    <span>
-                                        {t('login.urlNotConfigured')}
-                                    </span>
+                                    <span>{t('login.urlNotConfigured')}</span>
                                 </div>
                             )}
 

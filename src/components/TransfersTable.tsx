@@ -1,8 +1,6 @@
 import { CheckCircle2Icon, RefreshCwIcon, XCircleIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/lib/i18n'
-import type { TranslationKey } from '@/lib/i18n'
 import {
     Table,
     TableBody,
@@ -13,6 +11,8 @@ import {
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatBytes } from '@/lib/format'
+import type { TranslationKey } from '@/lib/i18n'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/ui'
 import type { JobRow } from '@/rclone/jobs'
 

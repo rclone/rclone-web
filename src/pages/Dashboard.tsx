@@ -9,6 +9,7 @@ import {
     GlobeIcon,
     HardDriveIcon,
     type LucideIcon,
+
 } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -23,7 +24,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatBytes, formatDuration, formatTime } from '@/lib/format'
-import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchJobsSnapshot, type JobRow } from '@/rclone/jobs'
@@ -41,6 +41,14 @@ const LINKS: readonly { key: TranslationKey; href: string }[] = [
 export function DashboardPage() {
     const t = useT()
     const queryClient = useQueryClient()
+    const sponsorQuery = useQuery({
+        queryKey: ['sponsor'],
+        queryFn: fetchSponsor,
+        staleTime: 24 * 60 * 60 * 1000,
+        enabled: !import.meta.env.DEV,
+    })
+    const sponsor = sponsorQuery.data ?? null
+
     const remotesListQuery = useQuery({
         queryKey: ['remotes', 'list'],
         queryFn: fetchRemotesList,
@@ -148,6 +156,21 @@ export function DashboardPage() {
 
             <PageContent>
                 <div className="space-y-6">
+                    {sponsor?.type === 'banner' ? (
+                        <section className="flex items-center justify-between gap-3 rounded-xl bg-card px-4 py-3 text-sm text-card-foreground ring-1 ring-foreground/10">
+                            <p>{sponsor.message}</p>
+                            <a
+                                href={sponsor.link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                aria-label="Visit sponsor"
+                            >
+                                <ExternalLinkIcon className="size-3.5" />
+                            </a>
+                        </section>
+                    ) : null}
+
                     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                         <DashboardMetricCard
                             title={t('dashboard.remotes')}
@@ -194,21 +217,39 @@ export function DashboardPage() {
                             isError={servesQuery.isError}
                         />
 
-                        <DashboardMetricCard
-                            title="Operations"
-                            value={String(runningJobsCount)}
-                            icon={ActivityIcon}
-                            attention={
-                                recentFailedJobs.length > 0
-                                    ? {
-                                          heading: 'Recent failed jobs',
-                                          items: recentFailedJobs,
-                                      }
-                                    : undefined
-                            }
-                            isPending={jobsQuery.isPending}
-                            isError={jobsQuery.isError}
-                        />
+                        {sponsor?.type === 'card' ? (
+                            <a href={sponsor.link} target="_blank" rel="noreferrer">
+                                <Card className="relative h-full overflow-hidden py-0">
+                                    <img
+                                        src={sponsor.image}
+                                        alt=""
+                                        aria-hidden
+                                        className="absolute inset-0 size-full scale-110 object-cover blur-lg"
+                                    />
+                                    <img
+                                        src={sponsor.image}
+                                        alt="Sponsor"
+                                        className="relative size-full object-contain"
+                                    />
+                                </Card>
+                            </a>
+                        ) : (
+                            <DashboardMetricCard
+                                title={t('dashboard.operations')}
+                                value={String(runningJobsCount)}
+                                icon={ActivityIcon}
+                                attention={
+                                    recentFailedJobs.length > 0
+                                        ? {
+                                              heading: t('dashboard.recentFailedJobs'),
+                                              items: recentFailedJobs,
+                                          }
+                                        : undefined
+                                }
+                                isPending={jobsQuery.isPending}
+                                isError={jobsQuery.isError}
+                            />
+                        )}
                     </section>
 
                     <section className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
@@ -635,4 +676,24 @@ function getJobLocationLabel(job: JobRow | null) {
 function getJobStartTime(value: string) {
     const timestamp = new Date(value).getTime()
     return Number.isFinite(timestamp) ? timestamp : 0
+}
+
+type Sponsor =
+    | { type: 'banner'; message: string; link: string }
+    | { type: 'card'; image: string; link: string }
+
+async function fetchSponsor(): Promise<Sponsor | null> {
+    const res = await fetch(
+        'https://cdn.jsdelivr.net/gh/rclone/rclone-web@main/src/sponsor.json'
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data || typeof data !== 'object' || typeof data.link !== 'string') return null
+    if (data.type === 'banner' && typeof data.message === 'string') {
+        return { type: 'banner', message: data.message, link: data.link }
+    }
+    if (data.type === 'card' && typeof data.image === 'string') {
+        return { type: 'card', image: data.image, link: data.link }
+    }
+    return null
 }

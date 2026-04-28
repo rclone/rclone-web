@@ -1,15 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckIcon, LogOutIcon } from 'lucide-react'
+import { CheckIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 import { LANGUAGES, type Language, type TranslationKey, useT } from '@/lib/i18n'
 import { clearAuthSession, useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
@@ -80,7 +76,10 @@ export function App() {
 
     const longPressTimerRef = useRef<number | null>(null)
     const longPressFiredRef = useRef(false)
-    const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false)
+    const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false)
+    const [isDarkMode, setIsDarkMode] = useState(() =>
+        document.documentElement.classList.contains('dark')
+    )
     const currentLanguage = useStore((state) => state.language)
 
     const startLongPress = useCallback(() => {
@@ -106,10 +105,15 @@ export function App() {
         }
     }, [])
 
+    const toggleDarkMode = useCallback((dark: boolean) => {
+        localStorage.setItem('theme', dark ? 'dark' : 'light')
+        document.documentElement.classList.toggle('dark', dark)
+        setIsDarkMode(dark)
+    }, [])
+
     const selectLanguage = useCallback(
         (language: Language | undefined) => {
             useStore.setState({ language })
-            setIsLanguageDialogOpen(false)
             queryClient.invalidateQueries()
         },
         [queryClient]
@@ -140,7 +144,7 @@ export function App() {
                         }}
                         onClick={() => {
                             if (longPressFiredRef.current) return
-                            setIsLanguageDialogOpen(true)
+                            setIsSettingsDialogOpen(true)
                         }}
                     />
                     <nav className="flex">
@@ -204,14 +208,36 @@ export function App() {
                 ) : null}
             </main>
 
-            <Dialog open={isLanguageDialogOpen} onOpenChange={setIsLanguageDialogOpen}>
+            <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{t('app.translateTitle')}</DialogTitle>
-                        <DialogDescription>{t('app.translateDescription')}</DialogDescription>
+                        <DialogTitle>{t('app.settingsTitle')}</DialogTitle>
                     </DialogHeader>
 
-                    <div className="flex flex-col gap-1">
+                    <div className="-mx-2 space-y-1">
+                        <h3 className="px-2 pb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                            {t('app.themeSection')}
+                        </h3>
+                        <label className="flex items-center justify-between rounded-md px-3 py-2.5 transition-colors hover:bg-muted cursor-pointer">
+                            <span className="flex items-center gap-3 text-sm">
+                                {isDarkMode ? (
+                                    <MoonIcon className="size-4 text-muted-foreground" />
+                                ) : (
+                                    <SunIcon className="size-4 text-muted-foreground" />
+                                )}
+                                {t('app.darkMode')}
+                            </span>
+                            <Switch
+                                checked={isDarkMode}
+                                onCheckedChange={toggleDarkMode}
+                            />
+                        </label>
+
+                        <Separator className="!my-3" />
+
+                        <h3 className="px-2 pb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                            {t('app.languageSection')}
+                        </h3>
                         <LanguageOption
                             emoji="🌐"
                             label={t('app.defaultLanguage')}
@@ -250,7 +276,7 @@ function LanguageOption({
             type="button"
             onClick={onSelect}
             className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted',
+                'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
                 isActive && 'bg-muted'
             )}
         >

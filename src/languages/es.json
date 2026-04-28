@@ -337,5 +337,9 @@
     "transfersTable.running": "EN CURSO",
     "transfersTable.source": "ORIGEN",
     "transfersTable.speed": "VELOCIDAD",
-    "transfersTable.status": "ESTADO"
+    "transfersTable.status": "ESTADO",
+    "app.settingsTitle": "Ajustes",
+    "app.themeSection": "Tema",
+    "app.darkMode": "Modo oscuro",
+    "app.languageSection": "Idioma"
 }

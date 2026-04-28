@@ -8,13 +8,16 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import queryClient from '@/lib/query'
 import { router } from './router'
 
-const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-const setSystemThemeClass = () => {
-    document.documentElement.classList.toggle('dark', darkModeMediaQuery.matches)
+function applyTheme() {
+    const stored = localStorage.getItem('theme')
+    const isDark =
+        stored === 'dark' ||
+        (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.classList.toggle('dark', isDark)
 }
 
-setSystemThemeClass()
-darkModeMediaQuery.addEventListener('change', setSystemThemeClass)
+applyTheme()
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

@@ -227,10 +227,7 @@ export function App() {
                                 )}
                                 {t('app.darkMode')}
                             </span>
-                            <Switch
-                                checked={isDarkMode}
-                                onCheckedChange={toggleDarkMode}
-                            />
+                            <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
                         </label>
 
                         <Separator className="!my-3" />

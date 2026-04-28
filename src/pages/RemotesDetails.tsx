@@ -842,7 +842,8 @@ export function RemotesDetailsPage() {
                             </h2>
                             <div className="space-y-1">
                                 {filteredDisks.map((disk) => {
-                                    const { icon: DiskIcon, className: iconColor } = getDiskIcon(disk)
+                                    const { icon: DiskIcon, className: iconColor } =
+                                        getDiskIcon(disk)
                                     return (
                                         <NavLink
                                             key={disk}
@@ -856,7 +857,9 @@ export function RemotesDetailsPage() {
                                                 )
                                             }
                                         >
-                                            <DiskIcon className={cn('size-4 shrink-0', iconColor)} />
+                                            <DiskIcon
+                                                className={cn('size-4 shrink-0', iconColor)}
+                                            />
                                             <span className="truncate" title={disk}>
                                                 {getDiskLabel(disk)}
                                             </span>

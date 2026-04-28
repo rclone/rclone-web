@@ -1222,19 +1222,19 @@ export function RemotesDetailsPage() {
                     ) : (
                         <div className="mt-6">
                             <div className="overflow-hidden rounded-xl border">
-                                <Table className="min-w-[760px]">
+                                <Table className="table-fixed">
                                     <TableHeader className="bg-muted/40">
                                         <TableRow className="hover:bg-muted/40">
                                             <TableHead className="px-2 font-semibold text-muted-foreground uppercase">
                                                 {t('remotesDetails.name')}
                                             </TableHead>
-                                            <TableHead className="w-40 px-4 font-semibold text-muted-foreground uppercase">
+                                            <TableHead className="w-24 px-4 font-semibold text-muted-foreground uppercase">
                                                 {t('remotesDetails.size')}
                                             </TableHead>
-                                            <TableHead className="w-44 px-4 font-semibold text-muted-foreground uppercase">
+                                            <TableHead className="w-36 px-4 font-semibold text-muted-foreground uppercase">
                                                 {t('remotesDetails.modified')}
                                             </TableHead>
-                                            <TableHead className="w-44 px-4 text-right font-semibold text-muted-foreground uppercase">
+                                            <TableHead className="w-36 px-4 text-right font-semibold text-muted-foreground uppercase">
                                                 {t('common.actions')}
                                             </TableHead>
                                         </TableRow>
@@ -1275,33 +1275,33 @@ export function RemotesDetailsPage() {
                                                         key={item.Path || item.Name}
                                                         className="group/row hover:bg-muted/20"
                                                     >
-                                                        <TableCell className="px-2 py-3">
+                                                        <TableCell className="px-2 py-3 overflow-hidden">
                                                             {item.IsDir ? (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() =>
                                                                         openFolder(item.Name)
                                                                     }
-                                                                    className="inline-flex items-center gap-3 rounded-md px-1 py-1 pr-2.5 -translate-x-1 text-left transition-colors hover:bg-muted"
+                                                                    className="flex max-w-full items-center gap-3 rounded-md px-1 py-1 pr-2.5 -translate-x-1 text-left transition-colors hover:bg-muted"
                                                                 >
-                                                                    <span className="inline-flex size-10 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-600">
+                                                                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-600">
                                                                         <FolderIcon />
                                                                     </span>
-                                                                    <span className="font-medium">
+                                                                    <span className="truncate font-medium">
                                                                         {item.Name}
                                                                     </span>
                                                                 </button>
                                                             ) : (
-                                                                <div className="inline-flex items-center gap-3">
+                                                                <div className="flex max-w-full items-center gap-3">
                                                                     <span
                                                                         className={cn(
-                                                                            'inline-flex size-10 items-center justify-center rounded-md',
+                                                                            'inline-flex size-10 shrink-0 items-center justify-center rounded-md',
                                                                             fileTypeUi.className
                                                                         )}
                                                                     >
                                                                         <FileTypeIcon />
                                                                     </span>
-                                                                    <span className="font-medium">
+                                                                    <span className="truncate font-medium">
                                                                         {item.Name}
                                                                     </span>
                                                                 </div>

@@ -1,9 +1,9 @@
-[!icon](.github/icon.png)
+![icon](.github/icon.png)
 
 # Rclone Web
-A lightweight web UI for [rclone](https://rclone.org/). Use it to manage remotes, mounts, serves, transfers, and common rclone actions from a browser.
+A lightweight web UI for [**rclone**](https://rclone.org/). Use it to manage remotes, mounts, serves, transfers, and common rclone actions from a browser.
 
-[!screenshot](.github/screenshot.png)
+![screenshot](.github/screenshot.png)
 
 ## Usage
 Install [rclone](https://rclone.org/install/) and run:
@@ -81,7 +81,7 @@ Areas where help is especially useful:
 - Bug fixes
 - Accessibility improvements
 - Tests
-- Translations ([Web](https://github.com/rclone/rclone-web/src/languages/) or [RC](https://github.com/rclone-ui/rclone-i18n))
+- Translations ([**Web**](https://github.com/rclone/rclone-web/tree/main/src/languages) or [**RC**](https://github.com/rclone-ui/rclone-i18n))
 
 ## License
 MIT

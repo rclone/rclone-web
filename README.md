@@ -1,4 +1,4 @@
-![icon](.github/icon.png)
+<p align="center"><img src=".github/icon.png" width="169" /></p>
 
 # Rclone Web
 A lightweight web UI for [**rclone**](https://rclone.org/). Use it to manage remotes, mounts, serves, transfers, and common rclone actions from a browser.

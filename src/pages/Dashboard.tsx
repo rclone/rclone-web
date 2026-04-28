@@ -2,7 +2,6 @@ import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     ActivityIcon,
     AlertTriangleIcon,
-    ArrowRightIcon,
     CheckCircle2Icon,
     CloudIcon,
     ExternalLinkIcon,
@@ -11,7 +10,6 @@ import {
     type LucideIcon,
 } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { Changelog } from '@/components/Changelog'
 import { toRecord } from '@/components/OptionField'
 import { PageContent } from '@/components/PageContent'
@@ -44,7 +42,7 @@ export function DashboardPage() {
         queryKey: ['sponsor'],
         queryFn: fetchSponsor,
         staleTime: 24 * 60 * 60 * 1000,
-        enabled: !import.meta.env.DEV,
+        enabled: true,
     })
     const sponsor = sponsorQuery.data ?? null
 
@@ -150,24 +148,50 @@ export function DashboardPage() {
             <PageHeader
                 title={t('dashboard.title')}
                 description={t('dashboard.description')}
-                actions={<RefreshButton isFetching={isFetchingAny} refetch={handleRefresh} />}
-            />
-
-            <PageContent>
-                <div className="space-y-6">
-                    {sponsor?.type === 'banner' ? (
-                        <section className="flex items-center justify-between gap-3 rounded-xl bg-card px-4 py-3 text-sm text-card-foreground ring-1 ring-foreground/10">
-                            <p>{sponsor.message}</p>
+                actions={
+                    <>
+                        {sponsor?.type === 'forum' ? (
                             <a
                                 href={sponsor.link}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                aria-label="Visit sponsor"
+                                className="hidden md:block"
                             >
-                                <ExternalLinkIcon className="size-3.5" />
+                                <img
+                                    src={sponsor.image}
+                                    alt="Sponsor"
+                                    className="h-16 object-contain"
+                                />
                             </a>
-                        </section>
+                        ) : null}
+                        <RefreshButton isFetching={isFetchingAny} refetch={handleRefresh} />
+                    </>
+                }
+            />
+
+            {sponsor?.type === 'forum' ? (
+                <a
+                    href={sponsor.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block border-b md:hidden"
+                >
+                    <img src={sponsor.image} alt="Sponsor" className="w-full" />
+                </a>
+            ) : null}
+
+            <PageContent>
+                <div className="space-y-6">
+                    {sponsor?.type === 'banner' ? (
+                        <a
+                            href={sponsor.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between gap-3 rounded-xl bg-card px-4 py-3.5 text-sm text-card-foreground ring-1 ring-primary/50 transition-colors hover:bg-muted"
+                        >
+                            <p>{sponsor.message}</p>
+                            <ExternalLinkIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                        </a>
                     ) : null}
 
                     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -340,16 +364,6 @@ export function DashboardPage() {
                                                         </p>
                                                     ) : null}
                                                 </div>
-
-                                                {lastError ? (
-                                                    <Link
-                                                        to="/transfers"
-                                                        className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                                    >
-                                                        {t('dashboard.jobs')}
-                                                        <ArrowRightIcon className="size-3.5" />
-                                                    </Link>
-                                                ) : null}
                                             </dd>
                                         </div>
                                     </dl>
@@ -686,11 +700,22 @@ function getJobStartTime(value: string) {
 type Sponsor =
     | { type: 'banner'; message: string; link: string }
     | { type: 'card'; image: string; link: string }
+    | { type: 'forum'; image: string; link: string }
 
 async function fetchSponsor(): Promise<Sponsor | null> {
-    const res = await fetch('https://cdn.jsdelivr.net/gh/rclone/rclone-web@main/src/sponsor.json')
+    if (import.meta.env.DEV) {
+        const mod = await import('@/sponsor.json')
+        return parseSponsor(mod.default)
+    }
+    const res = await fetch(
+        'https://raw.githubusercontent.com/rclone/rclone-web/main/src/sponsor.json'
+    )
     if (!res.ok) return null
     const data = await res.json()
+    return parseSponsor(data)
+}
+
+function parseSponsor(data: unknown): Sponsor | null {
     if (!data || typeof data !== 'object') return null
     const obj = data as Record<string, unknown>
     if (typeof obj.link !== 'string') return null
@@ -699,6 +724,9 @@ async function fetchSponsor(): Promise<Sponsor | null> {
     }
     if (obj.type === 'card' && typeof obj.image === 'string') {
         return { type: 'card', image: obj.image, link: obj.link }
+    }
+    if (obj.type === 'forum' && typeof obj.image === 'string') {
+        return { type: 'forum', image: obj.image, link: obj.link }
     }
     return null
 }

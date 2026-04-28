@@ -20,7 +20,7 @@ export function PageHeader({
                 <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
                 {description ? <p className="text-muted-foreground">{description}</p> : null}
             </div>
-            {actions ? <div className="shrink-0">{actions}</div> : null}
+            {actions ? <div className="flex shrink-0 items-center gap-4">{actions}</div> : null}
         </section>
     )
 }

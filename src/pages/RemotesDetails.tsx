@@ -19,7 +19,14 @@ import {
     XIcon,
 } from 'lucide-react'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+    Link,
+    NavLink,
+    useLocation,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
 import { RefreshButton } from '@/components/RefreshButton'
@@ -41,7 +48,7 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from '@/components/ui/empty'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Progress } from '@/components/ui/progress'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -124,6 +131,18 @@ function buildRemotePathHref(remoteName: string, path: string) {
     return `/remotes/${remoteName}?${query.toString()}`
 }
 
+function getDiskLabel(disk: string): string {
+    const last = disk.split(/[/\\]/).filter(Boolean).pop()
+    return last ?? disk
+}
+
+function buildLocalPathHref(disk: string, path: string) {
+    const params = new URLSearchParams({ disk })
+    const normalized = normalizePath(path)
+    if (normalized) params.set('path', normalized)
+    return `/local?${params}`
+}
+
 function formatModTime(modTime: string | undefined): string {
     if (!modTime) return '\u2014'
     try {
@@ -156,22 +175,35 @@ type ListItem = {
 
 export function RemotesDetailsPage() {
     const t = useT()
+    const location = useLocation()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const { remoteName = '' } = useParams()
     const [searchParams, setSearchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('')
+    const [sidebarSearch, setSidebarSearch] = useState('')
+    const [sidebarCompact, setSidebarCompact] = useState(false)
     const [transferSource, setTransferSource] = useState<{
-        remoteName: string
+        fs: string
         path: string
         name: string
         isDir: boolean
     } | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
+    const isLocalMode = location.pathname === '/local'
+    const diskPath = searchParams.get('disk') ?? ''
+    const currentFs = isLocalMode ? diskPath.replace(/\/?$/, '/') : `${remoteName}:`
     const currentPath = useMemo(() => normalizePath(searchParams.get('path')), [searchParams])
 
     // --- Queries ---
+
+    const disksQuery = useQuery({
+        queryKey: ['core', 'disks'],
+        queryFn: () => rclone('/core/disks'),
+    })
+
+    const disks = useMemo(() => disksQuery.data?.disks ?? [], [disksQuery.data])
 
     const remotesListQuery = useQuery({
         queryKey: ['remotes', 'list'],
@@ -185,11 +217,13 @@ export function RemotesDetailsPage() {
     const remoteExists =
         !!remoteName && (!remotesListQuery.isSuccess || remoteNames.includes(remoteName))
 
+    const canBrowse = remoteExists || (isLocalMode && !!diskPath)
+
     const listQuery = useQuery({
-        queryKey: ['remote-browse', remoteName, currentPath] as const,
-        queryFn: async ({ queryKey: [, qRemoteName, qPath], signal }) => {
+        queryKey: ['remote-browse', currentFs, currentPath] as const,
+        queryFn: async ({ queryKey: [, qFs, qPath], signal }) => {
             const response = await rclone('/operations/list', {
-                params: { query: { fs: `${qRemoteName}:`, remote: qPath } },
+                params: { query: { fs: qFs, remote: qPath } },
                 signal,
             })
             const rawList = response.list ?? []
@@ -208,7 +242,7 @@ export function RemotesDetailsPage() {
                     return a.Name.localeCompare(b.Name)
                 })
         },
-        enabled: remoteExists,
+        enabled: canBrowse,
     })
 
     const usageQuery = useQuery({
@@ -218,7 +252,7 @@ export function RemotesDetailsPage() {
                 qRemoteName,
                 remotes.find((r) => r.name === qRemoteName)?.type ?? 'unknown'
             ),
-        enabled: remoteExists,
+        enabled: remoteExists && !isLocalMode,
         staleTime: 5 * 60 * 1000,
         retry: false,
     })
@@ -226,28 +260,20 @@ export function RemotesDetailsPage() {
     // --- Mutations ---
 
     const deleteMutation = useMutation({
-        mutationFn: async ({
-            remoteName,
-            path,
-            isDir,
-        }: {
-            remoteName: string
-            path: string
-            isDir: boolean
-        }) => {
+        mutationFn: async ({ fs, path, isDir }: { fs: string; path: string; isDir: boolean }) => {
             if (isDir) {
                 await rclone('/operations/purge', {
-                    params: { query: { fs: `${remoteName}:`, remote: path } },
+                    params: { query: { fs, remote: path } },
                 })
             } else {
                 await rclone('/operations/deletefile', {
-                    params: { query: { fs: `${remoteName}:`, remote: path } },
+                    params: { query: { fs, remote: path } },
                 })
             }
         },
-        onSuccess: (_data, { remoteName }) => {
+        onSuccess: (_data, { fs }) => {
             toast.success(t('remotesDetails.deleteSuccess'))
-            queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
+            queryClient.invalidateQueries({ queryKey: ['remote-browse', fs] })
             queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
@@ -260,14 +286,14 @@ export function RemotesDetailsPage() {
     })
 
     const mkdirMutation = useMutation({
-        mutationFn: async ({ remoteName, path }: { remoteName: string; path: string }) => {
+        mutationFn: async ({ fs, path }: { fs: string; path: string }) => {
             await rclone('/operations/mkdir', {
-                params: { query: { fs: `${remoteName}:`, remote: path } },
+                params: { query: { fs, remote: path } },
             })
         },
-        onSuccess: (_, { remoteName }) => {
+        onSuccess: (_, { fs }) => {
             toast.success(t('remotesDetails.createFolderSuccess'))
-            queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
+            queryClient.invalidateQueries({ queryKey: ['remote-browse', fs] })
         },
         onError: (error) => {
             toast.error(
@@ -280,12 +306,12 @@ export function RemotesDetailsPage() {
 
     const renameMutation = useMutation({
         mutationFn: async ({
-            remoteName,
+            fs,
             oldPath,
             newPath,
             isDir,
         }: {
-            remoteName: string
+            fs: string
             oldPath: string
             newPath: string
             isDir: boolean
@@ -294,8 +320,8 @@ export function RemotesDetailsPage() {
                 await rclone('/sync/move', {
                     params: {
                         query: {
-                            srcFs: `${remoteName}:${oldPath}/`,
-                            dstFs: `${remoteName}:${newPath}/`,
+                            srcFs: `${fs}${oldPath}/`,
+                            dstFs: `${fs}${newPath}/`,
                             deleteEmptySrcDirs: true,
                         },
                     },
@@ -304,18 +330,18 @@ export function RemotesDetailsPage() {
                 await rclone('/operations/movefile', {
                     params: {
                         query: {
-                            srcFs: `${remoteName}:`,
+                            srcFs: fs,
                             srcRemote: oldPath,
-                            dstFs: `${remoteName}:`,
+                            dstFs: fs,
                             dstRemote: newPath,
                         },
                     },
                 })
             }
         },
-        onSuccess: (_data, { remoteName }) => {
+        onSuccess: (_data, { fs }) => {
             toast.success(t('remotesDetails.renameSuccess'))
-            queryClient.invalidateQueries({ queryKey: ['remote-browse', remoteName] })
+            queryClient.invalidateQueries({ queryKey: ['remote-browse', fs] })
             queryClient.invalidateQueries({ queryKey: ['jobs'] })
         },
         onError: (error) => {
@@ -329,18 +355,18 @@ export function RemotesDetailsPage() {
 
     const uploadMutation = useMutation({
         mutationFn: async ({
-            remoteName,
+            fs,
             currentPath,
             files,
         }: {
-            remoteName: string
+            fs: string
             currentPath: string
             files: File[]
         }) => {
             const { url, user, pass } = useStore.getState()
             const baseUrl = url.trim().replace(/\/+$/, '')
             const params = new URLSearchParams({
-                fs: `${remoteName}:`,
+                fs,
                 remote: currentPath,
             })
 
@@ -367,10 +393,10 @@ export function RemotesDetailsPage() {
                 }
             }
         },
-        onSuccess: (_data, { remoteName, currentPath }) => {
+        onSuccess: (_data, { fs, currentPath }) => {
             toast.success(t('remotesDetails.uploadComplete'))
             queryClient.invalidateQueries({
-                queryKey: ['remote-browse', remoteName, currentPath],
+                queryKey: ['remote-browse', fs, currentPath],
             })
             queryClient.invalidateQueries({ queryKey: ['jobs'] })
             if (fileInputRef.current) fileInputRef.current.value = ''
@@ -383,18 +409,18 @@ export function RemotesDetailsPage() {
 
     const downloadMutation = useMutation({
         mutationFn: async ({
-            remoteName,
+            fs,
             name,
             path,
             isDir,
         }: {
-            remoteName: string
+            fs: string
             name: string
             path: string
             isDir: boolean
         }) => {
             const result = await rclone('/serve/start', {
-                body: { type: 'http', fs: `${remoteName}:`, addr: ':0', allow_origin: '*' },
+                body: { type: 'http', fs, addr: ':0', allow_origin: '*' },
             })
 
             const { id: serveId, addr: serveAddr } = result
@@ -443,12 +469,12 @@ export function RemotesDetailsPage() {
     const transferMutation = useMutation({
         mutationFn: async ({
             source,
-            dstRemoteName,
+            dstFs,
             dstCurrentPath,
             mode,
         }: {
-            source: { remoteName: string; path: string; name: string; isDir: boolean }
-            dstRemoteName: string
+            source: { fs: string; path: string; name: string; isDir: boolean }
+            dstFs: string
             dstCurrentPath: string
             mode: 'copy' | 'move'
         }) => {
@@ -456,12 +482,12 @@ export function RemotesDetailsPage() {
 
             if (source.isDir) {
                 await rclone('/operations/mkdir', {
-                    params: { query: { fs: `${dstRemoteName}:`, remote: dstPath } },
+                    params: { query: { fs: dstFs, remote: dstPath } },
                 })
 
                 const syncBody = {
-                    srcFs: `${source.remoteName}:${source.path}`,
-                    dstFs: `${dstRemoteName}:${dstPath}`,
+                    srcFs: `${source.fs}${source.path}`,
+                    dstFs: `${dstFs}${dstPath}`,
                     createEmptySrcDirs: true,
                     _async: true,
                 }
@@ -485,9 +511,9 @@ export function RemotesDetailsPage() {
             }
 
             const fileBody = {
-                srcFs: `${source.remoteName}:`,
+                srcFs: source.fs,
                 srcRemote: source.path,
-                dstFs: `${dstRemoteName}:`,
+                dstFs,
                 dstRemote: dstPath,
                 _async: true,
             }
@@ -517,6 +543,18 @@ export function RemotesDetailsPage() {
         () => remoteNames.sort((a, b) => a.localeCompare(b)),
         [remoteNames]
     )
+
+    const filteredDisks = useMemo(() => {
+        const q = sidebarSearch.trim().toLowerCase()
+        if (!q) return disks
+        return disks.filter((d) => d.toLowerCase().includes(q))
+    }, [disks, sidebarSearch])
+
+    const filteredRemotes = useMemo(() => {
+        const q = sidebarSearch.trim().toLowerCase()
+        if (!q) return sortedRemotes
+        return sortedRemotes.filter((name) => name.toLowerCase().includes(q))
+    }, [sortedRemotes, sidebarSearch])
     const items = useMemo(() => listQuery.data ?? [], [listQuery.data])
     const filteredItems = useMemo(() => {
         const q = searchTerm.trim().toLowerCase()
@@ -540,8 +578,11 @@ export function RemotesDetailsPage() {
 
     const remoteNotFound = useMemo(
         () =>
-            remotesListQuery.isSuccess && remoteName !== '' && !sortedRemotes.includes(remoteName),
-        [remotesListQuery.isSuccess, remoteName, sortedRemotes]
+            !isLocalMode &&
+            remotesListQuery.isSuccess &&
+            remoteName !== '' &&
+            !sortedRemotes.includes(remoteName),
+        [isLocalMode, remotesListQuery.isSuccess, remoteName, sortedRemotes]
     )
 
     const isMutating = useMemo(
@@ -591,8 +632,8 @@ export function RemotesDetailsPage() {
         const name = window.prompt(t('remotesDetails.folderNamePrompt'))
         if (!name?.trim()) return
         const folderPath = [currentPath, name.trim()].filter(Boolean).join('/')
-        mkdirMutation.mutate({ remoteName, path: folderPath })
-    }, [currentPath, remoteName])
+        mkdirMutation.mutate({ fs: currentFs, path: folderPath })
+    }, [currentPath, currentFs])
 
     const handleRename = useCallback(
         (item: ListItem) => {
@@ -600,9 +641,9 @@ export function RemotesDetailsPage() {
             if (!newName?.trim() || newName.trim() === item.Name) return
             const oldPath = [currentPath, item.Name].filter(Boolean).join('/')
             const newPath = [currentPath, newName.trim()].filter(Boolean).join('/')
-            renameMutation.mutate({ remoteName, oldPath, newPath, isDir: item.IsDir })
+            renameMutation.mutate({ fs: currentFs, oldPath, newPath, isDir: item.IsDir })
         },
-        [currentPath, remoteName]
+        [currentPath, currentFs]
     )
 
     const handleDelete = useCallback(
@@ -614,35 +655,35 @@ export function RemotesDetailsPage() {
             )
             if (!confirmed) return
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
-            deleteMutation.mutate({ remoteName, path: itemPath, isDir: item.IsDir })
+            deleteMutation.mutate({ fs: currentFs, path: itemPath, isDir: item.IsDir })
         },
-        [currentPath, remoteName]
+        [currentPath, currentFs]
     )
 
     const handleDownload = useCallback(
         (item: ListItem) => {
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
             downloadMutation.mutate({
-                remoteName,
+                fs: currentFs,
                 name: item.Name,
                 path: itemPath,
                 isDir: item.IsDir,
             })
         },
-        [currentPath, remoteName]
+        [currentPath, currentFs]
     )
 
     const handleTransfer = useCallback(
         (item: ListItem) => {
             const itemPath = [currentPath, item.Name].filter(Boolean).join('/')
             setTransferSource({
-                remoteName,
+                fs: currentFs,
                 path: itemPath,
                 name: item.Name,
                 isDir: item.IsDir,
             })
         },
-        [currentPath, remoteName]
+        [currentPath, currentFs]
     )
 
     const handleTransferExecute = useCallback(
@@ -652,7 +693,7 @@ export function RemotesDetailsPage() {
             transferMutation.mutate(
                 {
                     source: transferSource,
-                    dstRemoteName: remoteName,
+                    dstFs: currentFs,
                     dstCurrentPath: currentPath,
                     mode,
                 },
@@ -662,9 +703,11 @@ export function RemotesDetailsPage() {
                         setTransferSource(null)
 
                         const sourceDir = source.path.split('/').slice(0, -1).join('/')
-                        const movedAway =
-                            source.remoteName !== remoteName || sourceDir !== currentPath
-                        const sourcePath = buildRemotePathHref(source.remoteName, sourceDir)
+                        const movedAway = source.fs !== currentFs || sourceDir !== currentPath
+                        const sourceIsLocal = source.fs.startsWith('/')
+                        const sourcePath = sourceIsLocal
+                            ? buildLocalPathHref(source.fs.replace(/\/$/, ''), sourceDir)
+                            : buildRemotePathHref(source.fs.replace(/:$/, ''), sourceDir)
 
                         toast(
                             mode === 'copy'
@@ -700,7 +743,7 @@ export function RemotesDetailsPage() {
                 }
             )
         },
-        [transferSource, remoteName, currentPath, navigate]
+        [transferSource, currentFs, currentPath, navigate]
     )
 
     const handleUpload = useCallback(() => {
@@ -711,9 +754,9 @@ export function RemotesDetailsPage() {
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const files = event.target.files
             if (!files || files.length === 0) return
-            uploadMutation.mutate({ remoteName, currentPath, files: Array.from(files) })
+            uploadMutation.mutate({ fs: currentFs, currentPath, files: Array.from(files) })
         },
-        [uploadMutation, remoteName, currentPath]
+        [uploadMutation, currentFs, currentPath]
     )
 
     // --- Render ---
@@ -728,42 +771,105 @@ export function RemotesDetailsPage() {
                 onChange={handleFileChange}
             />
 
-            <aside className="hidden w-72 shrink-0 flex-col border-r bg-background sm:flex">
-                <h2 className="px-4 py-4 pb-0 font-semibold tracking-wide text-muted-foreground uppercase">
-                    {t('remotesDetails.sidebarRemotes')}
-                </h2>
-
-                <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">
-                    {remotesListQuery.isPending ? (
-                        <div className="flex justify-center py-6">
-                            <Spinner className="size-5" />
-                        </div>
-                    ) : remotesListQuery.isError ? (
-                        <p className="px-3 py-2 text-sm text-destructive">
-                            {t('remotesDetails.failedToLoadRemotes')}
-                        </p>
-                    ) : sortedRemotes.length === 0 ? (
-                        <p className="px-3 py-2 text-sm text-muted-foreground">
-                            {t('remotesDetails.noRemotes')}
-                        </p>
-                    ) : (
-                        sortedRemotes.map((name) => (
-                            <NavLink
-                                key={name}
-                                to={buildRemotePathHref(name, '')}
-                                className={({ isActive }) =>
-                                    cn(
-                                        'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                                        isActive
-                                            ? 'bg-muted text-foreground'
-                                            : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
-                                    )
-                                }
+            <aside
+                className={cn(
+                    'relative hidden shrink-0 flex-col border-r bg-background sm:flex',
+                    sidebarCompact ? 'w-48' : 'w-72'
+                )}
+            >
+                <InputGroup className="h-10 shrink-0 rounded-none border-x-0 border-t-0 !ring-0 [&]:border-x-0 [&]:border-t-0">
+                    <InputGroupAddon align="inline-start">
+                        <SearchIcon />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                        value={sidebarSearch}
+                        onChange={(e) => setSidebarSearch(e.target.value)}
+                        placeholder={t('remotesDetails.sidebarSearchPlaceholder')}
+                        aria-label="Search remotes and disks"
+                    />
+                    {sidebarSearch && (
+                        <InputGroupAddon align="inline-end">
+                            <InputGroupButton
+                                size="icon-xs"
+                                onClick={() => setSidebarSearch('')}
+                                aria-label="Clear search"
                             >
-                                <CloudIcon className="size-4 shrink-0" />
-                                <span className="truncate">{name}</span>
-                            </NavLink>
-                        ))
+                                <XIcon />
+                            </InputGroupButton>
+                        </InputGroupAddon>
+                    )}
+                </InputGroup>
+
+                <nav className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
+                    {filteredDisks.length > 0 && (
+                        <div>
+                            <h2 className="px-1 pb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                {t('remotesDetails.sidebarLocal')}
+                            </h2>
+                            <div className="space-y-1">
+                                {filteredDisks.map((disk) => (
+                                    <NavLink
+                                        key={disk}
+                                        to={buildLocalPathHref(disk, '')}
+                                        className={() =>
+                                            cn(
+                                                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                                                isLocalMode && diskPath === disk
+                                                    ? 'bg-muted text-foreground'
+                                                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                                            )
+                                        }
+                                    >
+                                        <HardDriveIcon className="size-4 shrink-0" />
+                                        <span className="truncate" title={disk}>{getDiskLabel(disk)}</span>
+                                    </NavLink>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {(remotesListQuery.isPending ||
+                        remotesListQuery.isError ||
+                        sortedRemotes.length === 0 ||
+                        filteredRemotes.length > 0) && (
+                        <div>
+                            <h2 className="px-1 pb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                                {t('remotesDetails.sidebarRemotes')}
+                            </h2>
+                            <div className="space-y-1">
+                                {remotesListQuery.isPending ? (
+                                    <div className="flex justify-center py-6">
+                                        <Spinner className="size-5" />
+                                    </div>
+                                ) : remotesListQuery.isError ? (
+                                    <p className="px-3 py-2 text-sm text-destructive">
+                                        {t('remotesDetails.failedToLoadRemotes')}
+                                    </p>
+                                ) : sortedRemotes.length === 0 ? (
+                                    <p className="px-3 py-2 text-sm text-muted-foreground">
+                                        {t('remotesDetails.noRemotes')}
+                                    </p>
+                                ) : (
+                                filteredRemotes.map((name) => (
+                                    <NavLink
+                                        key={name}
+                                        to={buildRemotePathHref(name, '')}
+                                        className={({ isActive }) =>
+                                            cn(
+                                                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                                                isActive && !isLocalMode
+                                                    ? 'bg-muted text-foreground'
+                                                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                                            )
+                                        }
+                                    >
+                                        <CloudIcon className="size-4 shrink-0" />
+                                        <span className="truncate">{name}</span>
+                                    </NavLink>
+                                ))
+                            )}
+                            </div>
+                        </div>
                     )}
                 </nav>
 
@@ -789,13 +895,19 @@ export function RemotesDetailsPage() {
                                                     .slice(0, -1)
                                                     .join('/')
                                                 if (
-                                                    source.remoteName !== remoteName ||
+                                                    source.fs !== currentFs ||
                                                     sourceDir !== currentPath
                                                 ) {
-                                                    const sourcePath = buildRemotePathHref(
-                                                        source.remoteName,
-                                                        sourceDir
-                                                    )
+                                                    const sourceIsLocal = source.fs.startsWith('/')
+                                                    const sourcePath = sourceIsLocal
+                                                        ? buildLocalPathHref(
+                                                              source.fs.replace(/\/$/, ''),
+                                                              sourceDir
+                                                          )
+                                                        : buildRemotePathHref(
+                                                              source.fs.replace(/:$/, ''),
+                                                              sourceDir
+                                                          )
                                                     toast(t('remotesDetails.transferCancelled'), {
                                                         position: 'bottom-left',
                                                         action: {
@@ -824,7 +936,7 @@ export function RemotesDetailsPage() {
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     {t('remotesDetails.transferFrom', {
-                                        remote: transferSource.remoteName,
+                                        remote: transferSource.fs.replace(/[\/:]+$/, ''),
                                         path:
                                             transferSource.path.split('/').slice(0, -1).join('/') ||
                                             '/',
@@ -856,7 +968,7 @@ export function RemotesDetailsPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                    ) : remoteName ? (
+                    ) : !isLocalMode && remoteName ? (
                         usageQuery.isPending ? (
                             <Card size="sm">
                                 <CardContent className="flex justify-center py-2">
@@ -910,6 +1022,12 @@ export function RemotesDetailsPage() {
                         </Card>
                     )}
                 </div>
+                <button
+                    type="button"
+                    aria-label="Toggle sidebar width"
+                    className="absolute top-0 right-0 h-full w-1.5 cursor-pointer border-0 bg-transparent transition-colors hover:bg-ring/50"
+                    onClick={() => setSidebarCompact((prev) => !prev)}
+                />
             </aside>
 
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -922,13 +1040,17 @@ export function RemotesDetailsPage() {
                             {t('remotesDetails.notFoundDescription', { name: remoteName })}
                         </p>
                     </div>
-                ) : remoteName ? (
+                ) : canBrowse ? (
                     <div className="sticky top-0 z-10 border-b bg-background px-6 py-4 space-y-3">
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
                                     <Link
-                                        to={buildRemotePathHref(remoteName, '')}
+                                        to={
+                                            isLocalMode
+                                                ? buildLocalPathHref(diskPath, '')
+                                                : buildRemotePathHref(remoteName, '')
+                                        }
                                         className="inline-flex items-center transition-colors hover:text-foreground"
                                     >
                                         <HouseIcon className="size-3.5" />
@@ -943,7 +1065,17 @@ export function RemotesDetailsPage() {
                                                 <BreadcrumbPage>{item.label}</BreadcrumbPage>
                                             ) : (
                                                 <Link
-                                                    to={buildRemotePathHref(remoteName, item.path)}
+                                                    to={
+                                                        isLocalMode
+                                                            ? buildLocalPathHref(
+                                                                  diskPath,
+                                                                  item.path
+                                                              )
+                                                            : buildRemotePathHref(
+                                                                  remoteName,
+                                                                  item.path
+                                                              )
+                                                    }
                                                     className="transition-colors hover:text-foreground"
                                                 >
                                                     {item.label}

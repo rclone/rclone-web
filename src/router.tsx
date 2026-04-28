@@ -65,6 +65,7 @@ export const router = createBrowserRouter([
                     { path: 'remotes', element: <RemotesPage /> },
                     { path: 'remotes/new', element: <RemotesNewPage /> },
                     { path: 'remotes/:remoteName', element: <RemotesDetailsPage /> },
+                    { path: 'local', element: <RemotesDetailsPage /> },
                     { path: 'remotes/:remoteName/edit', element: <RemotesEditPage /> },
                     { path: 'mounts', element: <MountsPage /> },
                     { path: 'mounts/new', element: <MountsNewPage /> },

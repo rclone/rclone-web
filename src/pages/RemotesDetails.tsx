@@ -11,11 +11,16 @@ import {
     FolderPlusIcon,
     HardDriveIcon,
     HouseIcon,
+    ImageIcon,
+    MonitorIcon,
+    MusicIcon,
     PencilIcon,
     SearchIcon,
     SendIcon,
     TrashIcon,
     UploadIcon,
+    UsbIcon,
+    VideoIcon,
     XIcon,
 } from 'lucide-react'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
@@ -48,7 +53,12 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from '@/components/ui/empty'
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group'
 import { Progress } from '@/components/ui/progress'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -134,6 +144,30 @@ function buildRemotePathHref(remoteName: string, path: string) {
 function getDiskLabel(disk: string): string {
     const last = disk.split(/[/\\]/).filter(Boolean).pop()
     return last ?? disk
+}
+
+function getDiskIcon(disk: string) {
+    const last = disk.split(/[/\\]/).filter(Boolean).pop()?.toLowerCase()
+    switch (last) {
+        case 'desktop':
+            return { icon: MonitorIcon, className: 'text-sky-400' }
+        case 'documents':
+            return { icon: FileTextIcon, className: 'text-blue-400' }
+        case 'downloads':
+            return { icon: DownloadIcon, className: 'text-green-400' }
+        case 'music':
+            return { icon: MusicIcon, className: 'text-pink-400' }
+        case 'pictures':
+            return { icon: ImageIcon, className: 'text-purple-400' }
+        case 'videos':
+        case 'movies':
+            return { icon: VideoIcon, className: 'text-red-400' }
+    }
+    if (disk === '/' || /^[A-Z]:[\\/]?$/i.test(disk))
+        return { icon: HardDriveIcon, className: 'text-zinc-400' }
+    if (/[\\/](?:media|Volumes|mnt)[\\/]/i.test(disk))
+        return { icon: UsbIcon, className: 'text-orange-400' }
+    return { icon: HouseIcon, className: 'text-amber-400' }
 }
 
 function buildLocalPathHref(disk: string, path: string) {
@@ -807,23 +841,28 @@ export function RemotesDetailsPage() {
                                 {t('remotesDetails.sidebarLocal')}
                             </h2>
                             <div className="space-y-1">
-                                {filteredDisks.map((disk) => (
-                                    <NavLink
-                                        key={disk}
-                                        to={buildLocalPathHref(disk, '')}
-                                        className={() =>
-                                            cn(
-                                                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                                                isLocalMode && diskPath === disk
-                                                    ? 'bg-muted text-foreground'
-                                                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
-                                            )
-                                        }
-                                    >
-                                        <HardDriveIcon className="size-4 shrink-0" />
-                                        <span className="truncate" title={disk}>{getDiskLabel(disk)}</span>
-                                    </NavLink>
-                                ))}
+                                {filteredDisks.map((disk) => {
+                                    const { icon: DiskIcon, className: iconColor } = getDiskIcon(disk)
+                                    return (
+                                        <NavLink
+                                            key={disk}
+                                            to={buildLocalPathHref(disk, '')}
+                                            className={() =>
+                                                cn(
+                                                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                                                    isLocalMode && diskPath === disk
+                                                        ? 'bg-muted text-foreground'
+                                                        : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                                                )
+                                            }
+                                        >
+                                            <DiskIcon className={cn('size-4 shrink-0', iconColor)} />
+                                            <span className="truncate" title={disk}>
+                                                {getDiskLabel(disk)}
+                                            </span>
+                                        </NavLink>
+                                    )
+                                })}
                             </div>
                         </div>
                     )}
@@ -850,24 +889,24 @@ export function RemotesDetailsPage() {
                                         {t('remotesDetails.noRemotes')}
                                     </p>
                                 ) : (
-                                filteredRemotes.map((name) => (
-                                    <NavLink
-                                        key={name}
-                                        to={buildRemotePathHref(name, '')}
-                                        className={({ isActive }) =>
-                                            cn(
-                                                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                                                isActive && !isLocalMode
-                                                    ? 'bg-muted text-foreground'
-                                                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
-                                            )
-                                        }
-                                    >
-                                        <CloudIcon className="size-4 shrink-0" />
-                                        <span className="truncate">{name}</span>
-                                    </NavLink>
-                                ))
-                            )}
+                                    filteredRemotes.map((name) => (
+                                        <NavLink
+                                            key={name}
+                                            to={buildRemotePathHref(name, '')}
+                                            className={({ isActive }) =>
+                                                cn(
+                                                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                                                    isActive && !isLocalMode
+                                                        ? 'bg-muted text-foreground'
+                                                        : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
+                                                )
+                                            }
+                                        >
+                                            <CloudIcon className="size-4 shrink-0" />
+                                            <span className="truncate">{name}</span>
+                                        </NavLink>
+                                    ))
+                                )}
                             </div>
                         </div>
                     )}

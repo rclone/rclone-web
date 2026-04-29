@@ -218,23 +218,23 @@ export async function rcloneUploadFile({
     }
 }
 
-function delay(ms: number, signal?: AbortSignal): Promise<void> {
-    return new Promise((resolve, reject) => {
-        if (signal?.aborted) {
-            reject(signal.reason)
-            return
-        }
-        const timer = setTimeout(() => {
-            signal?.removeEventListener('abort', onAbort)
-            resolve()
-        }, ms)
-        function onAbort() {
-            clearTimeout(timer)
-            reject(signal!.reason)
-        }
-        signal?.addEventListener('abort', onAbort, { once: true })
-    })
-}
+// function delay(ms: number, signal?: AbortSignal): Promise<void> {
+//     return new Promise((resolve, reject) => {
+//         if (signal?.aborted) {
+//             reject(signal.reason)
+//             return
+//         }
+//         const timer = setTimeout(() => {
+//             signal?.removeEventListener('abort', onAbort)
+//             resolve()
+//         }, ms)
+//         function onAbort() {
+//             clearTimeout(timer)
+//             reject(signal!.reason)
+//         }
+//         signal?.addEventListener('abort', onAbort, { once: true })
+//     })
+// }
 
 export default async function rclone<
     Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,

@@ -6,6 +6,7 @@ import {
     FileCogIcon,
     GaugeIcon,
     InfoIcon,
+    MessageCircleCodeIcon,
     LayersIcon,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -653,6 +654,17 @@ export function SettingsPage() {
                                     className="text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     {t('settings.performanceTuning')}
+                                </a>
+                            </li>
+                            <li className="flex items-center gap-3 text-xl">
+                                <MessageCircleCodeIcon className="size-4 text-muted-foreground" />
+                                <a
+                                    href="https://github.com/rclone/rclone-web"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-muted-foreground transition-colors hover:text-foreground"
+                                >
+                                    {t('settings.githubRepo')}
                                 </a>
                             </li>
                         </ul>

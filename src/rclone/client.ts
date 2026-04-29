@@ -218,6 +218,24 @@ export async function rcloneUploadFile({
     }
 }
 
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (signal?.aborted) {
+            reject(signal.reason)
+            return
+        }
+        const timer = setTimeout(() => {
+            signal?.removeEventListener('abort', onAbort)
+            resolve()
+        }, ms)
+        function onAbort() {
+            clearTimeout(timer)
+            reject(signal!.reason)
+        }
+        signal?.addEventListener('abort', onAbort, { once: true })
+    })
+}
+
 export default async function rclone<
     Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,
     Init extends OpenApiMaybeOptionalInit<paths[Path], 'post'> = OpenApiMaybeOptionalInit<
@@ -235,7 +253,8 @@ export default async function rclone<
     }
 
     try {
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const signal = (init[0] as { signal?: AbortSignal } | undefined)?.signal
+        await delay(1000, signal)
         const result = await createClient(auth).POST(
             path,
             ...(init as InitParam<OpenApiMaybeOptionalInit<paths[Path], 'post'>>)

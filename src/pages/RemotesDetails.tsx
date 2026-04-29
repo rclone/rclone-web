@@ -574,7 +574,7 @@ export function RemotesDetailsPage() {
     // --- Memos ---
 
     const sortedRemotes = useMemo(
-        () => remoteNames.sort((a, b) => a.localeCompare(b)),
+        () => [...remoteNames].sort((a, b) => a.localeCompare(b)),
         [remoteNames]
     )
 

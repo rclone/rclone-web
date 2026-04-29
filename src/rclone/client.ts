@@ -253,8 +253,8 @@ export default async function rclone<
     }
 
     try {
-        const signal = (init[0] as { signal?: AbortSignal } | undefined)?.signal
-        await delay(1000, signal)
+        // const signal = (init[0] as { signal?: AbortSignal } | undefined)?.signal
+        // await delay(1000, signal)
         const result = await createClient(auth).POST(
             path,
             ...(init as InitParam<OpenApiMaybeOptionalInit<paths[Path], 'post'>>)

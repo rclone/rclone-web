@@ -75,7 +75,7 @@ import { useT } from '@/lib/i18n'
 import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
-import { fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
+import { fetchLocalUsage, fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
 
 const IMAGE_EXTS = new Set([
     'jpg',
@@ -280,13 +280,15 @@ export function RemotesDetailsPage() {
     })
 
     const usageQuery = useQuery({
-        queryKey: ['remotes', 'usage', remoteName] as const,
-        queryFn: ({ queryKey: [, , qRemoteName] }) =>
-            fetchRemoteUsage(
-                qRemoteName,
-                remotes.find((r) => r.name === qRemoteName)?.type ?? 'unknown'
-            ),
-        enabled: remoteExists && !isLocalMode,
+        queryKey: ['remotes', 'usage', isLocalMode ? diskPath : remoteName] as const,
+        queryFn: ({ queryKey: [, , qKey] }) =>
+            isLocalMode
+                ? fetchLocalUsage(qKey)
+                : fetchRemoteUsage(
+                      qKey,
+                      remotes.find((r) => r.name === qKey)?.type ?? 'unknown'
+                  ),
+        enabled: isLocalMode ? !!diskPath : remoteExists,
         staleTime: 5 * 60 * 1000,
         retry: false,
     })
@@ -1010,7 +1012,7 @@ export function RemotesDetailsPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                    ) : !isLocalMode && remoteName ? (
+                    ) : (isLocalMode ? !!diskPath : !!remoteName) ? (
                         usageQuery.isPending ? (
                             <Card size="sm">
                                 <CardContent className="flex justify-center py-2">

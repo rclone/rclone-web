@@ -157,11 +157,19 @@ export function fetchRemoteUsage(name: string, type: string): Promise<UsageStatu
         return Promise.resolve({ state: 'unsupported' as const })
     }
 
+    return fetchUsageByFs(`${name}:`)
+}
+
+export function fetchLocalUsage(diskPath: string): Promise<UsageStatus> {
+    return fetchUsageByFs(diskPath.replace(/\/?$/, '/'))
+}
+
+function fetchUsageByFs(fs: string): Promise<UsageStatus> {
     return aboutLimit(async () => {
         try {
             const response = await Promise.race([
                 rclone('/operations/about', {
-                    params: { query: { fs: `${name}:` } },
+                    params: { query: { fs } },
                 }),
                 new Promise<never>((_, reject) =>
                     setTimeout(() => reject(new Error('Request timed out')), 8_000)

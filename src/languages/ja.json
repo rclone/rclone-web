@@ -135,6 +135,7 @@
     "mountsNew.sourceAndDestinationDescription": "リモートソース、オプションのサブパス、ローカルマウントポイントを選択してください。",
     "mountsNew.title": "新規マウント",
     "nav.dashboard": "ダッシュボード",
+    "nav.explore": "エクスプローラー",
     "nav.mounts": "マウント",
     "nav.remotes": "リモート",
     "nav.serves": "サーブ",

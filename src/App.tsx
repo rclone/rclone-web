@@ -13,8 +13,7 @@ import rclone from '@/rclone/client'
 import { updateCheckQueryOptions } from '@/rclone/update'
 
 const navItems: { key: TranslationKey; to: string; end?: boolean }[] = [
-    { key: 'nav.dashboard', to: '/', end: true },
-    { key: 'nav.remotes', to: '/remotes' },
+    { key: 'nav.remotes', to: '/remotes', end: true },
     { key: 'nav.mounts', to: '/mounts' },
     { key: 'nav.serves', to: '/serves' },
     { key: 'nav.transfers', to: '/transfers' },
@@ -37,8 +36,15 @@ export function App() {
     const hasAuthCredentials = useStore((state) => Boolean(state.user && state.pass))
 
     const updateCheckQuery = useQuery(updateCheckQueryOptions())
+    useQuery({ queryKey: ['core', 'disks'], queryFn: () => rclone('/core/disks') })
 
     const latestVersion = useMemo(() => updateCheckQuery.data, [updateCheckQuery.data])
+
+    const isExploreActive =
+        location.pathname === '/local' ||
+        (location.pathname.startsWith('/remotes/') &&
+            !location.pathname.endsWith('/edit') &&
+            location.pathname !== '/remotes/new')
     const footerMessageKey = useMemo(
         () => MESSAGES.find(({ path }) => location.pathname === path)?.key,
         [location.pathname]
@@ -148,6 +154,27 @@ export function App() {
                         }}
                     />
                     <nav className="flex">
+                        <NavLink
+                            end
+                            to="/"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? 'px-3 py-1.5 text-sm text-foreground'
+                                    : 'px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                            }
+                        >
+                            {t('nav.dashboard')}
+                        </NavLink>
+                        <NavLink
+                            to="/local"
+                            className={
+                                isExploreActive
+                                    ? 'px-3 py-1.5 text-sm text-foreground'
+                                    : 'px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+                            }
+                        >
+                            {t('nav.explore')}
+                        </NavLink>
                         {navItems.map((item) => (
                             <NavLink
                                 key={item.to}

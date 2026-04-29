@@ -135,6 +135,7 @@
     "mountsNew.sourceAndDestinationDescription": "选择远程来源、可选子路径和本地挂载点。",
     "mountsNew.title": "新建挂载",
     "nav.dashboard": "仪表盘",
+    "nav.explore": "文件管理器",
     "nav.mounts": "挂载",
     "nav.remotes": "远程存储",
     "nav.serves": "服务端点",

@@ -135,6 +135,7 @@
     "mountsNew.sourceAndDestinationDescription": "Elige un remoto de origen, una subruta opcional y un punto de montaje local.",
     "mountsNew.title": "Nuevo montaje",
     "nav.dashboard": "Panel",
+    "nav.explore": "Explorador",
     "nav.mounts": "Montajes",
     "nav.remotes": "Remotos",
     "nav.serves": "Servicios",

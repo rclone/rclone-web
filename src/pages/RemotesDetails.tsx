@@ -23,7 +23,7 @@ import {
     VideoIcon,
     XIcon,
 } from 'lucide-react'
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     Link,
     NavLink,
@@ -252,6 +252,12 @@ export function RemotesDetailsPage() {
         !!remoteName && (!remotesListQuery.isSuccess || remoteNames.includes(remoteName))
 
     const canBrowse = remoteExists || (isLocalMode && !!diskPath)
+
+    useEffect(() => {
+        if (isLocalMode && !diskPath && disks.length > 0) {
+            navigate(buildLocalPathHref(disks[0], ''), { replace: true })
+        }
+    }, [isLocalMode, diskPath, disks, navigate])
 
     const listQuery = useQuery({
         queryKey: ['remote-browse', currentFs, currentPath] as const,

@@ -135,6 +135,7 @@
     "mountsNew.sourceAndDestinationDescription": "Choisissez un dépôt distant source, un sous-chemin optionnel et un point de montage local.",
     "mountsNew.title": "Nouveau montage",
     "nav.dashboard": "Tableau de bord",
+    "nav.explore": "Explorateur",
     "nav.mounts": "Montages",
     "nav.remotes": "Dépôts distants",
     "nav.serves": "Services",

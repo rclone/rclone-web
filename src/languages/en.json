@@ -135,6 +135,7 @@
     "mountsNew.sourceAndDestinationDescription": "Choose a remote source, optional subpath, and local mount point.",
     "mountsNew.title": "New Mount",
     "nav.dashboard": "Dashboard",
+    "nav.explore": "Explorer",
     "nav.mounts": "Mounts",
     "nav.remotes": "Remotes",
     "nav.serves": "Serves",

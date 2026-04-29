@@ -290,10 +290,7 @@ export function RemotesDetailsPage() {
         queryFn: ({ queryKey: [, , qKey] }) =>
             isLocalMode
                 ? fetchLocalUsage(qKey)
-                : fetchRemoteUsage(
-                      qKey,
-                      remotes.find((r) => r.name === qKey)?.type ?? 'unknown'
-                  ),
+                : fetchRemoteUsage(qKey, remotes.find((r) => r.name === qKey)?.type ?? 'unknown'),
         enabled: isLocalMode ? !!diskPath : remoteExists,
         staleTime: 5 * 60 * 1000,
         retry: false,

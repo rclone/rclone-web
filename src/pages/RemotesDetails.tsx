@@ -269,39 +269,37 @@ export function RemotesDetailsPage() {
             })
             const rawList = response.list ?? []
             return rawList
-                .map(
-                    (item, index): ListItem => {
-                        const name = String(item.Name ?? '')
-                        const path = String(item.Path ?? name)
-                        const size = Number(item.Size ?? 0)
-                        const modTime = String(item.ModTime ?? '')
-                        const isDir = Boolean(item.IsDir || item.IsBucket)
-                        const id = String(item.ID ?? '')
-                        const origId = String(item.OrigID ?? '')
-                        const encryptedPath = String(item.EncryptedPath ?? '')
+                .map((item, index): ListItem => {
+                    const name = String(item.Name ?? '')
+                    const path = String(item.Path ?? name)
+                    const size = Number(item.Size ?? 0)
+                    const modTime = String(item.ModTime ?? '')
+                    const isDir = Boolean(item.IsDir || item.IsBucket)
+                    const id = String(item.ID ?? '')
+                    const origId = String(item.OrigID ?? '')
+                    const encryptedPath = String(item.EncryptedPath ?? '')
 
-                        return {
-                            rowKey: JSON.stringify([
-                                qFs,
-                                qPath,
-                                id,
-                                origId,
-                                encryptedPath,
-                                path,
-                                name,
-                                modTime,
-                                size,
-                                isDir ? 'dir' : 'file',
-                                index,
-                            ]),
-                            Name: name,
-                            Path: path,
-                            Size: size,
-                            ModTime: modTime,
-                            IsDir: isDir,
-                        }
+                    return {
+                        rowKey: JSON.stringify([
+                            qFs,
+                            qPath,
+                            id,
+                            origId,
+                            encryptedPath,
+                            path,
+                            name,
+                            modTime,
+                            size,
+                            isDir ? 'dir' : 'file',
+                            index,
+                        ]),
+                        Name: name,
+                        Path: path,
+                        Size: size,
+                        ModTime: modTime,
+                        IsDir: isDir,
                     }
-                )
+                })
                 .sort((a, b) => {
                     if (a.IsDir !== b.IsDir) return a.IsDir ? -1 : 1
                     return a.Name.localeCompare(b.Name)

@@ -35,7 +35,7 @@ persistQueryClient({
     queryClient,
     persister,
     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-    buster: 'v2',
+    buster: '116',
 })
 
 export function clearPersistedQueryCache() {

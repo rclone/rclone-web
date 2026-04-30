@@ -295,7 +295,7 @@
     "settings.defaultLogLevel": "Default Log Level",
     "settings.defaultLogLevelDescription": "Standard verbosity level for system logs.",
     "settings.description": "Manage global application preferences and performance tuning.",
-    "settings.githubRepo": "GitHub Repository",
+    "settings.openIssue": "Open Issue",
     "settings.globalFlagsReference": "Global Flags Reference",
     "settings.loadError": "Could not load options: {message}",
     "settings.loadingOptions": "Loading options...",

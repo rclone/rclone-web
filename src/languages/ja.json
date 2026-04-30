@@ -295,7 +295,7 @@
     "settings.defaultLogLevel": "デフォルトログレベル",
     "settings.defaultLogLevelDescription": "システムログの標準的な詳細レベル。",
     "settings.description": "グローバルなアプリケーション設定とパフォーマンスチューニングを管理します。",
-    "settings.githubRepo": "GitHubリポジトリ",
+    "settings.openIssue": "問題を報告",
     "settings.globalFlagsReference": "グローバルフラグリファレンス",
     "settings.loadError": "オプションを読み込めませんでした: {message}",
     "settings.loadingOptions": "オプションを読み込み中...",

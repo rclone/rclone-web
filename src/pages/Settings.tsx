@@ -664,7 +664,7 @@ export function SettingsPage() {
                                     rel="noreferrer"
                                     className="text-muted-foreground transition-colors hover:text-foreground"
                                 >
-                                    {t('settings.githubRepo')}
+                                    {t('settings.openIssue')}
                                 </a>
                             </li>
                         </ul>

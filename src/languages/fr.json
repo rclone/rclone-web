@@ -295,7 +295,7 @@
     "settings.defaultLogLevel": "Niveau de log par défaut",
     "settings.defaultLogLevelDescription": "Niveau de verbosité standard des journaux système.",
     "settings.description": "Gérez les préférences globales de l'application et l'optimisation des performances.",
-    "settings.githubRepo": "Dépôt GitHub",
+    "settings.openIssue": "Ouvrir un ticket",
     "settings.globalFlagsReference": "Référence des options globales",
     "settings.loadError": "Impossible de charger les options : {message}",
     "settings.loadingOptions": "Chargement des options...",

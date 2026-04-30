@@ -295,7 +295,7 @@
     "settings.defaultLogLevel": "默认日志级别",
     "settings.defaultLogLevelDescription": "系统日志的标准详细级别。",
     "settings.description": "管理全局应用偏好设置和性能调优。",
-    "settings.githubRepo": "GitHub 仓库",
+    "settings.openIssue": "提交问题",
     "settings.globalFlagsReference": "全局标志参考",
     "settings.loadError": "无法加载选项：{message}",
     "settings.loadingOptions": "正在加载选项...",

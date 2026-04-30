@@ -295,7 +295,7 @@
     "settings.defaultLogLevel": "Nivel de registro predeterminado",
     "settings.defaultLogLevelDescription": "Nivel de verbosidad estándar para los registros del sistema.",
     "settings.description": "Administra las preferencias globales de la aplicación y el ajuste de rendimiento.",
-    "settings.githubRepo": "Repositorio de GitHub",
+    "settings.openIssue": "Abrir incidencia",
     "settings.globalFlagsReference": "Referencia de banderas globales",
     "settings.loadError": "No se pudieron cargar las opciones: {message}",
     "settings.loadingOptions": "Cargando opciones...",

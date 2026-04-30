@@ -200,6 +200,7 @@ function buildServeUrl(rcUrl: string, serveAddr: string): string {
 }
 
 type ListItem = {
+    rowKey: string
     Name: string
     Path: string
     Size: number
@@ -269,13 +270,37 @@ export function RemotesDetailsPage() {
             const rawList = response.list ?? []
             return rawList
                 .map(
-                    (item): ListItem => ({
-                        Name: String(item.Name ?? ''),
-                        Path: String(item.Path ?? item.Name ?? ''),
-                        Size: Number(item.Size ?? 0),
-                        ModTime: String(item.ModTime ?? ''),
-                        IsDir: Boolean(item.IsDir || item.IsBucket),
-                    })
+                    (item, index): ListItem => {
+                        const name = String(item.Name ?? '')
+                        const path = String(item.Path ?? name)
+                        const size = Number(item.Size ?? 0)
+                        const modTime = String(item.ModTime ?? '')
+                        const isDir = Boolean(item.IsDir || item.IsBucket)
+                        const id = String(item.ID ?? '')
+                        const origId = String(item.OrigID ?? '')
+                        const encryptedPath = String(item.EncryptedPath ?? '')
+
+                        return {
+                            rowKey: JSON.stringify([
+                                qFs,
+                                qPath,
+                                id,
+                                origId,
+                                encryptedPath,
+                                path,
+                                name,
+                                modTime,
+                                size,
+                                isDir ? 'dir' : 'file',
+                                index,
+                            ]),
+                            Name: name,
+                            Path: path,
+                            Size: size,
+                            ModTime: modTime,
+                            IsDir: isDir,
+                        }
+                    }
                 )
                 .sort((a, b) => {
                     if (a.IsDir !== b.IsDir) return a.IsDir ? -1 : 1
@@ -1248,7 +1273,7 @@ export function RemotesDetailsPage() {
                                         </TableRow>
                                     </TableHeader>
 
-                                    <TableBody>
+                                    <TableBody key={JSON.stringify([currentFs, currentPath])}>
                                         {filteredItems.length === 0 ? (
                                             <TableRow>
                                                 <TableCell
@@ -1274,13 +1299,25 @@ export function RemotesDetailsPage() {
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            filteredItems.map((item) => {
+                                            filteredItems.map((item, index) => {
                                                 const fileTypeUi = getFileTypeIcon(item.Name)
                                                 const FileTypeIcon = fileTypeUi.icon
 
                                                 return (
                                                     <TableRow
-                                                        key={item.Path || item.Name}
+                                                        key={
+                                                            item.rowKey ||
+                                                            JSON.stringify([
+                                                                currentFs,
+                                                                currentPath,
+                                                                item.Path,
+                                                                item.Name,
+                                                                item.ModTime,
+                                                                item.Size,
+                                                                item.IsDir,
+                                                                index,
+                                                            ])
+                                                        }
                                                         className="group/row hover:bg-muted/20"
                                                     >
                                                         <TableCell className="px-2 py-3 overflow-hidden">

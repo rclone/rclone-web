@@ -41,7 +41,8 @@ export function DashboardPage() {
     const sponsorQuery = useQuery({
         queryKey: ['sponsor'],
         queryFn: fetchSponsor,
-        staleTime: 24 * 60 * 60 * 1000,
+        staleTime: 60 * 60 * 1000,
+        gcTime: 60 * 60 * 1000,
         enabled: true,
     })
     const sponsor = sponsorQuery.data ?? null

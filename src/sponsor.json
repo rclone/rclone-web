@@ -1,7 +1,5 @@
 {
-    "type": "card",
-    "link": "https://internxt.com/specialoffer/rclone",
-    "image": "https://rclone.org/img/logos/internxt.jpg",
+    "type": "disabled",
     "//": {
         "banner-example": {
             "type": "banner",

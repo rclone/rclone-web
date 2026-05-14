@@ -23,18 +23,20 @@ rclone opens the UI in your browser and prints generated credentials on startup.
 - **Settings** – tune performance flags, configure logging, and edit the rclone config file.
 
 ## Docker
-The easiest way to run the UI is through the official rclone Docker image. After starting the container, open `http://localhost:5522`.
+The easiest way to run the UI is through the official rclone Docker image. After starting the container, open `http://localhost:5522/login?url=localhost:5533` in your browser. The `url` param tells the GUI where to reach the RC API.
 
 #### Simple
 ```bash
 docker run -d \
   --name rclone-gui \
   -p 5522:5522 \
+  -p 5533:5533 \
   -v ~/.config/rclone:/config/rclone \   # if you want to use a local config you already have
   -v /path/to/data:/data \               # if you want to mount other folders, eg for cache
   rclone/rclone:latest \
   gui \
-  --addr localhost:5522 \
+  --addr=0.0.0.0:5522 \
+  --api-addr=0.0.0.0:5533 \
   --user gui-user \						# skip to auto-generate a user
   --pass 'change-this-password' 		# skip to auto-generate a pass
 ```
@@ -48,12 +50,14 @@ services:
     restart: unless-stopped
     ports:
       - "5522:5522"
+      - "5533:5533"
     volumes:
       - ~/.config/rclone:/config/rclone
       - /path/to/data:/data
     command:
       - gui
-      - --addr=localhost:5522
+      - --addr=0.0.0.0:5522
+      - --api-addr=0.0.0.0:5533
       - --user=gui-user
       - --pass=change-this-password
 ```

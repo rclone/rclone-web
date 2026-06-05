@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { Spinner } from '@/components/ui/spinner'
 import { useStore } from '@/lib/store'
 import { DashboardPage } from '@/pages/Dashboard'
-import { JobsOldPage } from '@/pages/jobs-old-page'
 import { LoginPage } from '@/pages/Login'
 import { MountsPage } from '@/pages/Mounts'
 import { MountsNewPage } from '@/pages/MountsNew'
@@ -72,7 +71,6 @@ export const router = createBrowserRouter([
                     { path: 'serves', element: <ServesPage /> },
                     { path: 'serves/new', element: <ServesNewPage /> },
                     { path: 'transfers', element: <TransfersPage /> },
-                    { path: 'jobs-old', element: <JobsOldPage /> },
                     { path: 'settings', element: <SettingsPage /> },
                 ],
             },

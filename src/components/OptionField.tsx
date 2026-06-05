@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 
 export type OptionFieldOption = {
     Name: string
+    FieldName: string
     Help?: string | null
     Type?: string | null
     IsPassword?: boolean

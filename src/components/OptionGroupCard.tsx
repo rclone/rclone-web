@@ -76,7 +76,7 @@ export function OptionGroupCard({
                 : normalizeText(nextValue) === normalizeText(initialValue)
 
         setEditedValues((previous) =>
-            upsertEditedValue(previous, option.Name, matchesInitial ? undefined : nextValue)
+            upsertEditedValue(previous, option.FieldName, matchesInitial ? undefined : nextValue)
         )
     }
 
@@ -103,9 +103,9 @@ export function OptionGroupCard({
                                 key={option.Name}
                                 option={option}
                                 value={
-                                    editedValues[option.Name] !== undefined
-                                        ? editedValues[option.Name]
-                                        : initialValues[option.Name]
+                                    editedValues[option.FieldName] !== undefined
+                                        ? editedValues[option.FieldName]
+                                        : initialValues[option.FieldName]
                                 }
                                 onChange={(nextValue) => handleChange(option, nextValue)}
                             />
@@ -130,9 +130,9 @@ export function OptionGroupCard({
                                             key={option.Name}
                                             option={option}
                                             value={
-                                                editedValues[option.Name] !== undefined
-                                                    ? editedValues[option.Name]
-                                                    : initialValues[option.Name]
+                                                editedValues[option.FieldName] !== undefined
+                                                    ? editedValues[option.FieldName]
+                                                    : initialValues[option.FieldName]
                                             }
                                             onChange={(nextValue) =>
                                                 handleChange(option, nextValue)

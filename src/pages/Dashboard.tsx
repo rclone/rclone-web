@@ -31,7 +31,7 @@ import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
 const LINKS: readonly { key: TranslationKey; href: string }[] = [
     { key: 'dashboard.linkDocs', href: 'https://rclone.org/docs/' },
     { key: 'dashboard.linkForum', href: 'https://forum.rclone.org/' },
-    { key: 'dashboard.linkGithub', href: 'https://github.com/rclone/rclone-web' },
+    { key: 'dashboard.linkDiscord', href: 'https://discord.gg/rclone' },
     { key: 'dashboard.linkBusiness', href: 'https://rclone.com/' },
 ]
 

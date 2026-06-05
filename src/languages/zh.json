@@ -54,6 +54,7 @@
     "dashboard.jobTitle": "任务 {id}",
     "dashboard.lastError": "最近错误",
     "dashboard.linkBusiness": "商业版",
+    "dashboard.linkDiscord": "Discord",
     "dashboard.linkDocs": "文档",
     "dashboard.linkForum": "论坛",
     "dashboard.linkGithub": "GitHub",

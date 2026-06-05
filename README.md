@@ -89,3 +89,10 @@ Areas where help is especially useful:
 
 ## License
 MIT
+
+<br />
+<br />
+
+<div align="center">
+<sub>Made with ☁️ for the <a href="https://discord.gg/rclone">rclone community</a></sub>
+</div>

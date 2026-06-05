@@ -54,6 +54,7 @@
     "dashboard.jobTitle": "Job {id}",
     "dashboard.lastError": "Last Error",
     "dashboard.linkBusiness": "Business",
+    "dashboard.linkDiscord": "Discord",
     "dashboard.linkDocs": "Docs",
     "dashboard.linkForum": "Forum",
     "dashboard.linkGithub": "GitHub",

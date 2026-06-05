@@ -11,4 +11,10 @@ export default defineConfig({
         screenshot: 'only-on-failure',
     },
     projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+    webServer: {
+        command:
+            'rclone gui ./dist/ --user test --pass test --addr localhost:5572 --api-addr localhost:5573 --no-open-browser',
+        url: 'http://127.0.0.1:5572',
+        reuseExistingServer: !process.env.CI,
+    },
 })

@@ -69,7 +69,14 @@ export function OptionGroupCard({
     const changedCount = Object.keys(editedValues).length
 
     function handleChange(option: OptionFieldOption, nextValue: unknown) {
-        const initialValue = initialValues[option.Name]
+        if (typeof nextValue === 'string' && nextValue.trim() !== '') {
+            const num = Number(nextValue)
+            if (!Number.isNaN(num)) {
+                nextValue = num
+            }
+        }
+
+        const initialValue = initialValues[option.FieldName]
         const matchesInitial =
             option.Type === 'bool'
                 ? normalizeBoolean(nextValue) === normalizeBoolean(initialValue)

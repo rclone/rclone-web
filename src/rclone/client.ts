@@ -1,6 +1,7 @@
 import { RcloneTranslationError, translate } from 'rclone-i18n'
 import type { paths } from 'rclone-openapi'
 import createRCDClient, {
+    type AsyncJobResponse,
     type OpenApiClientPathsWithMethod,
     type OpenApiMaybeOptionalInit,
     type OpenApiMethodResponse,
@@ -236,6 +237,30 @@ export async function rcloneUploadFile({
 //     })
 // }
 
+export async function rcloneAsync<
+    Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,
+    Init extends OpenApiMaybeOptionalInit<paths[Path], 'post'> = OpenApiMaybeOptionalInit<
+        paths[Path],
+        'post'
+    >,
+>(path: Path, ...init: InitParam<Init>): Promise<AsyncJobResponse> {
+    const auth = resolveAuth(useStore.getState())
+
+    if (!auth.url) {
+        throwRcloneError('No rclone RC connection configured.')
+    }
+
+    try {
+        const result = await createClient(auth).ASYNC(path, ...(init as [any]))
+        checkResult(result, true)
+        return result.data as AsyncJobResponse
+    } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') throw error
+        if (error instanceof RcloneError) throw error
+        throw new RcloneError(error instanceof Error ? error.message : 'Request failed')
+    }
+}
+
 export default async function rclone<
     Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,
     Init extends OpenApiMaybeOptionalInit<paths[Path], 'post'> = OpenApiMaybeOptionalInit<
@@ -255,10 +280,7 @@ export default async function rclone<
     try {
         // const signal = (init[0] as { signal?: AbortSignal } | undefined)?.signal
         // await delay(1000, signal)
-        const result = await createClient(auth).POST(
-            path,
-            ...(init as InitParam<OpenApiMaybeOptionalInit<paths[Path], 'post'>>)
-        )
+        const result = await createClient(auth).POST(path, ...(init as [any]))
 
         checkResult(result, true)
 

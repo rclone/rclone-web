@@ -20,7 +20,7 @@
         "clsx": "^2.1.1",
         "lucide-react": "^1.17.0",
         "rclone-i18n": "^1.73.5",
-        "rclone-sdk": "1.74.1",
+        "rclone-sdk": "^1.74.2-r1",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",
         "react-router-dom": "^7.16.0",

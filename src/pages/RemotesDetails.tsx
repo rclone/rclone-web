@@ -74,7 +74,7 @@ import { formatBytes } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
-import rclone from '@/rclone/client'
+import rclone, { rcloneAsync } from '@/rclone/client'
 import { fetchLocalUsage, fetchRemotesList, fetchRemoteUsage } from '@/rclone/usage'
 
 const IMAGE_EXTS = new Set([
@@ -551,12 +551,11 @@ export function RemotesDetailsPage() {
                     srcFs: `${source.fs}${source.path}`,
                     dstFs: `${dstFs}${dstPath}`,
                     createEmptySrcDirs: true,
-                    _async: true,
                 }
                 const result =
                     mode === 'copy'
-                        ? await rclone('/sync/copy', { body: syncBody })
-                        : await rclone('/sync/move', { body: syncBody })
+                        ? await rcloneAsync('/sync/copy', { body: syncBody })
+                        : await rcloneAsync('/sync/move', { body: syncBody })
 
                 const jobid = result.jobid
                 if (!jobid) throw new Error('No job ID returned')
@@ -577,12 +576,11 @@ export function RemotesDetailsPage() {
                 srcRemote: source.path,
                 dstFs,
                 dstRemote: dstPath,
-                _async: true,
             }
             const result =
                 mode === 'copy'
-                    ? await rclone('/operations/copyfile', { body: fileBody })
-                    : await rclone('/operations/movefile', { body: fileBody })
+                    ? await rcloneAsync('/operations/copyfile', { body: fileBody })
+                    : await rcloneAsync('/operations/movefile', { body: fileBody })
 
             const jobid = result.jobid
             if (!jobid) throw new Error('No job ID returned')

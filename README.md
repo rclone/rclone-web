@@ -12,7 +12,7 @@ Install [rclone](https://rclone.org/install/) and run:
 rclone gui
 ```
 
-rclone opens the UI in your browser and prints generated credentials on startup. Pass `--user`, `--pass`, or `--addr` to override the defaults. See `rclone gui --help` for the full list of flags.
+Rclone opens the UI in your browser and prints generated credentials on startup. Pass `--user`, `--pass`, or `--addr` to override the defaults. See `rclone gui --help` for the full list of flags.
 
 #### Screens
 - **Dashboard** – overview of remotes, mounts, serves, running operations, and global transfer stats.
@@ -84,7 +84,7 @@ We welcome new contributors!
 Areas where help is especially useful:
 - Bug fixes
 - Accessibility improvements
-- Tests
+- Playwright Tests
 - Translations ([**Web**](https://github.com/rclone/rclone-web/tree/main/src/languages) or [**RC**](https://github.com/rclone-ui/rclone-i18n))
 
 ## License

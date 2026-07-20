@@ -12,13 +12,13 @@
     },
     "dependencies": {
         "@base-ui/react": "^1.6.0",
-        "@tailwindcss/vite": "^4.3.2",
-        "@tanstack/query-persist-client-core": "^5.101.2",
-        "@tanstack/query-sync-storage-persister": "^5.101.2",
-        "@tanstack/react-query": "^5.101.2",
+        "@tailwindcss/vite": "^4.3.3",
+        "@tanstack/query-persist-client-core": "^5.101.3",
+        "@tanstack/query-sync-storage-persister": "^5.101.3",
+        "@tanstack/react-query": "^5.101.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "lucide-react": "^1.24.0",
+        "lucide-react": "^1.25.0",
         "rclone-i18n": "^1.73.5",
         "rclone-sdk": "^1.74.2-r1",
         "react": "^19.2.7",
@@ -32,7 +32,7 @@
         "zustand": "^5.0.14"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.5.3",
+        "@biomejs/biome": "^2.5.4",
         "@playwright/test": "^1.61.1",
         "@total-typescript/ts-reset": "^0.6.1",
         "@types/node": "^24.10.1",

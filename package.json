@@ -11,14 +11,14 @@
         "test": "npm run build && npx playwright test"
     },
     "dependencies": {
-        "@base-ui/react": "^1.6.0",
+        "@base-ui/react": "^1.7.0",
         "@tailwindcss/vite": "^4.3.3",
         "@tanstack/query-persist-client-core": "^5.101.4",
         "@tanstack/query-sync-storage-persister": "^5.101.4",
         "@tanstack/react-query": "^5.101.4",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "lucide-react": "^1.27.0",
+        "lucide-react": "^1.28.0",
         "rclone-i18n": "^1.73.5",
         "rclone-sdk": "^1.74.2-r1",
         "react": "^19.2.8",
@@ -32,12 +32,12 @@
         "zustand": "^5.0.14"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.4.13",
-        "@playwright/test": "^1.62.0",
+        "@biomejs/biome": "2.5.7",
+        "@playwright/test": "^1.62.1",
         "@total-typescript/ts-reset": "^0.6.1",
         "@types/node": "^24.10.1",
-        "@types/react": "^19.2.17",
-        "@types/react-dom": "^19.2.3",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.4",
         "@vitejs/plugin-react": "^5.1.1",
         "typescript": "~6.0.3",
         "vite": "^7.2.4"

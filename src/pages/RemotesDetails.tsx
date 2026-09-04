@@ -632,7 +632,7 @@ export function RemotesDetailsPage() {
 
     const usage = useMemo(() => {
         const data = usageQuery.data
-        if (!data || data.state !== 'success') return null
+        if (data?.state !== 'success') return null
         return data.usage
     }, [usageQuery.data])
 
@@ -1012,7 +1012,7 @@ export function RemotesDetailsPage() {
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     {t('remotesDetails.transferFrom', {
-                                        remote: transferSource.fs.replace(/[\/:]+$/, ''),
+                                        remote: transferSource.fs.replace(/[/:]+$/, ''),
                                         path:
                                             transferSource.path.split('/').slice(0, -1).join('/') ||
                                             '/',

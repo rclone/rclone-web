@@ -388,6 +388,7 @@ function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isL
                 </Tooltip>
             )
 
+        // biome-ignore lint/complexity/noUselessSwitchCase: keep 'unsupported' explicit so the handled states are visible
         case 'unsupported':
         default:
             return <span className="font-mono text-sm text-muted-foreground">--</span>

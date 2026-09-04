@@ -197,6 +197,7 @@ async function fetchJobStatus(jobid: number) {
         }
 
         return {
+            executeId: '',
             id: jobid,
             finished: true,
             success: false,
@@ -251,6 +252,7 @@ export async function fetchJobsSnapshot() {
 
     const getStatus = (jobid: number, finished: boolean, success: boolean, error = ''): JobStatus =>
         statusMap.get(jobid) ?? {
+            executeId: '',
             id: jobid,
             finished,
             success,

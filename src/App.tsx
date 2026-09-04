@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { CheckIcon, LogOutIcon, MoonIcon, ScreenShareIcon, SunIcon } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -223,15 +223,16 @@ export function App() {
                 <Outlet />
 
                 {footerMessageKey ? (
-                    <footer className="mt-auto shrink-0 px-6 py-4 text-center text-sm text-muted-foreground">
+                    <footer className="mt-auto group shrink-0 px-6 py-4 text-center text-sm text-muted-foreground flex justify-center gap-1.5 items-center">
                         <a
                             href="https://rcloneui.com/web"
                             target="_blank"
                             rel="noreferrer"
-                            className="transition-colors hover:text-foreground"
+                            className="transition-colors group-hover:text-foreground"
                         >
                             {t(footerMessageKey)}
                         </a>
+                        <ScreenShareIcon className="size-4 duration-1000 transition-colors group-hover:text-foreground" />
                     </footer>
                 ) : null}
             </main>

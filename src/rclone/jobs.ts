@@ -14,6 +14,7 @@ export type JobRow = {
     id: number
     status: 'running' | 'completed' | 'failed'
     startTime: string
+    completedAt?: string
     source: string
     destination: string
     bytes: number
@@ -357,6 +358,7 @@ export async function fetchJobsSnapshot() {
             id: jobid,
             status: isFailed ? 'failed' : 'completed',
             startTime: status.startTime,
+            completedAt: getText(item.completed_at),
             source: source || '—',
             destination: destination || '—',
             bytes,
@@ -421,7 +423,9 @@ export async function fetchJobsSnapshot() {
     } satisfies Record<JobRow['status'], number>
 
     return [...runningRows, ...failedRows, ...completedRows].sort(
-        (a, b) => statusOrder[a.status] - statusOrder[b.status]
+        (a, b) =>
+            statusOrder[a.status] - statusOrder[b.status] ||
+            (Date.parse(b.completedAt ?? '') || 0) - (Date.parse(a.completedAt ?? '') || 0)
     )
 }
 

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleDotIcon, PlusIcon } from 'lucide-react'
+import { ChevronDownIcon, ChevronRightIcon, CircleDotIcon, PlusIcon } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageContent } from '@/components/PageContent'
@@ -19,6 +20,7 @@ export function TransfersPage() {
     const t = useT()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
+    const [historyExpanded, setHistoryExpanded] = useState(true)
 
     const jobsQuery = useQuery({
         queryKey: ['jobs'],
@@ -46,10 +48,13 @@ export function TransfersPage() {
     })
 
     const jobs = jobsQuery.data ?? []
+    const activeJobs = jobs.filter((job) => job.status === 'running')
+    const visibleJobs = historyExpanded ? jobs : activeJobs
 
     return (
         <PageWrapper>
             <PageHeader
+                className="flex-col items-start gap-4 sm:flex-row sm:items-end"
                 title={t('transfers.title')}
                 description={t('transfers.description')}
                 actions={
@@ -114,11 +119,38 @@ export function TransfersPage() {
                 ) : null}
 
                 {jobs.length > 0 ? (
-                    <TransfersTable
-                        jobs={jobs}
-                        onStop={(jobid) => stopMutation.mutate(jobid)}
-                        isStopping={stopMutation.isPending}
-                    />
+                    <section aria-label={t('transfers.activity')} className="space-y-4">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="w-full justify-start"
+                            aria-expanded={historyExpanded}
+                            aria-controls="transfer-activity"
+                            onClick={() => setHistoryExpanded((expanded) => !expanded)}
+                        >
+                            {historyExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
+                            {t('transfers.activity')}
+                            <span className="text-xs text-muted-foreground">
+                                {t('transfers.activityCount', {
+                                    active: activeJobs.length,
+                                    finished: jobs.length - activeJobs.length,
+                                })}
+                            </span>
+                        </Button>
+                        <div id="transfer-activity">
+                            {visibleJobs.length > 0 ? (
+                                <TransfersTable
+                                    jobs={visibleJobs}
+                                    onStop={(jobid) => stopMutation.mutate(jobid)}
+                                    isStopping={stopMutation.isPending}
+                                />
+                            ) : (
+                                <p className="rounded-xl border px-3 py-4 text-sm text-muted-foreground">
+                                    {t('transfers.noActive')}
+                                </p>
+                            )}
+                        </div>
+                    </section>
                 ) : null}
             </PageContent>
         </PageWrapper>

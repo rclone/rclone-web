@@ -25,6 +25,8 @@ export function LoginPage() {
     const [showPass, setShowPass] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const lastAutoSubmitKeyRef = useRef<string | null>(null)
+    // prevents clearing the URL search params after a login failed attempt
+    const appliedSearchParamsRef = useRef(false)
 
     const t = useT()
 
@@ -68,7 +70,7 @@ export function LoginPage() {
     })
 
     useEffect(() => {
-        if (loginSearchState.hasConnectionParams) {
+        if (loginSearchState.hasConnectionParams || appliedSearchParamsRef.current) {
             return
         }
 
@@ -86,6 +88,7 @@ export function LoginPage() {
         setUser(loginSearchState.user)
         setPass(loginSearchState.pass)
         setErrorMessage('')
+        appliedSearchParamsRef.current = true
 
         const searchParams = new URLSearchParams(location.search)
         searchParams.delete('url')
@@ -124,7 +127,13 @@ export function LoginPage() {
     }, [location.pathname, location.search, loginMutation, loginSearchState, navigate])
 
     useEffect(() => {
-        if (loginSearchState.hasConnectionParams || !storedUrl || storedUser || storedPass) {
+        if (
+            loginSearchState.hasConnectionParams ||
+            appliedSearchParamsRef.current ||
+            !storedUrl ||
+            storedUser ||
+            storedPass
+        ) {
             return
         }
 

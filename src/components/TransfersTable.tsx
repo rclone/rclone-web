@@ -1,5 +1,5 @@
 import { CheckCircle2Icon, RefreshCwIcon, XCircleIcon } from 'lucide-react'
-import { PathLabel } from '@/components/PathLabel'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,8 +25,86 @@ function getTransferredLabel(job: JobRow) {
     return formatBytes(job.bytes)
 }
 
+const ellipsis = '…'
+let measureContext: CanvasRenderingContext2D | null = null
+
+function getMeasureContext() {
+    measureContext ??= document.createElement('canvas').getContext('2d')
+    return measureContext
+}
+
+// Shortens a path in the middle so it fits the cell, keeping its beginning and filename.
 function TransferLocationCell({ value }: { value: string }) {
-    return <PathLabel value={value} className="text-xs leading-4" />
+    const ref = useRef<HTMLSpanElement>(null)
+    const [label, setLabel] = useState(value)
+
+    useLayoutEffect(() => {
+        const element = ref.current
+        const context = getMeasureContext()
+        if (!element || !context) return
+
+        const update = () => {
+            context.font = getComputedStyle(element).font
+            const width = element.clientWidth
+            const measure = (text: string) => context.measureText(text).width
+            if (measure(value) <= width) {
+                setLabel(value)
+                return
+            }
+
+            const characters = Array.from(value)
+            const filename = value.slice(
+                Math.max(value.lastIndexOf('/'), value.lastIndexOf('\\'), value.lastIndexOf(':')) +
+                    1
+            )
+            // Keep the whole filename when it fits, otherwise its ending.
+            const suffixBudget =
+                measure(ellipsis + filename) <= width
+                    ? width - measure(ellipsis)
+                    : Math.max(0, width * 0.8 - measure(ellipsis))
+
+            let low = 0
+            let high = characters.length
+            while (low < high) {
+                const middle = Math.ceil((low + high) / 2)
+                if (measure(characters.slice(-middle).join('')) <= suffixBudget) {
+                    low = middle
+                } else {
+                    high = middle - 1
+                }
+            }
+            const suffixLength = Math.min(low, Array.from(filename).length || low)
+            const suffix = suffixLength ? characters.slice(-suffixLength).join('') : ''
+
+            low = 0
+            high = characters.length - suffixLength
+            while (low < high) {
+                const middle = Math.ceil((low + high) / 2)
+                if (measure(characters.slice(0, middle).join('') + ellipsis + suffix) <= width) {
+                    low = middle
+                } else {
+                    high = middle - 1
+                }
+            }
+            setLabel(characters.slice(0, low).join('') + ellipsis + suffix)
+        }
+
+        update()
+        const observer = new ResizeObserver(update)
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [value])
+
+    return (
+        <span
+            ref={ref}
+            title={value}
+            className="block w-full min-w-0 overflow-hidden leading-4 whitespace-nowrap"
+        >
+            <span aria-hidden="true">{label || '—'}</span>
+            <span className="sr-only">{value || '—'}</span>
+        </span>
+    )
 }
 
 const statusUi: Record<
@@ -177,7 +255,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.id,
-                                        'px-2 py-1.5 text-left font-mono text-xs font-medium text-muted-foreground tabular-nums align-middle'
+                                        'px-2 py-1.5 text-left font-mono font-medium text-muted-foreground tabular-nums align-middle'
                                     )}
                                 >
                                     #{job.id}
@@ -232,7 +310,7 @@ export function TransfersTable({
                                     )}
                                 >
                                     <div className="w-full max-w-[204px] space-y-1">
-                                        <div className="flex items-center justify-between gap-2 text-xs tabular-nums">
+                                        <div className="flex items-center justify-between gap-2 tabular-nums">
                                             <span className="font-medium">{job.progress}%</span>
                                             <span className="text-muted-foreground">
                                                 {getTransferredLabel(job)}
@@ -253,7 +331,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.speed,
-                                        'px-2 py-1.5 text-left text-xs font-medium tabular-nums align-middle'
+                                        'px-2 py-1.5 text-left font-medium tabular-nums align-middle'
                                     )}
                                 >
                                     {job.speedLabel}
@@ -262,7 +340,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.eta,
-                                        'px-2 py-1.5 text-left text-xs font-medium tabular-nums align-middle'
+                                        'px-2 py-1.5 text-left font-medium tabular-nums align-middle'
                                     )}
                                 >
                                     {job.etaLabel}

@@ -1,4 +1,5 @@
 import { CheckCircle2Icon, RefreshCwIcon, XCircleIcon } from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,9 +25,85 @@ function getTransferredLabel(job: JobRow) {
     return formatBytes(job.bytes)
 }
 
+const ellipsis = '…'
+let measureContext: CanvasRenderingContext2D | null = null
+
+function getMeasureContext() {
+    measureContext ??= document.createElement('canvas').getContext('2d')
+    return measureContext
+}
+
+// Shortens a path in the middle so it fits the cell, keeping its beginning and filename.
 function TransferLocationCell({ value }: { value: string }) {
+    const ref = useRef<HTMLSpanElement>(null)
+    const [label, setLabel] = useState(value)
+
+    useLayoutEffect(() => {
+        const element = ref.current
+        const context = getMeasureContext()
+        if (!element || !context) return
+
+        const update = () => {
+            context.font = getComputedStyle(element).font
+            const width = element.clientWidth
+            const measure = (text: string) => context.measureText(text).width
+            if (measure(value) <= width) {
+                setLabel(value)
+                return
+            }
+
+            const characters = Array.from(value)
+            const filename = value.slice(
+                Math.max(value.lastIndexOf('/'), value.lastIndexOf('\\'), value.lastIndexOf(':')) +
+                    1
+            )
+            // Keep the whole filename when it fits, otherwise its ending.
+            const suffixBudget =
+                measure(ellipsis + filename) <= width
+                    ? width - measure(ellipsis)
+                    : Math.max(0, width * 0.8 - measure(ellipsis))
+
+            let low = 0
+            let high = characters.length
+            while (low < high) {
+                const middle = Math.ceil((low + high) / 2)
+                if (measure(characters.slice(-middle).join('')) <= suffixBudget) {
+                    low = middle
+                } else {
+                    high = middle - 1
+                }
+            }
+            const suffixLength = Math.min(low, Array.from(filename).length || low)
+            const suffix = suffixLength ? characters.slice(-suffixLength).join('') : ''
+
+            low = 0
+            high = characters.length - suffixLength
+            while (low < high) {
+                const middle = Math.ceil((low + high) / 2)
+                if (measure(characters.slice(0, middle).join('') + ellipsis + suffix) <= width) {
+                    low = middle
+                } else {
+                    high = middle - 1
+                }
+            }
+            setLabel(characters.slice(0, low).join('') + ellipsis + suffix)
+        }
+
+        update()
+        const observer = new ResizeObserver(update)
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [value])
+
     return (
-        <span className="block whitespace-normal leading-5 break-all text-sm">{value || '—'}</span>
+        <span
+            ref={ref}
+            title={value}
+            className="block w-full min-w-0 overflow-hidden leading-4 whitespace-nowrap"
+        >
+            <span aria-hidden="true">{label || '—'}</span>
+            <span className="sr-only">{value || '—'}</span>
+        </span>
     )
 }
 
@@ -60,14 +137,14 @@ const statusUi: Record<
 }
 
 const columnWidths = {
-    id: 'w-[92px]',
-    status: 'w-[168px]',
-    source: 'w-[320px]',
-    destination: 'w-[372px]',
-    progress: 'w-[284px]',
-    speed: 'w-[152px]',
-    eta: 'w-[152px]',
-    actions: 'w-[124px]',
+    id: 'w-[64px]',
+    status: 'w-[112px]',
+    source: 'w-[240px]',
+    destination: 'w-[240px]',
+    progress: 'w-[220px]',
+    speed: 'w-[100px]',
+    eta: 'w-[100px]',
+    actions: 'w-[80px]',
 } as const
 
 export function TransfersTable({
@@ -82,13 +159,13 @@ export function TransfersTable({
     const t = useT()
     return (
         <div className="overflow-hidden rounded-xl border">
-            <Table className="min-w-[1664px] table-fixed">
+            <Table className="min-w-[1156px] table-fixed text-xs">
                 <TableHeader className="bg-muted/40">
                     <TableRow className="hover:bg-muted/40">
                         <TableHead
                             className={cn(
                                 columnWidths.id,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.group')}
@@ -96,7 +173,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.status,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.status')}
@@ -104,7 +181,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.source,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.source')}
@@ -112,7 +189,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.destination,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.destination')}
@@ -120,7 +197,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.progress,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.progress')}
@@ -128,7 +205,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.speed,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.speed')}
@@ -136,7 +213,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.eta,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.eta')}
@@ -144,7 +221,7 @@ export function TransfersTable({
                         <TableHead
                             className={cn(
                                 columnWidths.actions,
-                                'h-12 px-4 text-left font-semibold text-muted-foreground'
+                                'h-9 px-2 text-left font-semibold text-muted-foreground'
                             )}
                         >
                             {t('transfersTable.actions')}
@@ -158,7 +235,7 @@ export function TransfersTable({
                         const badge = (
                             <Badge
                                 className={cn(
-                                    'h-7 gap-1.5 px-2.5 text-xs tracking-wide',
+                                    'h-6 gap-1 px-1.5 text-xs tracking-wide',
                                     ui.badgeClassName
                                 )}
                                 variant="secondary"
@@ -178,7 +255,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.id,
-                                        'px-4 py-4 text-left font-mono text-base font-medium text-muted-foreground tabular-nums align-middle'
+                                        'px-2 py-1.5 text-left font-mono font-medium text-muted-foreground tabular-nums align-middle'
                                     )}
                                 >
                                     #{job.id}
@@ -187,7 +264,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.status,
-                                        'px-4 py-4 text-left align-middle'
+                                        'px-2 py-1.5 text-left align-middle'
                                     )}
                                 >
                                     <div className="flex justify-start">
@@ -211,7 +288,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.source,
-                                        'px-4 py-4 text-left align-middle'
+                                        'px-2 py-1.5 text-left align-middle'
                                     )}
                                 >
                                     <TransferLocationCell value={job.source} />
@@ -220,7 +297,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.destination,
-                                        'px-4 py-4 text-left align-middle'
+                                        'px-2 py-1.5 text-left align-middle'
                                     )}
                                 >
                                     <TransferLocationCell value={job.destination} />
@@ -229,17 +306,17 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.progress,
-                                        'px-4 py-4 text-left align-middle'
+                                        'px-2 py-1.5 text-left align-middle'
                                     )}
                                 >
-                                    <div className="w-full max-w-[260px] space-y-2">
-                                        <div className="flex items-center justify-between gap-4 text-sm tabular-nums">
+                                    <div className="w-full max-w-[204px] space-y-1">
+                                        <div className="flex items-center justify-between gap-2 tabular-nums">
                                             <span className="font-medium">{job.progress}%</span>
                                             <span className="text-muted-foreground">
                                                 {getTransferredLabel(job)}
                                             </span>
                                         </div>
-                                        <div className="h-2 overflow-hidden rounded-full bg-muted">
+                                        <div className="h-1 overflow-hidden rounded-full bg-muted">
                                             <div
                                                 className={cn(
                                                     'h-full rounded-full transition-all',
@@ -254,7 +331,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.speed,
-                                        'px-4 py-4 text-left text-base font-medium tabular-nums align-middle'
+                                        'px-2 py-1.5 text-left font-medium tabular-nums align-middle'
                                     )}
                                 >
                                     {job.speedLabel}
@@ -263,7 +340,7 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.eta,
-                                        'px-4 py-4 text-left text-base font-medium tabular-nums align-middle'
+                                        'px-2 py-1.5 text-left font-medium tabular-nums align-middle'
                                     )}
                                 >
                                     {job.etaLabel}
@@ -272,13 +349,13 @@ export function TransfersTable({
                                 <TableCell
                                     className={cn(
                                         columnWidths.actions,
-                                        'px-4 py-4 text-left align-middle'
+                                        'px-2 py-1.5 text-left align-middle'
                                     )}
                                 >
                                     {job.canStop ? (
                                         <div className="flex justify-start">
                                             <Button
-                                                size="sm"
+                                                size="xs"
                                                 variant="destructive"
                                                 disabled={isStopping}
                                                 onClick={() => onStop(job.id)}

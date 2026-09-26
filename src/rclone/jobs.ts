@@ -14,6 +14,7 @@ export type JobRow = {
     id: number
     status: 'running' | 'completed' | 'failed'
     startTime: string
+    completedAt: string
     source: string
     destination: string
     bytes: number
@@ -29,6 +30,11 @@ const httpStatusPattern = /^\d{3}\s/
 
 function getText(value: unknown) {
     return typeof value === 'string' ? value.trim() : ''
+}
+
+function getTimestamp(value: string) {
+    const timestamp = Date.parse(value)
+    return Number.isFinite(timestamp) ? timestamp : 0
 }
 
 function getNumber(value: unknown) {
@@ -283,6 +289,7 @@ export async function fetchJobsSnapshot() {
             id: jobid,
             status: 'running',
             startTime: status.startTime,
+            completedAt: '',
             source: source || '—',
             destination: destination || '—',
             bytes,
@@ -322,6 +329,7 @@ export async function fetchJobsSnapshot() {
             id: jobid,
             status: 'running',
             startTime: status.startTime,
+            completedAt: '',
             source: source || '—',
             destination: '—',
             bytes: 0,
@@ -357,6 +365,7 @@ export async function fetchJobsSnapshot() {
             id: jobid,
             status: isFailed ? 'failed' : 'completed',
             startTime: status.startTime,
+            completedAt: getText(item.completed_at),
             source: source || '—',
             destination: destination || '—',
             bytes,
@@ -413,7 +422,7 @@ export async function fetchJobsSnapshot() {
             })
         )
 
-    // Sort: running first, then failed, then completed.
+    // Sort: running first, then failed, then completed. Finished rows newest first.
     const statusOrder = {
         running: 0,
         failed: 1,
@@ -421,7 +430,9 @@ export async function fetchJobsSnapshot() {
     } satisfies Record<JobRow['status'], number>
 
     return [...runningRows, ...failedRows, ...completedRows].sort(
-        (a, b) => statusOrder[a.status] - statusOrder[b.status]
+        (a, b) =>
+            statusOrder[a.status] - statusOrder[b.status] ||
+            getTimestamp(b.completedAt) - getTimestamp(a.completedAt)
     )
 }
 

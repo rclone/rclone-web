@@ -264,7 +264,9 @@ export function RemotesDetailsPage() {
         queryKey: ['remote-browse', currentFs, currentPath] as const,
         queryFn: async ({ queryKey: [, qFs, qPath], signal }) => {
             const response = await rclone('/operations/list', {
-                params: { query: { fs: qFs, remote: qPath } },
+                params: {
+                    query: { fs: qFs, remote: qPath, opt: JSON.stringify({ noMimeType: true }) },
+                },
                 signal,
             })
             const rawList = response.list ?? []

@@ -92,6 +92,8 @@
     "login.subtitle": "User and password are optional for no-auth setups.",
     "login.title": "Connect to rclone",
     "login.urlNotConfigured": "URL is not configured. Start the GUI launcher again.",
+    "login.retry": "Retry",
+    "login.unreachable": "Cannot reach the rclone backend. Check that it is running and that the URL is correct.",
     "login.userLabel": "User",
     "login.userPlaceholder": "admin",
     "mounts.description": "Manage active remote mounts.",

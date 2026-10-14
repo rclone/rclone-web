@@ -1,6 +1,7 @@
 import { persistQueryClient } from '@tanstack/query-persist-client-core'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { hashKey, QueryClient } from '@tanstack/react-query'
+import { STATIC_RC_URL } from '@/lib/connection'
 
 export const persistedQueryCacheKey = 'lite-ui-persisted-query-cache'
 
@@ -10,10 +11,10 @@ function getConnectionKey(): string {
         if (raw) {
             const parsed = JSON.parse(raw) as { state?: { url?: string; user?: string } }
             const { url = '', user = '' } = parsed.state ?? {}
-            return `${url}\0${user}`
+            return `${STATIC_RC_URL ?? url}\0${user}`
         }
     } catch {}
-    return '\0'
+    return `${STATIC_RC_URL ?? ''}\0`
 }
 
 const queryClient = new QueryClient({

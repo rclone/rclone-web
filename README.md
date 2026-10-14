@@ -66,6 +66,24 @@ Mount `~/.config/rclone` if you want to reuse an existing local config. Mount an
 
 You can omit `--user` and `--pass` to let rclone generate credentials.
 
+## Standalone installation
+
+For connecting to a permanently running `rclone rcd`, bake the backend URL into the build:
+
+```
+VITE_RC_URL=/rclone npm run build
+```
+
+The value can be eithe an absolute URL (e.g. `http://host:5572`) or a paH relative to the page origin (e.g. `/rclone`). When set, thes `?url=` loging parameter is ignored.
+
+#### Example nginx configuration
+
+Example reverse proxy config for serving the UI and the RC API from one origin:
+```
+location /        { root /srv/rclone-web/dist; try_files $uri $uri/ /index.html; }
+location /rclone/ { proxy_pass http://127.0.0.1:5572/; }
+```
+
 ## Development
 ```bash
 npm install

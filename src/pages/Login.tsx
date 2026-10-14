@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { STATIC_RC_URL } from '@/lib/connection'
 import { useT } from '@/lib/i18n'
 import { clearPersistedQueryCache } from '@/lib/query'
 import { useStore } from '@/lib/store'
@@ -34,12 +35,14 @@ export function LoginPage() {
         const searchParams = new URLSearchParams(location.search)
 
         return {
-            url: searchParams.get('url') ?? '',
+            url: STATIC_RC_URL ?? searchParams.get('url') ?? '',
             user: searchParams.get('user') ?? '',
             pass: searchParams.get('pass') ?? '',
             reason: searchParams.get('reason'),
             hasConnectionParams:
-                searchParams.has('url') || searchParams.has('user') || searchParams.has('pass'),
+                (!STATIC_RC_URL && searchParams.has('url')) ||
+                searchParams.has('user') ||
+                searchParams.has('pass'),
         }
     }, [location.search])
 
@@ -52,7 +55,7 @@ export function LoginPage() {
         },
         onSuccess: (authFields) => {
             clearPersistedQueryCache()
-            useStore.setState(authFields)
+            useStore.setState({ ...authFields, authenticated: true })
             navigate('/', { replace: true })
         },
         onError: (error, variables) => {

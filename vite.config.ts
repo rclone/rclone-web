@@ -30,6 +30,7 @@ function devRclone(): import('vite').Plugin {
                     RC_USER,
                     '--rc-pass',
                     RC_PASS,
+                    '--rc-baseurl=/rclone-fooo',
                     '--rc-allow-origin',
                     origin,
                 ],
@@ -69,15 +70,14 @@ export default defineConfig({
     define: {
         APP_VERSION: JSON.stringify(pkg.version),
     },
-    // server: {
-    //     proxy: {
-    //         '/rc': {
-    //             target: 'http://127.0.0.1:5572',
-    //             changeOrigin: true,
-    //             rewrite: (pathname) => pathname.replace(/^\/rc/, ''),
-    //         },
-    //     },
-    // },
+    server: {
+        proxy: {
+            '/rclone-fooo': {
+                target: 'http://127.0.0.1:5572',
+                changeOrigin: true,
+            },
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),

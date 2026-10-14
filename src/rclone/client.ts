@@ -8,6 +8,7 @@ import createRCDClient, {
     type OpenApiRequiredKeysOf,
     type RCDClient,
 } from 'rclone-sdk'
+import { effectiveRcUrl } from '@/lib/connection'
 import { clearAuthSession, useStore } from '@/lib/store'
 
 type InitParam<Init> =
@@ -64,7 +65,7 @@ function redirectToLogin() {
 }
 
 function resolveAuth({ url, user, pass }: { url: string; user: string; pass: string }) {
-    const normalizedUrl = url.trim().replace(/\/+$/, '')
+    const normalizedUrl = effectiveRcUrl(url)
     const normalizedUser = user.trim()
 
     if (!normalizedUrl) {

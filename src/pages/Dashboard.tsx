@@ -28,7 +28,12 @@ import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
 import { fetchJobsSnapshot, type JobRow } from '@/rclone/jobs'
-import { fetchRemotesList, fetchRemoteUsage, type RemoteWithUsage } from '@/rclone/usage'
+import {
+    fetchRemotesList,
+    fetchRemoteUsage,
+    type RemoteWithUsage,
+    supportsAbout,
+} from '@/rclone/usage'
 import { getRemoteName, getServeAuthLabel } from '@/rclone/utils'
 
 const DISCORD_URL = 'https://discord.gg/rclone'
@@ -62,6 +67,7 @@ export function DashboardPage() {
         queryFn: fetchRemotesList,
     })
     const remotesList = useMemo(() => remotesListQuery.data ?? [], [remotesListQuery.data])
+    const checkRemoteUsage = useStore((state) => state.checkRemoteUsage)
     const usageQueries = useQueries({
         queries: remotesList.map((remote) => ({
             queryKey: ['remotes', 'usage', remote.name] as const,
@@ -69,6 +75,7 @@ export function DashboardPage() {
                 fetchRemoteUsage(qName, remote.type),
             staleTime: 5 * 60 * 1000,
             retry: false,
+            enabled: checkRemoteUsage || !supportsAbout(remote.type),
         })),
     })
     const mountsQuery = useQuery({

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckIcon, LogOutIcon, MoonIcon, ScreenShareIcon, SunIcon } from 'lucide-react'
+import { CheckIcon, GaugeIcon, LogOutIcon, MoonIcon, ScreenShareIcon, SunIcon } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -87,6 +87,7 @@ export function App() {
         document.documentElement.classList.contains('dark')
     )
     const currentLanguage = useStore((state) => state.language)
+    const checkRemoteUsage = useStore((state) => state.checkRemoteUsage)
 
     const startLongPress = useCallback(() => {
         longPressFiredRef.current = false
@@ -257,6 +258,29 @@ export function App() {
                                 {t('app.darkMode')}
                             </span>
                             <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+                        </label>
+
+                        <Separator className="!my-3" />
+
+                        <h3 className="px-2 pb-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                            {t('app.remotesSection')}
+                        </h3>
+                        <label className="flex items-center justify-between gap-4 rounded-md px-3 py-2.5 transition-colors hover:bg-muted cursor-pointer">
+                            <span className="flex items-center gap-3 text-sm">
+                                <GaugeIcon className="size-4 shrink-0 text-muted-foreground" />
+                                <span className="space-y-0.5">
+                                    <span className="block">{t('app.checkRemoteUsage')}</span>
+                                    <span className="block text-xs text-muted-foreground">
+                                        {t('app.checkRemoteUsageDescription')}
+                                    </span>
+                                </span>
+                            </span>
+                            <Switch
+                                checked={checkRemoteUsage}
+                                onCheckedChange={(checked) =>
+                                    useStore.setState({ checkRemoteUsage: checked })
+                                }
+                            />
                         </label>
 
                         <Separator className="!my-3" />

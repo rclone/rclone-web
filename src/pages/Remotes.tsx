@@ -1,5 +1,12 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangleIcon, HardDriveIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import {
+    AlertTriangleIcon,
+    GaugeIcon,
+    HardDriveIcon,
+    PencilIcon,
+    PlusIcon,
+    Trash2Icon,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -29,9 +36,10 @@ import {
 } from '@/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useT } from '@/lib/i18n'
+import { useStore } from '@/lib/store'
 import { cn } from '@/lib/ui'
 import rclone from '@/rclone/client'
-import { fetchRemotesList, fetchRemoteUsage, type UsageStatus } from '@/rclone/usage'
+import { fetchRemotesList, fetchRemoteUsage, supportsAbout, type UsageStatus } from '@/rclone/usage'
 
 export function RemotesPage() {
     const t = useT()
@@ -55,6 +63,7 @@ export function RemotesPage() {
         )
     }, [remotes, search])
 
+    const checkRemoteUsage = useStore((state) => state.checkRemoteUsage)
     const usageQueries = useQueries({
         queries: remotes.map((remote) => ({
             queryKey: ['remotes', 'usage', remote.name] as const,
@@ -62,6 +71,7 @@ export function RemotesPage() {
                 fetchRemoteUsage(qName, remote.type),
             staleTime: 5 * 60 * 1000,
             retry: false,
+            enabled: checkRemoteUsage || !supportsAbout(remote.type),
         })),
     })
 
@@ -234,9 +244,13 @@ export function RemotesPage() {
 
                                         <TableCell className="px-4 py-6">
                                             <UsageCell
+                                                name={remote.name}
                                                 status={usageByName.get(remote.name)?.data}
                                                 isLoading={
                                                     usageByName.get(remote.name)?.isLoading ?? true
+                                                }
+                                                onCheck={() =>
+                                                    usageByName.get(remote.name)?.refetch()
                                                 }
                                             />
                                         </TableCell>
@@ -315,14 +329,48 @@ export function RemotesPage() {
     )
 }
 
-function UsageCell({ status, isLoading }: { status: UsageStatus | undefined; isLoading: boolean }) {
+function UsageCell({
+    name,
+    status,
+    isLoading,
+    onCheck,
+}: {
+    name: string
+    status: UsageStatus | undefined
+    isLoading: boolean
+    onCheck: () => void
+}) {
     const t = useT()
 
     if (isLoading) {
         return <Spinner className="size-4" />
     }
 
-    if (!status || status.state === 'idle' || status.state === 'loading') {
+    if (!status) {
+        return (
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            aria-label={`Check usage of ${name}`}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onCheck()
+                            }}
+                        >
+                            <GaugeIcon className="size-3.5" />
+                        </Button>
+                    }
+                />
+                <TooltipContent>{t('remotes.checkUsage')}</TooltipContent>
+            </Tooltip>
+        )
+    }
+
+    if (status.state === 'idle' || status.state === 'loading') {
         return <span className="font-mono text-sm text-muted-foreground">--</span>
     }
 

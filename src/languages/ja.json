@@ -345,5 +345,11 @@
     "app.settingsTitle": "設定",
     "app.themeSection": "テーマ",
     "app.darkMode": "ダークモード",
-    "app.languageSection": "言語"
+    "app.languageSection": "言語",
+    "app.remotesSection": "リモート",
+    "app.checkRemoteUsage": "使用状況を自動で確認",
+    "app.checkRemoteUsageDescription": "ダッシュボードとリモートページに使用状況を表示するため、すべてのリモートに接続します",
+    "remotes.checkUsage": "使用状況を確認",
+    "remotesDetails.chooseLocationTitle": "ディスクまたはリモートを選択",
+    "remotesDetails.chooseLocationDescription": "一覧から選択して閲覧を開始します。"
 }

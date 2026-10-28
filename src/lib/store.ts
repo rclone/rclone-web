@@ -9,10 +9,14 @@ type Store = {
     pass: string
     bannerDismissed: boolean
     language: Language | undefined
+    checkRemoteUsage: boolean
     hasHydrated: boolean
 }
 
-type PersistedStore = Pick<Store, 'url' | 'user' | 'pass' | 'bannerDismissed' | 'language'>
+type PersistedStore = Pick<
+    Store,
+    'url' | 'user' | 'pass' | 'bannerDismissed' | 'language' | 'checkRemoteUsage'
+>
 
 export const useStore = create<Store>()(
     persist(
@@ -22,17 +26,26 @@ export const useStore = create<Store>()(
             pass: '',
             bannerDismissed: false,
             language: undefined,
+            checkRemoteUsage: true,
             hasHydrated: false,
         }),
         {
             name: 'lite-auth-store',
             storage: createJSONStorage<PersistedStore>(() => localStorage),
-            partialize: ({ url, user, pass, bannerDismissed, language }): PersistedStore => ({
+            partialize: ({
                 url,
                 user,
                 pass,
                 bannerDismissed,
                 language,
+                checkRemoteUsage,
+            }): PersistedStore => ({
+                url,
+                user,
+                pass,
+                bannerDismissed,
+                language,
+                checkRemoteUsage,
             }),
         }
     )

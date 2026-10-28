@@ -345,5 +345,11 @@
     "app.settingsTitle": "Settings",
     "app.themeSection": "Theme",
     "app.darkMode": "Dark Mode",
-    "app.languageSection": "Language"
+    "app.languageSection": "Language",
+    "app.remotesSection": "Remotes",
+    "app.checkRemoteUsage": "Check usage automatically",
+    "app.checkRemoteUsageDescription": "Connects to every remote to show its usage on the dashboard and remotes page",
+    "remotes.checkUsage": "Check usage",
+    "remotesDetails.chooseLocationTitle": "Choose a disk or remote",
+    "remotesDetails.chooseLocationDescription": "Pick one from the list to start browsing."
 }

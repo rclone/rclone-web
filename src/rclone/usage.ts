@@ -95,7 +95,7 @@ function parseRemoteUsage(data: {
     }
 }
 
-function supportsAbout(type: string): boolean {
+export function supportsAbout(type: string): boolean {
     return (SUPPORTS_ABOUT as readonly string[]).includes(type)
 }
 

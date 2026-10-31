@@ -10,6 +10,16 @@ import { clearPersistedQueryCache } from '@/lib/query'
 import { useStore } from '@/lib/store'
 import { isAuthFailureError, validateConnection } from '@/rclone/client'
 
+function parseBooleanParam(value: string | null): boolean | undefined {
+    if (value === 'true') {
+        return true
+    }
+    if (value === 'false') {
+        return false
+    }
+    return undefined
+}
+
 export function LoginPage() {
     const location = useLocation()
     const navigate = useNavigate()
@@ -38,6 +48,7 @@ export function LoginPage() {
             user: searchParams.get('user') ?? '',
             pass: searchParams.get('pass') ?? '',
             reason: searchParams.get('reason'),
+            checkUsage: parseBooleanParam(searchParams.get('checkUsage')),
             hasConnectionParams:
                 searchParams.has('url') || searchParams.has('user') || searchParams.has('pass'),
         }
@@ -68,6 +79,14 @@ export function LoginPage() {
             setErrorMessage(error instanceof Error ? error.message : t('login.connectionFailed'))
         },
     })
+
+    // Lets whatever opens the GUI choose "Check usage automatically" before the dashboard
+    // loads and checks every remote. Without the param, the saved choice is left alone.
+    useEffect(() => {
+        if (loginSearchState.checkUsage !== undefined) {
+            useStore.setState({ checkRemoteUsage: loginSearchState.checkUsage })
+        }
+    }, [loginSearchState.checkUsage])
 
     useEffect(() => {
         if (loginSearchState.hasConnectionParams || appliedSearchParamsRef.current) {

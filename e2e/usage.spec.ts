@@ -32,6 +32,20 @@ async function openRemotesPage(page: Page) {
     return row
 }
 
+// Waits on the dashboard, where login lands, until both remote list responses have arrived.
+// Staying there matters: a full page load reruns addInitScript.
+async function openDashboard(page: Page, loginParams: Record<string, string>) {
+    const { appUrl } = getTestEnv()
+    const remotesLoaded = Promise.all(
+        ['/config/listremotes', '/config/dump'].map((path) =>
+            page.waitForResponse((response) => new URL(response.url()).pathname.endsWith(path))
+        )
+    )
+    await page.goto(loginUrl(loginParams))
+    await page.waitForURL(appUrl + '/')
+    await remotesLoaded
+}
+
 // Turns the "Check usage automatically" setting off before the app loads.
 async function disableUsageChecks(page: Page) {
     await page.addInitScript(() => {
@@ -56,6 +70,20 @@ test('does not check remote usage when disabled', async ({ page }) => {
     await page.waitForTimeout(1000)
     expect(aboutRequests).toEqual([])
     await expect(row.getByRole('button', { name: 'Check usage of test-usage' })).toBeVisible()
+})
+
+test('does not check remote usage when the login URL turns it off', async ({ page }) => {
+    const aboutRequests = countAboutRequests(page)
+    await openDashboard(page, { checkUsage: 'false' })
+    await page.waitForTimeout(1000)
+    expect(aboutRequests).toEqual([])
+})
+
+test('login URL can turn remote usage checks back on', async ({ page }) => {
+    await disableUsageChecks(page)
+    const aboutRequests = countAboutRequests(page)
+    await openDashboard(page, { checkUsage: 'true' })
+    await expect.poll(() => aboutRequests).toContain('test-usage:')
 })
 
 test('checks one remote from its usage cell', async ({ page }) => {

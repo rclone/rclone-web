@@ -7,12 +7,13 @@ export function getTestEnv() {
     }
 }
 
-export function loginUrl(): string {
+export function loginUrl(extraParams: Record<string, string> = {}): string {
     const env = getTestEnv()
     const params = new URLSearchParams({
         url: env.rcUrl,
         user: env.rcUser,
         pass: env.rcPass,
+        ...extraParams,
     })
     return `${env.appUrl}/login?${params}`
 }

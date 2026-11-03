@@ -23,7 +23,7 @@ Rclone opens the UI in your browser and prints generated credentials on startup.
 - **Settings** – tune performance flags, configure logging, and edit the rclone config file.
 
 ## Docker
-The easiest way to run the UI is through the official rclone Docker image. After starting the container, open `http://localhost:5522/login?url=localhost:5533` in your browser. The `url` param tells the GUI where to reach the RC API.
+The easiest way to run the UI is through the official rclone Docker image. After starting the container, open `http://localhost:5522/login?url=localhost:5533` in your browser. The `url` param tells the GUI where to reach the RC API. Add `&checkUsage=false` to turn off "Check usage automatically" before the GUI checks any remote (or `&checkUsage=true` to turn it on).
 
 #### Simple
 ```bash

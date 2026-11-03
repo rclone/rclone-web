@@ -32,12 +32,14 @@ async function openRemotesPage(page: Page) {
     return row
 }
 
-// Logs in, where login lands on the dashboard, and waits there until the remote list has
-// loaded. Staying on the dashboard matters: a full page load reruns addInitScript.
+// Waits on the dashboard, where login lands, until both remote list responses have arrived.
+// Staying there matters: a full page load reruns addInitScript.
 async function openDashboard(page: Page, loginParams: Record<string, string>) {
     const { appUrl } = getTestEnv()
-    const remotesLoaded = page.waitForResponse((response) =>
-        /\/config\/(dump|listremotes)$/.test(new URL(response.url()).pathname)
+    const remotesLoaded = Promise.all(
+        ['/config/listremotes', '/config/dump'].map((path) =>
+            page.waitForResponse((response) => new URL(response.url()).pathname.endsWith(path))
+        )
     )
     await page.goto(loginUrl(loginParams))
     await page.waitForURL(appUrl + '/')

@@ -48,19 +48,16 @@ function redirectToLogin() {
     isRedirectingToLogin = true
     clearAuthSession()
 
-    if (window.location.pathname === '/login') {
-        const searchParams = new URLSearchParams(window.location.search)
-        searchParams.set('reason', 'auth')
-        const search = searchParams.toString()
-        window.history.replaceState(
-            window.history.state,
-            '',
-            search ? `${window.location.pathname}?${search}` : window.location.pathname
-        )
+    const route = new URL(window.location.hash.slice(1), window.location.origin)
+    if (route.pathname === '/login') {
+        route.searchParams.set('reason', 'auth')
+        window.history.replaceState(window.history.state, '', `#/login${route.search}`)
         return
     }
 
-    window.location.replace('/login?reason=auth')
+    // A hash change alone does not reload the page, and the reload resets isRedirectingToLogin
+    window.history.replaceState(null, '', '#/login?reason=auth')
+    window.location.reload()
 }
 
 function resolveAuth({ url, user, pass }: { url: string; user: string; pass: string }) {

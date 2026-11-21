@@ -12,11 +12,11 @@ test('explorer opens nothing until a disk is chosen', async ({ page }) => {
 
     const { appUrl } = getTestEnv()
     await page.goto(loginUrl())
-    await page.waitForURL(appUrl + '/')
-    await page.goto(appUrl + '/local')
+    await page.waitForURL(appUrl + '/#/')
+    await page.goto(appUrl + '/#/local')
 
     await expect(page.getByText('Choose a disk or remote')).toBeVisible()
-    const firstDisk = page.locator('a[href^="/local?disk="]').first()
+    const firstDisk = page.locator('a[href^="#/local?disk="]').first()
     await expect(firstDisk).toBeVisible()
     await page.waitForTimeout(1000)
     expect(listedFs).toEqual([])

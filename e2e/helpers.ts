@@ -15,7 +15,7 @@ export function loginUrl(extraParams: Record<string, string> = {}): string {
         pass: env.rcPass,
         ...extraParams,
     })
-    return `${env.appUrl}/login?${params}`
+    return `${env.appUrl}/#/login?${params}`
 }
 
 export async function rcloneRC(path: string, body: Record<string, unknown> = {}): Promise<unknown> {

@@ -193,7 +193,7 @@ export function LoginPage() {
             {/* DVD bounce */}
             <div className="pointer-events-none absolute inset-0 animate-[dvd-x_13s_linear_infinite]">
                 <div className="animate-[dvd-y_9s_linear_infinite]">
-                    <img alt="" className="h-14 w-auto" src="/icon.svg" />
+                    <img alt="" className="h-14 w-auto" src="./icon.svg" />
                 </div>
             </div>
 

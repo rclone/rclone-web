@@ -49,7 +49,7 @@ function devRclone(): import('vite').Plugin {
                 original()
                 const base = server.resolvedUrls?.local[0]
                 if (base) {
-                    const url = `${base}login?url=${RC_URL}&user=${RC_USER}&pass=${RC_PASS}`
+                    const url = `${base}#/login?url=${RC_URL}&user=${RC_USER}&pass=${RC_PASS}`
                     server.config.logger.info(
                         `  \x1b[32m➜\x1b[0m  \x1b[1mLogin:\x1b[0m   \x1b[36m${url}\x1b[0m`
                     )
@@ -65,6 +65,8 @@ function devRclone(): import('vite').Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
+    // Relative asset URLs let the GUI run under any sub-path, for example behind a reverse proxy
+    base: './',
     plugins: [react(), tailwindcss(), devRclone()],
     define: {
         APP_VERSION: JSON.stringify(pkg.version),

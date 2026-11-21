@@ -23,7 +23,7 @@ Rclone opens the UI in your browser and prints generated credentials on startup.
 - **Settings** – tune performance flags, configure logging, and edit the rclone config file.
 
 ## Docker
-The easiest way to run the UI is through the official rclone Docker image. After starting the container, open `http://localhost:5522/login?url=localhost:5533` in your browser. The `url` param tells the GUI where to reach the RC API. Add `&checkUsage=false` to turn off "Check usage automatically" before the GUI checks any remote (or `&checkUsage=true` to turn it on).
+The easiest way to run the UI is through the official rclone Docker image. After starting the container, open `http://localhost:5522/#/login?url=localhost:5533` in your browser. The `url` param tells the GUI where to reach the RC API. Add `&checkUsage=false` to turn off "Check usage automatically" before the GUI checks any remote (or `&checkUsage=true` to turn it on).
 
 #### Simple
 ```bash
@@ -65,6 +65,11 @@ services:
 Mount `~/.config/rclone` if you want to reuse an existing local config. Mount any additional folders, such as `/path/to/data`, when rclone needs access to local files or cache locations.
 
 You can omit `--user` and `--pass` to let rclone generate credentials.
+
+## Reverse proxy
+The GUI can run under a sub-path, such as `https://example.org/rclone/`. Your proxy must remove the sub-path before it sends the request to `rclone gui`, as Caddy `handle_path` and Open OnDemand `/rnode/` do. Open the GUI with the trailing slash.
+
+To reach the RC API through the same proxy, put it under its own sub-path and enter that URL on the login page, such as `https://example.org/rclone-rc/`.
 
 ## Development
 ```bash

@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
+import { createHashRouter, Navigate, Outlet } from 'react-router-dom'
 import { Spinner } from '@/components/ui/spinner'
 import { useStore } from '@/lib/store'
 import { DashboardPage } from '@/pages/Dashboard'
@@ -48,7 +48,21 @@ function LoginGate() {
     return <LoginPage />
 }
 
-export const router = createBrowserRouter([
+// Moves paths such as /login?url=... into the hash. rclone gui and old bookmarks still open them.
+// The folder of the page is the GUI root, because the assets load from relative URLs.
+function moveLegacyPathToHash() {
+    const { hash, pathname, search } = window.location
+    if (hash || pathname.endsWith('/')) {
+        return
+    }
+
+    const root = new URL('.', window.location.href).pathname
+    window.history.replaceState(null, '', `${root}#/${pathname.slice(root.length)}${search}`)
+}
+
+moveLegacyPathToHash()
+
+export const router = createHashRouter([
     {
         path: '/login',
         element: <LoginGate />,

@@ -23,8 +23,8 @@ function countAboutRequests(page: Page) {
 async function openRemotesPage(page: Page) {
     const { appUrl } = getTestEnv()
     await page.goto(loginUrl())
-    await page.waitForURL(appUrl + '/')
-    await page.goto(appUrl + '/remotes')
+    await page.waitForURL(appUrl + '/#/')
+    await page.goto(appUrl + '/#/remotes')
     const row = page
         .getByRole('row')
         .filter({ has: page.getByRole('link', { name: 'test-usage' }) })
@@ -42,7 +42,7 @@ async function openDashboard(page: Page, loginParams: Record<string, string>) {
         )
     )
     await page.goto(loginUrl(loginParams))
-    await page.waitForURL(appUrl + '/')
+    await page.waitForURL(appUrl + '/#/')
     await remotesLoaded
 }
 

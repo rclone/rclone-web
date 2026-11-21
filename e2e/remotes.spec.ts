@@ -12,8 +12,8 @@ test.afterAll(async () => {
 test('displays a remote after creating one via RC API', async ({ page }) => {
     await page.goto(loginUrl())
     const { appUrl } = getTestEnv()
-    await page.waitForURL(appUrl + '/')
-    await page.goto(appUrl + '/remotes')
+    await page.waitForURL(appUrl + '/#/')
+    await page.goto(appUrl + '/#/remotes')
     const row = page
         .getByRole('row')
         .filter({ has: page.getByRole('link', { name: 'test-local' }) })

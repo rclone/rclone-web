@@ -56,7 +56,7 @@ test('sorts running first, then failed, then finished newest first', async ({ pa
             file('unknown-time.bin', 'invalid'),
         ],
     })
-    await page.goto(getTestEnv().appUrl + '/transfers')
+    await page.goto(getTestEnv().appUrl + '/#/transfers')
 
     const rows = page.locator('tbody tr')
     await expect(rows).toHaveCount(6)
@@ -81,7 +81,7 @@ test('stop sends the job id', async ({ page }) => {
             stoppedJob = url.searchParams.get('jobid')
         }
     })
-    await page.goto(getTestEnv().appUrl + '/transfers')
+    await page.goto(getTestEnv().appUrl + '/#/transfers')
 
     await page.getByRole('button', { name: 'Stop', exact: true }).click()
     await expect.poll(() => stoppedJob).toBe('7')
@@ -95,7 +95,7 @@ test('long paths keep their beginning and filename as the table resizes', async 
         'short.txt',
     ]
     await mockRc(page, { transferring: names.map(running) })
-    await page.goto(getTestEnv().appUrl + '/transfers')
+    await page.goto(getTestEnv().appUrl + '/#/transfers')
 
     const labels = names.map((name) =>
         page.locator('tbody').getByTitle('Source:' + name, { exact: true })

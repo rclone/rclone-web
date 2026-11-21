@@ -1,5 +1,8 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import { expect, type Page, test } from '@playwright/test'
-import { getTestEnv } from './helpers'
+import { getTestEnv, loginUrl, rcloneRC } from './helpers'
 
 const rcUrl = 'http://rc.test'
 
@@ -124,4 +127,47 @@ test('long paths keep their beginning and filename as the table resizes', async 
     expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
     ).toBe(true)
+})
+
+test.describe('copy to another folder', () => {
+    let root = ''
+
+    test.beforeAll(async () => {
+        root = mkdtempSync(path.join(tmpdir(), 'rclone-web-e2e-'))
+        mkdirSync(path.join(root, 'src/inbox'), { recursive: true })
+        mkdirSync(path.join(root, 'dst/archive/2026'), { recursive: true })
+        writeFileSync(path.join(root, 'src/inbox/report.txt'), 'report')
+        for (const side of ['src', 'dst']) {
+            await rcloneRC('/config/create', {
+                name: `test-transfer-${side}`,
+                type: 'alias',
+                parameters: { remote: path.join(root, side) },
+            })
+        }
+    })
+
+    test.afterAll(async () => {
+        for (const side of ['src', 'dst']) {
+            await rcloneRC('/config/delete', { name: `test-transfer-${side}` })
+        }
+        rmSync(root, { recursive: true, force: true })
+    })
+
+    test('shows the chosen folder as the destination', async ({ page }) => {
+        const { appUrl } = getTestEnv()
+        await page.goto(loginUrl())
+        await page.waitForURL(appUrl + '/')
+        await page.goto(appUrl + '/remotes/test-transfer-src?path=inbox')
+
+        await page.getByRole('button', { name: 'Transfer report.txt' }).click()
+        await page.getByRole('link', { name: 'test-transfer-dst', exact: true }).click()
+        await page.getByRole('button', { name: 'archive', exact: true }).click()
+        await page.getByRole('button', { name: '2026', exact: true }).click()
+        await page.getByRole('button', { name: 'Copy here' }).click()
+        await page.getByRole('button', { name: 'View Transfers' }).click()
+
+        const table = page.locator('tbody')
+        await expect(table.locator('[title$="archive/2026/report.txt"]')).toHaveCount(1)
+        await expect(table.locator('[title$="inbox/report.txt"]')).toHaveCount(1)
+    })
 })

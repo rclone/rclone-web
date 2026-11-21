@@ -280,8 +280,8 @@ export async function fetchJobsSnapshot() {
         status: JobStatus
         index: number
     }): JobRow => {
-        const source = buildPathLabel(item.srcFs, item.srcRemote, item.name)
-        const destination = buildPathLabel(item.dstFs, item.dstRemote, item.name)
+        const source = buildPathLabel(item.srcFs, item.name)
+        const destination = buildPathLabel(item.dstFs, item.name)
         const bytes = getNumber(item.bytes)
         const totalBytes = getNumber(item.size)
 
@@ -354,8 +354,8 @@ export async function fetchJobsSnapshot() {
         status: JobStatus
         index: number
     }): JobRow => {
-        const source = buildPathLabel(item.srcFs, item.srcRemote, item.name)
-        const destination = buildPathLabel(item.dstFs, item.dstRemote, item.name)
+        const source = buildPathLabel(item.srcFs, item.name)
+        const destination = buildPathLabel(item.dstFs, item.name)
         const bytes = getNumber(item.bytes)
         const totalBytes = getNumber(item.size)
         const itemError = getText(item.error)

@@ -561,11 +561,14 @@ export function RemotesDetailsPage() {
                 return jobid
             }
 
+            // Transfer stats only give the path in srcFs. With both Fs at the
+            // parent folders, that path is also correct in dstFs.
+            const sourceDir = source.path.split('/').slice(0, -1).join('/')
             const fileBody = {
-                srcFs: source.fs,
-                srcRemote: source.path,
-                dstFs,
-                dstRemote: dstPath,
+                srcFs: `${source.fs}${sourceDir}`,
+                srcRemote: source.name,
+                dstFs: `${dstFs}${dstCurrentPath}`,
+                dstRemote: source.name,
             }
             const result =
                 mode === 'copy'

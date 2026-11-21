@@ -236,44 +236,40 @@ export function MountsNewPage() {
                 throw new Error(t('mountsNew.mountTypeRequiredError'))
             }
 
-            const query: {
+            const body: {
                 fs: string
                 mountPoint: string
                 mountType?: string
-                mountOpt?: string
-                vfsOpt?: string
-                _filter?: string
-                _config?: string
+                mountOpt?: Record<string, unknown>
+                vfsOpt?: Record<string, unknown>
+                _filter?: Record<string, unknown>
+                _config?: Record<string, unknown>
             } = {
                 fs: composeFs(normalizedRemoteName, sourceSubpath),
                 mountPoint: normalizedMountPoint,
             }
 
             if (normalizedMountType) {
-                query.mountType = normalizedMountType
+                body.mountType = normalizedMountType
             }
 
             if (Object.keys(editedMount).length > 0) {
-                query.mountOpt = JSON.stringify(editedMount)
+                body.mountOpt = editedMount
             }
 
             if (Object.keys(editedVfs).length > 0) {
-                query.vfsOpt = JSON.stringify(editedVfs)
+                body.vfsOpt = editedVfs
             }
 
             if (Object.keys(editedFilter).length > 0) {
-                query._filter = JSON.stringify(editedFilter)
+                body._filter = editedFilter
             }
 
             if (Object.keys(editedConfig).length > 0) {
-                query._config = JSON.stringify(editedConfig)
+                body._config = editedConfig
             }
 
-            await rclone('/mount/mount', {
-                params: {
-                    query,
-                },
-            })
+            await rclone('/mount/mount', { body })
         },
         onSuccess: () => {
             toast.success(t('mountsNew.createSuccess'))

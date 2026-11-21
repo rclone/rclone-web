@@ -23,7 +23,7 @@ function running(name: string) {
 async function mockRc(
     page: Page,
     responses: { transferring?: unknown[]; transferred?: unknown[] },
-    onRequest?: (url: URL) => void
+    onRequest?: (url: URL, body: Record<string, unknown> | null) => void
 ) {
     await page.addInitScript((url) => {
         localStorage.setItem(
@@ -34,7 +34,7 @@ async function mockRc(
 
     await page.route(`${rcUrl}/**`, async (route) => {
         const url = new URL(route.request().url())
-        onRequest?.(url)
+        onRequest?.(url, route.request().postDataJSON())
 
         const json: Record<string, unknown> = {
             '/core/stats': { transferring: responses.transferring ?? [] },
@@ -75,16 +75,16 @@ test('sorts running first, then failed, then finished newest first', async ({ pa
 })
 
 test('stop sends the job id', async ({ page }) => {
-    let stoppedJob: string | null = null
-    await mockRc(page, { transferring: [running('active.bin')] }, (url) => {
+    let stoppedJob: unknown = null
+    await mockRc(page, { transferring: [running('active.bin')] }, (url, body) => {
         if (url.pathname === '/job/stop') {
-            stoppedJob = url.searchParams.get('jobid')
+            stoppedJob = body?.jobid
         }
     })
     await page.goto(getTestEnv().appUrl + '/transfers')
 
     await page.getByRole('button', { name: 'Stop', exact: true }).click()
-    await expect.poll(() => stoppedJob).toBe('7')
+    await expect.poll(() => stoppedJob).toBe(7)
 })
 
 test('long paths keep their beginning and filename as the table resizes', async ({ page }) => {

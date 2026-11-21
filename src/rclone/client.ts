@@ -1,19 +1,12 @@
 import { RcloneTranslationError, translate } from 'rclone-i18n'
-import type { paths } from 'rclone-openapi'
 import createRCDClient, {
     type AsyncJobResponse,
-    type OpenApiClientPathsWithMethod,
-    type OpenApiMaybeOptionalInit,
-    type OpenApiMethodResponse,
-    type OpenApiRequiredKeysOf,
-    type RCDClient,
+    type RCDArgs,
+    type RCDAsyncPath,
+    type RCDData,
+    type RCDPath,
 } from 'rclone-sdk'
 import { clearAuthSession, useStore } from '@/lib/store'
-
-type InitParam<Init> =
-    OpenApiRequiredKeysOf<Init> extends never
-        ? [(Init & { [key: string]: unknown })?]
-        : [Init & { [key: string]: unknown }]
 
 const TRANSLATABLE_PATHS = new Set(['/config/providers', '/options/info'])
 
@@ -237,13 +230,10 @@ export async function rcloneUploadFile({
 //     })
 // }
 
-export async function rcloneAsync<
-    Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,
-    Init extends OpenApiMaybeOptionalInit<paths[Path], 'post'> = OpenApiMaybeOptionalInit<
-        paths[Path],
-        'post'
-    >,
->(path: Path, ...init: InitParam<Init>): Promise<AsyncJobResponse> {
+export async function rcloneAsync<Path extends RCDAsyncPath>(
+    path: Path,
+    ...init: RCDArgs<Path>
+): Promise<AsyncJobResponse> {
     const auth = resolveAuth(useStore.getState())
 
     if (!auth.url) {
@@ -261,16 +251,10 @@ export async function rcloneAsync<
     }
 }
 
-export default async function rclone<
-    Path extends OpenApiClientPathsWithMethod<RCDClient, 'post'>,
-    Init extends OpenApiMaybeOptionalInit<paths[Path], 'post'> = OpenApiMaybeOptionalInit<
-        paths[Path],
-        'post'
-    >,
->(
+export default async function rclone<Path extends RCDPath>(
     path: Path,
-    ...init: InitParam<Init>
-): Promise<OpenApiMethodResponse<RCDClient, 'post', Path, Init>> {
+    ...init: RCDArgs<Path>
+): Promise<RCDData<Path>> {
     const auth = resolveAuth(useStore.getState())
 
     if (!auth.url) {
@@ -284,7 +268,7 @@ export default async function rclone<
 
         checkResult(result, true)
 
-        const data = result.data as OpenApiMethodResponse<RCDClient, 'post', Path, Init>
+        const data = result.data as RCDData<Path>
         const { language } = useStore.getState()
 
         if (!language || !TRANSLATABLE_PATHS.has(path as string)) return data

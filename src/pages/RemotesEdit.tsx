@@ -28,7 +28,7 @@ export function RemotesEditPage() {
         queryKey: ['remotes', remoteName, 'config'] as const,
         queryFn: async ({ queryKey: [, qRemoteName], signal }) => {
             const response = await rclone('/config/get', {
-                params: { query: { name: qRemoteName! } },
+                body: { name: qRemoteName! },
                 signal,
             })
             return response
@@ -135,12 +135,7 @@ export function RemotesEditPage() {
             parameters: Record<string, unknown>
         }) => {
             await rclone('/config/update', {
-                params: {
-                    query: {
-                        name,
-                        parameters: JSON.stringify(parameters),
-                    },
-                },
+                body: { name, parameters },
             })
         },
         onSuccess: (_data, { name }) => {

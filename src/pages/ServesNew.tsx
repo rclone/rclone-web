@@ -211,12 +211,12 @@ export function ServesNewPage() {
                 throw new Error(t('servesNew.requiredFields'))
             }
 
-            const query: {
+            const body: {
                 type: string
                 fs: string
                 addr: string
-                _filter?: string
-                _config?: string
+                _filter?: Record<string, unknown>
+                _config?: Record<string, unknown>
             } & Record<string, unknown> = {
                 type: normalizedServeType,
                 fs: composeFs(normalizedRemoteName, sourceSubpath),
@@ -228,26 +228,22 @@ export function ServesNewPage() {
             )
 
             for (const [key, value] of Object.entries(serveExtraOptions)) {
-                query[key] = value
+                body[key] = value
             }
 
             for (const [key, value] of Object.entries(editedVfs)) {
-                query[key] = value
+                body[key] = value
             }
 
             if (Object.keys(editedFilter).length > 0) {
-                query._filter = JSON.stringify(editedFilter)
+                body._filter = editedFilter
             }
 
             if (Object.keys(editedConfig).length > 0) {
-                query._config = JSON.stringify(editedConfig)
+                body._config = editedConfig
             }
 
-            return await rclone('/serve/start', {
-                params: {
-                    query,
-                },
-            })
+            return await rclone('/serve/start', { body })
         },
         onSuccess: (result) => {
             const id = toRecord(result).id

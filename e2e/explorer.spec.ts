@@ -6,7 +6,7 @@ test('explorer opens nothing until a disk is chosen', async ({ page }) => {
     page.on('request', (request) => {
         const url = new URL(request.url())
         if (url.pathname.endsWith('/operations/list')) {
-            listedFs.push(url.searchParams.get('fs') ?? '')
+            listedFs.push(request.postDataJSON()?.fs ?? '')
         }
     })
 

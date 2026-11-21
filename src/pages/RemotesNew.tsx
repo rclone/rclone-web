@@ -110,13 +110,7 @@ export function RemotesNewPage() {
             parameters: Record<string, unknown>
         }) => {
             await rclone('/config/create', {
-                params: {
-                    query: {
-                        name,
-                        type,
-                        parameters: JSON.stringify(parameters),
-                    },
-                },
+                body: { name, type, parameters },
             })
 
             return name

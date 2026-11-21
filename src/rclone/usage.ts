@@ -169,7 +169,7 @@ function fetchUsageByFs(fs: string): Promise<UsageStatus> {
         try {
             const response = await Promise.race([
                 rclone('/operations/about', {
-                    params: { query: { fs } },
+                    body: { fs },
                 }),
                 new Promise<never>((_, reject) =>
                     setTimeout(() => reject(new Error('Request timed out')), 8_000)

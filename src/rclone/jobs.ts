@@ -1,13 +1,12 @@
-import type { components } from 'rclone-openapi'
+import type { RCDData } from 'rclone-sdk'
 import { formatBytes, formatDuration } from '@/lib/format'
 import rclone from '@/rclone/client'
 
-type JobStatus = components['responses']['JobStatusResponse']['content']['application/json']
+type JobStatus = RCDData<'/job/status'>
 
-type JobGroupStats = components['responses']['CoreStatsResponse']['content']['application/json']
+type JobGroupStats = RCDData<'/core/stats'>
 
-type TransferredItem =
-    components['responses']['CoreTransferredResponse']['content']['application/json']['transferred'][number]
+type TransferredItem = RCDData<'/core/transferred'>['transferred'][number]
 
 export type JobRow = {
     rowKey: string
@@ -185,7 +184,7 @@ function getProgressPercent({
 async function fetchJobStatus(jobid: number) {
     try {
         return await rclone('/job/status', {
-            params: { query: { jobid } },
+            body: { jobid },
         })
     } catch (error) {
         // The rclone wrapper throws when data.error is truthy, but /job/status
@@ -211,6 +210,7 @@ async function fetchJobStatus(jobid: number) {
             duration: 0,
             endTime: '',
             startTime: '',
+            group: `job/${jobid}`,
         } satisfies JobStatus
     }
 }
@@ -266,6 +266,7 @@ export async function fetchJobsSnapshot() {
             duration: 0,
             endTime: '',
             startTime: '',
+            group: `job/${jobid}`,
         }
 
     const normalizeTransferringRow = ({
@@ -438,6 +439,6 @@ export async function fetchJobsSnapshot() {
 
 export async function stopJob(jobid: number) {
     await rclone('/job/stop', {
-        params: { query: { jobid } },
+        body: { jobid },
     })
 }

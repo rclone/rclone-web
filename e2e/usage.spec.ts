@@ -14,7 +14,7 @@ function countAboutRequests(page: Page) {
     page.on('request', (request) => {
         const url = new URL(request.url())
         if (url.pathname.endsWith('/operations/about')) {
-            fsParams.push(url.searchParams.get('fs') ?? '')
+            fsParams.push(request.postDataJSON()?.fs ?? '')
         }
     })
     return fsParams

@@ -179,7 +179,7 @@ export function SettingsPage() {
                 signal,
             })
 
-            return response.result ?? ''
+            return typeof response === 'string' ? response : (response.result ?? '')
         },
     })
 
@@ -265,9 +265,7 @@ export function SettingsPage() {
                 }
 
                 await rclone('/config/setpath', {
-                    params: {
-                        query: { path: nextConfigPath },
-                    },
+                    body: { path: nextConfigPath },
                 })
             }
 

@@ -88,7 +88,7 @@ export function RemotesPage() {
     const deleteMutation = useMutation({
         mutationFn: async (name: string) => {
             await rclone('/config/delete', {
-                params: { query: { name } },
+                body: { name },
             })
         },
         onSuccess: () => {

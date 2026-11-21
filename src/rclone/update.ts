@@ -32,7 +32,7 @@ export function updateCheckQueryOptions() {
                 body: { command: 'selfupdate', arg: ['--check'] },
             })
 
-            return parseUpdateCheck(data.result ?? '')
+            return parseUpdateCheck(typeof data === 'string' ? data : (data.result ?? ''))
         },
         staleTime: 1000 * 60 * 60,
         refetchInterval: 1000 * 60 * 60,

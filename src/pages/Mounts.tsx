@@ -62,7 +62,7 @@ export function MountsPage() {
     const unmountMutation = useMutation({
         mutationFn: async (mountPoint: string) => {
             await rclone('/mount/unmount', {
-                params: { query: { mountPoint } },
+                body: { mountPoint },
             })
         },
         onSuccess: () => {

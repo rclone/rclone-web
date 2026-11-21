@@ -258,9 +258,7 @@ export function RemotesDetailsPage() {
         queryKey: ['remote-browse', currentFs, currentPath] as const,
         queryFn: async ({ queryKey: [, qFs, qPath], signal }) => {
             const response = await rclone('/operations/list', {
-                params: {
-                    query: { fs: qFs, remote: qPath, opt: JSON.stringify({ noMimeType: true }) },
-                },
+                body: { fs: qFs, remote: qPath, opt: { noMimeType: true } },
                 signal,
             })
             const rawList = response.list ?? []
@@ -321,11 +319,11 @@ export function RemotesDetailsPage() {
         mutationFn: async ({ fs, path, isDir }: { fs: string; path: string; isDir: boolean }) => {
             if (isDir) {
                 await rclone('/operations/purge', {
-                    params: { query: { fs, remote: path } },
+                    body: { fs, remote: path },
                 })
             } else {
                 await rclone('/operations/deletefile', {
-                    params: { query: { fs, remote: path } },
+                    body: { fs, remote: path },
                 })
             }
         },
@@ -346,7 +344,7 @@ export function RemotesDetailsPage() {
     const mkdirMutation = useMutation({
         mutationFn: async ({ fs, path }: { fs: string; path: string }) => {
             await rclone('/operations/mkdir', {
-                params: { query: { fs, remote: path } },
+                body: { fs, remote: path },
             })
         },
         onSuccess: (_, { fs }) => {
@@ -376,23 +374,19 @@ export function RemotesDetailsPage() {
         }) => {
             if (isDir) {
                 await rclone('/sync/move', {
-                    params: {
-                        query: {
-                            srcFs: `${fs}${oldPath}/`,
-                            dstFs: `${fs}${newPath}/`,
-                            deleteEmptySrcDirs: true,
-                        },
+                    body: {
+                        srcFs: `${fs}${oldPath}/`,
+                        dstFs: `${fs}${newPath}/`,
+                        deleteEmptySrcDirs: true,
                     },
                 })
             } else {
                 await rclone('/operations/movefile', {
-                    params: {
-                        query: {
-                            srcFs: fs,
-                            srcRemote: oldPath,
-                            dstFs: fs,
-                            dstRemote: newPath,
-                        },
+                    body: {
+                        srcFs: fs,
+                        srcRemote: oldPath,
+                        dstFs: fs,
+                        dstRemote: newPath,
                     },
                 })
             }
@@ -508,7 +502,7 @@ export function RemotesDetailsPage() {
             } finally {
                 try {
                     await rclone('/serve/stop', {
-                        params: { query: { id: serveId } },
+                        body: { id: serveId },
                     })
                 } catch {
                     // Swallow stop errors
@@ -540,7 +534,7 @@ export function RemotesDetailsPage() {
 
             if (source.isDir) {
                 await rclone('/operations/mkdir', {
-                    params: { query: { fs: dstFs, remote: dstPath } },
+                    body: { fs: dstFs, remote: dstPath },
                 })
 
                 const syncBody = {
@@ -558,7 +552,7 @@ export function RemotesDetailsPage() {
 
                 await new Promise((resolve) => setTimeout(resolve, 1000))
                 const status = await rclone('/job/status', {
-                    params: { query: { jobid } },
+                    body: { jobid },
                 }).catch(() => null)
 
                 if (!status) throw new Error('Could not verify job status')
@@ -583,7 +577,7 @@ export function RemotesDetailsPage() {
 
             await new Promise((resolve) => setTimeout(resolve, 1000))
             const status = await rclone('/job/status', {
-                params: { query: { jobid } },
+                body: { jobid },
             }).catch(() => null)
 
             if (!status) throw new Error('Could not verify job status')

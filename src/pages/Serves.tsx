@@ -47,7 +47,7 @@ export function ServesPage() {
     const stopMutation = useMutation({
         mutationFn: async (id: string) => {
             await rclone('/serve/stop', {
-                params: { query: { id } },
+                body: { id },
             })
         },
         onSuccess: () => {

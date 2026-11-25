@@ -17,6 +17,7 @@ import {
     PencilIcon,
     SearchIcon,
     SendIcon,
+    SidebarIcon,
     TrashIcon,
     UploadIcon,
     UsbIcon,
@@ -218,6 +219,7 @@ export function RemotesDetailsPage() {
     const [searchTerm, setSearchTerm] = useState('')
     const [sidebarSearch, setSidebarSearch] = useState('')
     const [sidebarCompact, setSidebarCompact] = useState(false)
+    const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false)
     const [transferSource, setTransferSource] = useState<{
         fs: string
         path: string
@@ -832,10 +834,21 @@ export function RemotesDetailsPage() {
                 onChange={handleFileChange}
             />
 
+            {/* Mobile backdrop */}
+            {sidebarMobileOpen && (
+                <button
+                    type="button"
+                    aria-label="Close sidebar"
+                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs sm:hidden"
+                    onClick={() => setSidebarMobileOpen(false)}
+                />
+            )}
+
             <aside
                 className={cn(
-                    'relative hidden shrink-0 flex-col border-r bg-background sm:flex',
-                    sidebarCompact ? 'w-48' : 'w-72'
+                    'fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r bg-background transition-transform duration-200 sm:static sm:z-auto sm:translate-x-0',
+                    sidebarCompact ? 'w-48' : 'w-72',
+                    sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full'
                 )}
             >
                 <InputGroup className="h-10 shrink-0 rounded-none border-x-0 border-t-0 !ring-0 [&]:border-x-0 [&]:border-t-0">
@@ -875,6 +888,7 @@ export function RemotesDetailsPage() {
                                         <NavLink
                                             key={disk}
                                             to={buildLocalPathHref(disk, '')}
+                                            onClick={() => setSidebarMobileOpen(false)}
                                             className={() =>
                                                 cn(
                                                     'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -923,6 +937,7 @@ export function RemotesDetailsPage() {
                                         <NavLink
                                             key={name}
                                             to={buildRemotePathHref(name, '')}
+                                            onClick={() => setSidebarMobileOpen(false)}
                                             className={({ isActive }) =>
                                                 cn(
                                                     'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -1111,50 +1126,65 @@ export function RemotesDetailsPage() {
                     </div>
                 ) : canBrowse ? (
                     <div className="sticky top-0 z-10 border-b bg-background px-6 py-4 space-y-3">
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <Link
-                                        to={
-                                            isLocalMode
-                                                ? buildLocalPathHref(diskPath, '')
-                                                : buildRemotePathHref(remoteName, '')
-                                        }
-                                        className="inline-flex items-center transition-colors hover:text-foreground"
-                                    >
-                                        <HouseIcon className="size-3.5" />
-                                    </Link>
-                                </BreadcrumbItem>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 sm:hidden"
+                                onClick={() => setSidebarMobileOpen(true)}
+                                aria-label="Open sidebar"
+                            >
+                                <SidebarIcon className="size-4" />
+                                <span className="text-xs">
+                                    {t('remotesDetails.sidebarRemotes')}
+                                </span>
+                            </Button>
+                            <Breadcrumb className="min-w-0 flex-1">
+                                <BreadcrumbList>
+                                    <BreadcrumbItem>
+                                        <Link
+                                            to={
+                                                isLocalMode
+                                                    ? buildLocalPathHref(diskPath, '')
+                                                    : buildRemotePathHref(remoteName, '')
+                                            }
+                                            className="inline-flex items-center transition-colors hover:text-foreground"
+                                        >
+                                            <HouseIcon className="size-3.5" />
+                                        </Link>
+                                    </BreadcrumbItem>
 
-                                {breadcrumbItems.map((item, index) => (
-                                    <Fragment key={item.path}>
-                                        <BreadcrumbSeparator />
-                                        <BreadcrumbItem>
-                                            {index === breadcrumbItems.length - 1 ? (
-                                                <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                                            ) : (
-                                                <Link
-                                                    to={
-                                                        isLocalMode
-                                                            ? buildLocalPathHref(
-                                                                  diskPath,
-                                                                  item.path
-                                                              )
-                                                            : buildRemotePathHref(
-                                                                  remoteName,
-                                                                  item.path
-                                                              )
-                                                    }
-                                                    className="transition-colors hover:text-foreground"
-                                                >
-                                                    {item.label}
-                                                </Link>
-                                            )}
-                                        </BreadcrumbItem>
-                                    </Fragment>
-                                ))}
-                            </BreadcrumbList>
-                        </Breadcrumb>
+                                    {breadcrumbItems.map((item, index) => (
+                                        <Fragment key={item.path}>
+                                            <BreadcrumbSeparator />
+                                            <BreadcrumbItem>
+                                                {index === breadcrumbItems.length - 1 ? (
+                                                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                                                ) : (
+                                                    <Link
+                                                        to={
+                                                            isLocalMode
+                                                                ? buildLocalPathHref(
+                                                                      diskPath,
+                                                                      item.path
+                                                                  )
+                                                                : buildRemotePathHref(
+                                                                      remoteName,
+                                                                      item.path
+                                                                  )
+                                                        }
+                                                        className="transition-colors hover:text-foreground"
+                                                    >
+                                                        {item.label}
+                                                    </Link>
+                                                )}
+                                            </BreadcrumbItem>
+                                        </Fragment>
+                                    ))}
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        </div>
 
                         <div className="flex flex-wrap items-center gap-2">
                             <InputGroup className="min-w-0 flex-1 basis-48">
@@ -1198,7 +1228,21 @@ export function RemotesDetailsPage() {
                             </div>
                         </div>
                     </div>
-                ) : null}
+                ) : (
+                    <div className="sticky top-0 z-10 border-b bg-background px-6 py-4 sm:hidden">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => setSidebarMobileOpen(true)}
+                            aria-label="Open sidebar"
+                        >
+                            <SidebarIcon className="size-4" />
+                            <span className="text-xs">{t('remotesDetails.sidebarRemotes')}</span>
+                        </Button>
+                    </div>
+                )}
 
                 <PageContent>
                     {remoteNotFound ? (
@@ -1235,6 +1279,16 @@ export function RemotesDetailsPage() {
                                     {t('remotesDetails.chooseLocationDescription')}
                                 </EmptyDescription>
                             </EmptyHeader>
+                            <EmptyContent className="sm:hidden">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setSidebarMobileOpen(true)}
+                                >
+                                    <SidebarIcon className="size-4" />
+                                    {t('remotesDetails.sidebarRemotes')}
+                                </Button>
+                            </EmptyContent>
                         </Empty>
                     ) : listQuery.isPending ? (
                         <div className="flex items-center justify-center py-14">
@@ -1263,8 +1317,8 @@ export function RemotesDetailsPage() {
                         </div>
                     ) : (
                         <div className="mt-6">
-                            <div className="overflow-hidden rounded-xl border">
-                                <Table className="table-fixed">
+                            <div className="overflow-x-auto rounded-xl border">
+                                <Table className="min-w-[640px] table-fixed">
                                     <TableHeader className="bg-muted/40">
                                         <TableRow className="hover:bg-muted/40">
                                             <TableHead className="px-2 font-semibold text-muted-foreground uppercase">
@@ -1372,8 +1426,8 @@ export function RemotesDetailsPage() {
                                                         </TableCell>
 
                                                         <TableCell className="px-4 py-3">
-                                                            <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100">
-                                                                <div className="hidden sm:block">
+                                                            <div className="flex justify-end gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover/row:opacity-100 sm:group-focus-within/row:opacity-100">
+                                                                <div>
                                                                     <Tooltip>
                                                                         <TooltipTrigger
                                                                             render={

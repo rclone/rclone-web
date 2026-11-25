@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
     ArchiveIcon,
+    ArrowDownIcon,
+    ArrowUpDownIcon,
+    ArrowUpIcon,
     CloudIcon,
     DownloadIcon,
     FileIcon,
@@ -208,6 +211,70 @@ type ListItem = {
     IsDir: boolean
 }
 
+type SortColumn = 'name' | 'size' | 'modTime'
+type SortDirection = 'asc' | 'desc'
+type SortState = { column: SortColumn; direction: SortDirection }
+
+const DEFAULT_SORT: SortState = { column: 'name', direction: 'asc' }
+
+function getModTimeValue(modTime: string): number {
+    const time = new Date(modTime).getTime()
+    return Number.isNaN(time) ? 0 : time
+}
+
+/** Folders always come first; ties on size or date fall back to name. */
+function sortListItems(items: ListItem[], sort: SortState): ListItem[] {
+    const multiplier = sort.direction === 'asc' ? 1 : -1
+    return [...items].sort((a, b) => {
+        if (a.IsDir !== b.IsDir) return a.IsDir ? -1 : 1
+        let difference = 0
+        if (sort.column === 'size' && !a.IsDir) {
+            difference = a.Size - b.Size
+        } else if (sort.column === 'modTime') {
+            difference = getModTimeValue(a.ModTime) - getModTimeValue(b.ModTime)
+        }
+        if (difference !== 0) return difference * multiplier
+        const nameDifference = a.Name.localeCompare(b.Name)
+        return sort.column === 'name' ? nameDifference * multiplier : nameDifference
+    })
+}
+
+function SortableTableHead({
+    column,
+    label,
+    sort,
+    onSort,
+    className,
+}: {
+    column: SortColumn
+    label: string
+    sort: SortState
+    onSort: (column: SortColumn) => void
+    className?: string
+}) {
+    const isActive = sort.column === column
+    const SortIcon = !isActive
+        ? ArrowUpDownIcon
+        : sort.direction === 'asc'
+          ? ArrowUpIcon
+          : ArrowDownIcon
+    return (
+        <TableHead
+            className={className}
+            aria-sort={isActive ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+        >
+            <button
+                type="button"
+                onClick={() => onSort(column)}
+                className="inline-flex items-center gap-1 uppercase hover:text-foreground"
+            >
+                {label}
+                <SortIcon className={cn('size-3.5', !isActive && 'opacity-40')} />
+            </button>
+        </TableHead>
+    )
+}
+
 export function RemotesDetailsPage() {
     const t = useT()
     const location = useLocation()
@@ -216,6 +283,7 @@ export function RemotesDetailsPage() {
     const { remoteName = '' } = useParams()
     const [searchParams, setSearchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('')
+    const [sort, setSort] = useState<SortState>(DEFAULT_SORT)
     const [sidebarSearch, setSidebarSearch] = useState('')
     const [sidebarCompact, setSidebarCompact] = useState(false)
     const [transferSource, setTransferSource] = useState<{
@@ -262,42 +330,37 @@ export function RemotesDetailsPage() {
                 signal,
             })
             const rawList = response.list ?? []
-            return rawList
-                .map((item, index): ListItem => {
-                    const name = String(item.Name ?? '')
-                    const path = String(item.Path ?? name)
-                    const size = Number(item.Size ?? 0)
-                    const modTime = String(item.ModTime ?? '')
-                    const isDir = Boolean(item.IsDir || item.IsBucket)
-                    const id = String(item.ID ?? '')
-                    const origId = String(item.OrigID ?? '')
-                    const encryptedPath = String(item.EncryptedPath ?? '')
+            return rawList.map((item, index): ListItem => {
+                const name = String(item.Name ?? '')
+                const path = String(item.Path ?? name)
+                const size = Number(item.Size ?? 0)
+                const modTime = String(item.ModTime ?? '')
+                const isDir = Boolean(item.IsDir || item.IsBucket)
+                const id = String(item.ID ?? '')
+                const origId = String(item.OrigID ?? '')
+                const encryptedPath = String(item.EncryptedPath ?? '')
 
-                    return {
-                        rowKey: JSON.stringify([
-                            qFs,
-                            qPath,
-                            id,
-                            origId,
-                            encryptedPath,
-                            path,
-                            name,
-                            modTime,
-                            size,
-                            isDir ? 'dir' : 'file',
-                            index,
-                        ]),
-                        Name: name,
-                        Path: path,
-                        Size: size,
-                        ModTime: modTime,
-                        IsDir: isDir,
-                    }
-                })
-                .sort((a, b) => {
-                    if (a.IsDir !== b.IsDir) return a.IsDir ? -1 : 1
-                    return a.Name.localeCompare(b.Name)
-                })
+                return {
+                    rowKey: JSON.stringify([
+                        qFs,
+                        qPath,
+                        id,
+                        origId,
+                        encryptedPath,
+                        path,
+                        name,
+                        modTime,
+                        size,
+                        isDir ? 'dir' : 'file',
+                        index,
+                    ]),
+                    Name: name,
+                    Path: path,
+                    Size: size,
+                    ModTime: modTime,
+                    IsDir: isDir,
+                }
+            })
         },
         enabled: canBrowse,
     })
@@ -611,9 +674,18 @@ export function RemotesDetailsPage() {
     const items = useMemo(() => listQuery.data ?? [], [listQuery.data])
     const filteredItems = useMemo(() => {
         const q = searchTerm.trim().toLowerCase()
-        if (!q) return items
-        return items.filter((item) => item.Name.toLowerCase().includes(q))
-    }, [items, searchTerm])
+        const matching = q ? items.filter((item) => item.Name.toLowerCase().includes(q)) : items
+        return sortListItems(matching, sort)
+    }, [items, searchTerm, sort])
+
+    const handleSort = useCallback((column: SortColumn) => {
+        setSort((previous) =>
+            previous.column === column
+                ? { column, direction: previous.direction === 'asc' ? 'desc' : 'asc' }
+                : // Size and date are most useful largest/newest first.
+                  { column, direction: column === 'name' ? 'asc' : 'desc' }
+        )
+    }, [])
 
     const breadcrumbItems = useMemo(() => {
         const segments = getPathSegments(currentPath)
@@ -1267,15 +1339,27 @@ export function RemotesDetailsPage() {
                                 <Table className="table-fixed">
                                     <TableHeader className="bg-muted/40">
                                         <TableRow className="hover:bg-muted/40">
-                                            <TableHead className="px-2 font-semibold text-muted-foreground uppercase">
-                                                {t('remotesDetails.name')}
-                                            </TableHead>
-                                            <TableHead className="w-24 px-4 font-semibold text-muted-foreground uppercase">
-                                                {t('remotesDetails.size')}
-                                            </TableHead>
-                                            <TableHead className="w-36 px-4 font-semibold text-muted-foreground uppercase">
-                                                {t('remotesDetails.modified')}
-                                            </TableHead>
+                                            <SortableTableHead
+                                                column="name"
+                                                label={t('remotesDetails.name')}
+                                                sort={sort}
+                                                onSort={handleSort}
+                                                className="px-2 font-semibold text-muted-foreground uppercase"
+                                            />
+                                            <SortableTableHead
+                                                column="size"
+                                                label={t('remotesDetails.size')}
+                                                sort={sort}
+                                                onSort={handleSort}
+                                                className="w-24 px-4 font-semibold text-muted-foreground uppercase"
+                                            />
+                                            <SortableTableHead
+                                                column="modTime"
+                                                label={t('remotesDetails.modified')}
+                                                sort={sort}
+                                                onSort={handleSort}
+                                                className="w-36 px-4 font-semibold text-muted-foreground uppercase"
+                                            />
                                             <TableHead className="w-36 px-4 text-right font-semibold text-muted-foreground uppercase">
                                                 {t('common.actions')}
                                             </TableHead>

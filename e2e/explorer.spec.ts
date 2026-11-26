@@ -37,9 +37,9 @@ test.describe('sorting the file list', () => {
         root = mkdtempSync(path.join(tmpdir(), 'rclone-web-e2e-'))
         mkdirSync(path.join(root, 'folder'))
         const files = [
-            { name: 'a-middle.txt', size: 20, date: '2024-06-01T00:00:00Z' },
+            { name: 'a-middle.txt', size: 30, date: '2024-06-01T00:00:00Z' },
             { name: 'b-newest.txt', size: 10, date: '2025-01-01T00:00:00Z' },
-            { name: 'c-oldest.txt', size: 30, date: '2023-01-01T00:00:00Z' },
+            { name: 'c-oldest.txt', size: 20, date: '2023-01-01T00:00:00Z' },
         ]
         for (const file of files) {
             const filePath = path.join(root, file.name)
@@ -82,7 +82,10 @@ test.describe('sorting the file list', () => {
         await expect(names).toHaveText(['folder', 'c-oldest.txt', 'a-middle.txt', 'b-newest.txt'])
 
         await header('Size').click()
-        await expect(names).toHaveText(['folder', 'c-oldest.txt', 'a-middle.txt', 'b-newest.txt'])
+        await expect(names).toHaveText(['folder', 'a-middle.txt', 'c-oldest.txt', 'b-newest.txt'])
+
+        await header('Size').click()
+        await expect(names).toHaveText(['folder', 'b-newest.txt', 'c-oldest.txt', 'a-middle.txt'])
 
         await header('Name').click()
         await expect(names).toHaveText(['folder', 'a-middle.txt', 'b-newest.txt', 'c-oldest.txt'])

@@ -672,11 +672,12 @@ export function RemotesDetailsPage() {
         return sortedRemotes.filter((name) => name.toLowerCase().includes(q))
     }, [sortedRemotes, sidebarSearch])
     const items = useMemo(() => listQuery.data ?? [], [listQuery.data])
+    const sortedItems = useMemo(() => sortListItems(items, sort), [items, sort])
     const filteredItems = useMemo(() => {
         const q = searchTerm.trim().toLowerCase()
-        const matching = q ? items.filter((item) => item.Name.toLowerCase().includes(q)) : items
-        return sortListItems(matching, sort)
-    }, [items, searchTerm, sort])
+        if (!q) return sortedItems
+        return sortedItems.filter((item) => item.Name.toLowerCase().includes(q))
+    }, [sortedItems, searchTerm])
 
     const handleSort = useCallback((column: SortColumn) => {
         setSort((previous) =>
